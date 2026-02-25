@@ -1,0 +1,12 @@
+# Raw dataset — too large to commit (14.5MB CSV, ~13GB audio)
+data/metadata/annotations.csv
+data/metadata/*.tar.gz
+audio/
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+.venv/

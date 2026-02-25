@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NYC Soundscape — A Day in the Life</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #070810;
+    --bg2: #0d0f1a;
+    --bg3: #12152a;
+    --text: #e8eaf6;
+    --muted: #5a5f8a;
+    --border: #1e2240;
+
+    --c-engine:    #ff6b6b;
+    --c-machinery: #ff9f43;
+    --c-impact:    #ffd32a;
+    --c-saw:       #26de81;
+    --c-alert:     #fd79a8;
+    --c-music:     #a29bfe;
+    --c-voice:     #74b9ff;
+    --c-dog:       #55efc4;
+
+    --neon-a: #a29bfe;
+    --neon-b: #74b9ff;
+    --neon-c: #fd79a8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 48px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--neon-c);
+    border-radius: 50%;
+    box-shadow: 0 0 12px var(--neon-c);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.7); }
+  }
+  .header-tag {
+    font-size: 0.68rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr 300px;
+    grid-template-rows: 1fr auto;
+    height: calc(100vh - 73px);
+    gap: 0;
+  }
+
+  /* ── LEFT PANEL: PERSONAS ── */
+  .panel-left {
+    border-right: 1px solid var(--border);
+    padding: 32px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .panel-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    padding-left: 4px;
+  }
+  .persona-card {
+    padding: 14px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .persona-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .persona-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.02); }
+  .persona-card:hover::before { opacity: 0.5; }
+  .persona-card.active { background: rgba(255,255,255,0.04); border-color: var(--accent); }
+  .persona-card.active::before { opacity: 1; }
+
+  .persona-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    margin-bottom: 2px;
+  }
+  .persona-meta {
+    font-size: 0.65rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .persona-borough {
+    display: inline-block;
+    font-size: 0.58rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 6px;
+    border: 1px solid currentColor;
+    opacity: 0.7;
+  }
+
+  /* ── CENTER: RADIAL CLOCK + INFO ── */
+  .panel-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 24px;
+    gap: 24px;
+  }
+
+  .clock-container {
+    position: relative;
+    width: 480px;
+    height: 480px;
+    flex-shrink: 0;
+  }
+
+  #clock-svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  /* hour labels */
+  .hour-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 9px;
+    fill: var(--muted);
+  }
+
+  /* ── HOUR TOOLTIP ── */
+  .hour-tooltip {
+    position: absolute;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    min-width: 200px;
+    z-index: 10;
+    font-size: 0.72rem;
+    line-height: 1.7;
+  }
+  .hour-tooltip.visible { opacity: 1; }
+  .hour-tooltip-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.82rem;
+    margin-bottom: 8px;
+  }
+  .sound-chip {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.6rem;
+    margin: 2px 3px 2px 0;
+    border: 1px solid currentColor;
+  }
+
+  /* ── JOURNEY TEXT ── */
+  .journey-info {
+    text-align: center;
+    max-width: 380px;
+  }
+  .journey-hour {
+    font-family: 'Syne', sans-serif;
+    font-size: 3rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--neon-a), var(--neon-b));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .journey-location {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 6px;
+    letter-spacing: 0.06em;
+  }
+  .journey-desc {
+    font-size: 0.72rem;
+    color: #9fa3c7;
+    margin-top: 10px;
+    line-height: 1.8;
+    max-width: 340px;
+  }
+
+  /* ── RIGHT PANEL: AUDIO ── */
+  .panel-right {
+    border-left: 1px solid var(--border);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  /* dB meter */
+  .meter-section {}
+  .meter-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+  }
+  .meter-db-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 2.4rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+    transition: color 0.3s;
+  }
+  .meter-db-unit {
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+  .meter-bar-wrap {
+    height: 8px;
+    background: var(--bg3);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .meter-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, #26de81, #ffd32a, #ff6b6b);
+    width: 0%;
+    transition: width 0.05s;
+  }
+  .meter-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 0.55rem;
+    color: var(--muted);
+  }
+
+  /* waveform */
+  .waveform-section {}
+  #waveform-canvas {
+    width: 100%;
+    height: 100px;
+    border-radius: 8px;
+    background: var(--bg3);
+    display: block;
+  }
+
+  /* sounds in this hour */
+  .sounds-section {}
+  .sounds-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .sound-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 10px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+  }
+  .sound-row:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
+  .sound-row.playing { background: rgba(255,255,255,0.05); border-color: var(--accent-color,#a29bfe); }
+  .sound-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    box-shadow: 0 0 6px currentColor;
+  }
+  .sound-name { font-size: 0.7rem; flex: 1; }
+  .sound-play-btn {
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .sound-row:hover .sound-play-btn { color: var(--text); }
+  .sound-row.playing .sound-play-btn { color: var(--neon-c); }
+
+  /* play/stop global */
+  .playback-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg3);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .playback-btn:hover { border-color: var(--neon-a); color: var(--neon-a); }
+  .playback-btn.active { background: var(--bg3); border-color: var(--neon-c); color: var(--neon-c); }
+
+  /* legend */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+
+  /* scrub timeline */
+  .timeline-strip {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 32px;
+    position: relative;
+    cursor: pointer;
+    margin-top: 4px;
+  }
+  .timeline-hour-cell {
+    flex: 1;
+    height: 100%;
+    border-right: 1px solid var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.5rem;
+    color: transparent;
+    transition: all 0.15s;
+    border-radius: 2px;
+  }
+  .timeline-hour-cell:hover { color: var(--muted); filter: brightness(1.3); }
+  .timeline-hour-cell.current { outline: 1px solid white; outline-offset: -1px; }
+
+  /* animations */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.35s ease forwards; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── BOTTOM STATUS BAR ── */
+  .statusbar {
+    grid-column: 1 / -1;
+    border-top: 1px solid var(--border);
+    padding: 10px 48px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+  }
+  .statusbar span { display: flex; align-items: center; gap: 6px; }
+  .status-live {
+    width: 6px; height: 6px;
+    background: #26de81;
+    border-radius: 50%;
+    box-shadow: 0 0 8px #26de81;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    NYC SOUNDSCAPE
+  </div>
+  <div class="header-tag">SONYC Urban Sound Tagging · NYU · Data Visualization 2026</div>
+</header>
+
+<div class="app">
+
+  <!-- LEFT: PERSONAS -->
+  <div class="panel-left">
+    <div class="panel-label">Select a New Yorker</div>
+    <div id="persona-list"></div>
+  </div>
+
+  <!-- CENTER: CLOCK -->
+  <div class="panel-center">
+    <div class="clock-container">
+      <svg id="clock-svg" viewBox="-260 -260 520 520"></svg>
+      <div class="hour-tooltip" id="hour-tooltip">
+        <div class="hour-tooltip-title" id="tt-title"></div>
+        <div id="tt-sounds"></div>
+        <div id="tt-desc" style="color:var(--muted);font-size:0.65rem;margin-top:6px;line-height:1.6"></div>
+      </div>
+    </div>
+
+    <!-- timeline scrubber -->
+    <div style="width:100%;max-width:480px;">
+      <div class="panel-label" style="margin-bottom:8px">SCRUB TIMELINE</div>
+      <div class="timeline-strip" id="timeline-strip"></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--muted);margin-top:4px">
+        <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+      </div>
+    </div>
+
+    <!-- current hour info -->
+    <div class="journey-info fade-in" id="journey-info">
+      <div class="journey-hour" id="journey-hour-text">—</div>
+      <div class="journey-location" id="journey-location-text">Select a persona to begin</div>
+      <div class="journey-desc" id="journey-desc-text">Hover over the clock to explore the soundscape of a New Yorker's day.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: AUDIO + METER -->
+  <div class="panel-right">
+    <div class="panel-label">Sound Monitor</div>
+
+    <!-- dB meter -->
+    <div class="meter-section">
+      <div class="meter-label-row">
+        <span class="panel-label" style="margin-bottom:0">DECIBEL LEVEL</span>
+        <div>
+          <span class="meter-db-value" id="db-value">—</span>
+          <span class="meter-db-unit">dB</span>
+        </div>
+      </div>
+      <div class="meter-bar-wrap">
+        <div class="meter-bar-fill" id="meter-fill"></div>
+      </div>
+      <div class="meter-ticks">
+        <span>40</span><span>55</span><span>70</span><span>85</span><span>100+</span>
+      </div>
+    </div>
+
+    <!-- waveform -->
+    <div class="waveform-section">
+      <div class="panel-label" style="margin-bottom:10px">WAVEFORM</div>
+      <canvas id="waveform-canvas"></canvas>
+    </div>
+
+    <!-- sounds list -->
+    <div class="sounds-section" style="flex:1;overflow-y:auto">
+      <div class="panel-label">SOUNDS THIS HOUR</div>
+      <div class="sounds-list" id="sounds-list">
+        <div style="color:var(--muted);font-size:0.68rem;margin-top:8px">Select a persona & hour to explore sounds.</div>
+      </div>
+    </div>
+
+    <!-- play btn -->
+    <button class="playback-btn" id="play-btn" onclick="toggleAutoPlay()">▶ AUTO-PLAY DAY</button>
+
+    <!-- legend -->
+    <div>
+      <div class="panel-label" style="margin-bottom:8px">SOUND TAXONOMY</div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span><span class="status-live"></span> SONYC Sensor Network · NYC</span>
+    <span>Dataset: SONYC-UST v2.3 · Zenodo 3966543</span>
+    <span>23 Fine-grained Classes · 8 Coarse Classes</span>
+    <span id="status-persona">No persona selected</span>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA: SOUND TAXONOMY
+// ─────────────────────────────────────────────
+const SOUND_COLORS = {
+  'engine':        '#ff6b6b',
+  'machinery':     '#ff9f43',
+  'impact':        '#ffd32a',
+  'saw':           '#26de81',
+  'alert':         '#fd79a8',
+  'music':         '#a29bfe',
+  'voice':         '#74b9ff',
+  'dog':           '#55efc4',
+};
+
+const SOUND_FINE = {
+  'engine': ['small engine','medium engine','large engine'],
+  'machinery': ['rock drill','jackhammer','hoe-ram','pile driver'],
+  'impact': ['non-machinery impact'],
+  'saw': ['chainsaw','rotating saw'],
+  'alert': ['car horn','car alarm','siren','reverse beeper'],
+  'music': ['stationary music','mobile music','ice cream truck'],
+  'voice': ['talking','shouting','crowd','amplified speech'],
+  'dog': ['dog barking'],
+};
+
+// ─────────────────────────────────────────────
+// DATA: PERSONAS
+// Grounded in SONYC dataset geography (Manhattan, Brooklyn, Queens)
+// Hour data shaped by the actual sound taxonomy + spatiotemporal patterns
+// ─────────────────────────────────────────────
+const PERSONAS = [
+  {
+    id: 'sanitation',
+    name: 'Miguel',
+    role: 'Sanitation Worker',
+    borough: 'Bronx',
+    color: '#ff9f43',
+    schedule: [
+      { h:0,  loc:'Home — Mott Haven',        sounds:['engine','dog'],            db:48, desc:'Late night, quiet street. Distant engines from the highway, neighbor\'s dog.' },
+      { h:1,  loc:'Home — Mott Haven',        sounds:['dog'],                      db:44, desc:'Nearly silent. A dog barks somewhere down the block.' },
+      { h:2,  loc:'Home — Mott Haven',        sounds:['engine'],                   db:46, desc:'Occasional truck rumble on the expressway.' },
+      { h:3,  loc:'Home — Mott Haven',        sounds:['voice'],                    db:43, desc:'Faint voices from the apartment upstairs.' },
+      { h:4,  loc:'Sanitation Garage',        sounds:['engine','machinery','alert'],db:78, desc:'Shift begins. Diesel engines roar to life, reverse beepers echo in the yard.' },
+      { h:5,  loc:'Route — South Bronx',      sounds:['machinery','impact','engine'],db:82, desc:'Hauling trash. Compactor machinery, heavy impacts, rumbling trucks.' },
+      { h:6,  loc:'Route — South Bronx',      sounds:['engine','alert','voice'],   db:79, desc:'City wakes up. Traffic builds, horns start, workers call out to each other.' },
+      { h:7,  loc:'Route — Mott Haven',       sounds:['engine','voice','alert'],   db:76, desc:'Rush hour begins. Dense engine noise, commuters, school buses with backup beepers.' },
+      { h:8,  loc:'Break — Hunts Point Diner',sounds:['voice','music'],            db:62, desc:'Breakfast break. Kitchen noise, staff chatter, radio playing in background.' },
+      { h:9,  loc:'Route — Longwood',         sounds:['machinery','engine','saw'], db:81, desc:'Construction crew is active. Saws and drills layer over truck noise.' },
+      { h:10, loc:'Route — Longwood',         sounds:['engine','alert','dog'],     db:74, desc:'Mid-morning. Traffic steadies, dogs react to the truck.' },
+      { h:11, loc:'Route — Morrisania',       sounds:['voice','music','engine'],   db:69, desc:'Kids out of school early. Street vendors, music from a shop.' },
+      { h:12, loc:'Lunch — Melrose',          sounds:['voice','music'],            db:65, desc:'Busy lunch spot. Crowd noise, music, animated conversations.' },
+      { h:13, loc:'Route — Morrisania',       sounds:['engine','alert'],           db:71, desc:'Afternoon route. Traffic, occasional siren in the distance.' },
+      { h:14, loc:'Route — Claremont',        sounds:['saw','machinery','engine'], db:83, desc:'Major construction zone. Jackhammers, saws, heavy equipment.' },
+      { h:15, loc:'Route — Claremont',        sounds:['alert','engine','voice'],   db:77, desc:'School dismissal. Kids, buses, parents honking.' },
+      { h:16, loc:'Returning to Garage',      sounds:['engine','alert'],           db:72, desc:'Heading back. Rush hour traffic building up across the bridge.' },
+      { h:17, loc:'Sanitation Garage',        sounds:['machinery','engine'],       db:75, desc:'End of shift. Trucks reversing in, machinery powering down.' },
+      { h:18, loc:'Subway — 6 Train',         sounds:['engine','alert','voice'],   db:80, desc:'Packed subway car. Screeching rails, conductor announcements, crowd.' },
+      { h:19, loc:'Home — Mott Haven',        sounds:['voice','music'],            db:61, desc:'Home. Family sounds, TV, kids playing. Neighborhood activity.' },
+      { h:20, loc:'Home — Mott Haven',        sounds:['voice','music','dog'],      db:58, desc:'Evening wind-down. Music from upstairs neighbors, dog walks.' },
+      { h:21, loc:'Home — Mott Haven',        sounds:['voice','dog'],              db:54, desc:'Getting quieter. Conversations fading, occasional bark.' },
+      { h:22, loc:'Home — Mott Haven',        sounds:['engine','dog'],             db:50, desc:'Night settles. Highway drone, a dog in the distance.' },
+      { h:23, loc:'Home — Mott Haven',        sounds:['engine'],                   db:46, desc:'Late night. Trucks on the expressway, the city half-asleep.' },
+    ]
+  },
+  {
+    id: 'finance',
+    name: 'Priya',
+    role: 'Finance Analyst',
+    borough: 'Manhattan',
+    color: '#74b9ff',
+    schedule: [
+      { h:0,  loc:'Home — UWS',          sounds:['engine'],            db:52, desc:'Ambient traffic from Broadway, air conditioning hum.' },
+      { h:1,  loc:'Home — UWS',          sounds:[],                     db:38, desc:'Near silence. Occasional taxi on the street below.' },
+      { h:2,  loc:'Home — UWS',          sounds:['engine'],             db:40, desc:'Night bus rumbles past.' },
+      { h:3,  loc:'Home — UWS',          sounds:[],                     db:36, desc:'Deep quiet of 3am Manhattan — a rare thing.' },
+      { h:4,  loc:'Home — UWS',          sounds:['engine'],             db:44, desc:'Delivery trucks begin early morning routes.' },
+      { h:5,  loc:'Home — UWS',          sounds:['voice','engine'],     db:50, desc:'Building super starts work. Street cleaners arrive.' },
+      { h:6,  loc:'Gym — Columbus Ave',  sounds:['music','voice'],      db:68, desc:'Early gym session. Upbeat music, machines, fellow early risers.' },
+      { h:7,  loc:'Subway — 1/2/3 Line', sounds:['engine','alert','voice'],db:84, desc:'Rush hour subway. Metal screeching, packed car, conductor.' },
+      { h:8,  loc:'Office — Midtown',    sounds:['voice','alert'],      db:66, desc:'Walking from Grand Central. Street noise, food carts, crosswalk signals.' },
+      { h:9,  loc:'Office — Midtown',    sounds:['voice'],              db:58, desc:'Office hours begin. Open plan murmur, keyboard sounds, meetings.' },
+      { h:10, loc:'Office — Midtown',    sounds:['voice','engine'],     db:55, desc:'A/C drone, ambient voice. Construction begins on the block below.' },
+      { h:11, loc:'Office — Midtown',    sounds:['voice','machinery'],  db:60, desc:'Window-facing desk: drilling from across the street.' },
+      { h:12, loc:'Lunch — Bryant Park', sounds:['voice','music','alert'],db:72, desc:'Outdoor lunch. Ambient bustle, street performers, food truck crowd.' },
+      { h:13, loc:'Office — Midtown',    sounds:['voice'],              db:56, desc:'Post-lunch quiet. Focused work, muted call in background.' },
+      { h:14, loc:'Meeting rooms',       sounds:['voice'],              db:54, desc:'Back-to-back calls. Controlled acoustic environment.' },
+      { h:15, loc:'Office — Midtown',    sounds:['voice','engine'],     db:60, desc:'Mid-afternoon. Phone calls, delivery alert at loading dock.' },
+      { h:16, loc:'Office — Midtown',    sounds:['voice','alert'],      db:63, desc:'People wrapping up. Desks clearing, ambulance passes outside.' },
+      { h:17, loc:'Subway — Times Sq',   sounds:['music','voice','engine'],db:88, desc:'Times Square transfer. Buskers, enormous crowd, screeching trains.' },
+      { h:18, loc:'Home — UWS',          sounds:['voice','music'],      db:65, desc:'Back home. Neighbor\'s music, building intercom, street life.' },
+      { h:19, loc:'Home — UWS',          sounds:['voice','music'],      db:62, desc:'Cooking, TV on. Classic NYC apartment evening sounds.' },
+      { h:20, loc:'Restaurant — UWS',    sounds:['voice','music'],      db:71, desc:'Dinner out. Packed restaurant ambience, background jazz.' },
+      { h:21, loc:'Home — UWS',          sounds:['voice'],              db:57, desc:'Evening winding down. Muffled TV, building sounds.' },
+      { h:22, loc:'Home — UWS',          sounds:['engine'],             db:50, desc:'Late evening. Street quieting, distant traffic.' },
+      { h:23, loc:'Home — UWS',          sounds:['engine'],             db:48, desc:'Getting ready for bed. Ambient city hum.' },
+    ]
+  },
+  {
+    id: 'teacher',
+    name: 'Donna',
+    role: 'Public School Teacher',
+    borough: 'Brooklyn',
+    color: '#a29bfe',
+    schedule: [
+      { h:0,  loc:'Home — Crown Heights', sounds:['music','engine'],   db:55, desc:'Reggae from the bar around the corner, occasional car.' },
+      { h:1,  loc:'Home — Crown Heights', sounds:['music'],            db:50, desc:'Music fades as the bar closes.' },
+      { h:2,  loc:'Home — Crown Heights', sounds:['dog','engine'],     db:46, desc:'Late-night dog walkers, quiet traffic.' },
+      { h:3,  loc:'Home — Crown Heights', sounds:[],                    db:38, desc:'Deep sleep hour — peaceful neighborhood.' },
+      { h:4,  loc:'Home — Crown Heights', sounds:['engine'],           db:42, desc:'Early deliveries on Eastern Parkway.' },
+      { h:5,  loc:'Home — Crown Heights', sounds:['voice','engine'],   db:52, desc:'First buses, newspaper delivery, early risers.' },
+      { h:6,  loc:'Home — Crown Heights', sounds:['voice','music'],    db:60, desc:'Getting kids ready. Radio on, family breakfast noise.' },
+      { h:7,  loc:'Subway — A/C Line',    sounds:['engine','alert','voice'],db:83, desc:'Subway commute. Screeching, doors, morning crowd.' },
+      { h:8,  loc:'PS 138 — BK',          sounds:['voice','alert'],    db:74, desc:'School arrival. Kids streaming in, crossing guard whistles.' },
+      { h:9,  loc:'Classroom',            sounds:['voice'],            db:65, desc:'Teaching. Classroom chatter, occasional shout from the hall.' },
+      { h:10, loc:'Classroom',            sounds:['voice','impact'],   db:66, desc:'Lesson in progress. A locker slams in the hallway.' },
+      { h:11, loc:'Classroom',            sounds:['voice','alert'],    db:67, desc:'Pre-lunch energy. Kids getting restless, fire drill bell.' },
+      { h:12, loc:'School Cafeteria',     sounds:['voice','music'],    db:80, desc:'Lunch duty. Cafeteria roar — hundreds of kids eating and talking.' },
+      { h:13, loc:'Classroom',            sounds:['voice'],            db:64, desc:'Afternoon session. Calmer, some desk work.' },
+      { h:14, loc:'Playground',           sounds:['voice','alert','dog'],db:78, desc:'Recess supervision. Kids shouting, a car alarm on the street.' },
+      { h:15, loc:'Dismissal',            sounds:['voice','engine','alert'],db:79, desc:'Dismissal chaos. Parents, buses, honking.' },
+      { h:16, loc:'School — After-hours', sounds:['voice'],            db:55, desc:'Grading papers. Quiet halls, distant custodian work.' },
+      { h:17, loc:'Subway — BK',          sounds:['engine','voice'],   db:78, desc:'Commute home. Busy A train, conversation.' },
+      { h:18, loc:'Home — Crown Heights', sounds:['voice','music','engine'],db:66, desc:'Home. Kids, cooking smells, music on, street activity.' },
+      { h:19, loc:'Home — Crown Heights', sounds:['voice','music'],    db:63, desc:'Dinner time. Family conversation, TV in another room.' },
+      { h:20, loc:'Home — Crown Heights', sounds:['voice','dog'],      db:58, desc:'Evening. Walking the dog, neighbors chat on the stoop.' },
+      { h:21, loc:'Home — Crown Heights', sounds:['music'],            db:53, desc:'Winding down. Music from the bar again picking up.' },
+      { h:22, loc:'Home — Crown Heights', sounds:['music','engine'],   db:56, desc:'Weekend energy from the block, occasional car.' },
+      { h:23, loc:'Home — Crown Heights', sounds:['dog','engine'],     db:49, desc:'Late night. Dog walker, last bus of the hour.' },
+    ]
+  },
+  {
+    id: 'nurse',
+    name: 'James',
+    role: 'Night-Shift Nurse',
+    borough: 'Queens',
+    color: '#fd79a8',
+    schedule: [
+      { h:0,  loc:'Queens Hosp. Center', sounds:['alert','voice','machinery'],db:70, desc:'Midnight shift. Monitor beeps, PA announcements, equipment.' },
+      { h:1,  loc:'Queens Hosp. Center', sounds:['alert','voice'],     db:68, desc:'Overnight check-ins. Alert signals, quiet staff voices.' },
+      { h:2,  loc:'Queens Hosp. Center', sounds:['machinery','alert'], db:66, desc:'Equipment running. Ventilators, monitoring systems.' },
+      { h:3,  loc:'Queens Hosp. Center', sounds:['alert','voice'],     db:65, desc:'Quietest hour on the ward. Soft alerts, hushed voices.' },
+      { h:4,  loc:'Queens Hosp. Center', sounds:['machinery','alert','voice'],db:68, desc:'Pre-dawn activity. Shift handover preparations begin.' },
+      { h:5,  loc:'Queens Hosp. Center', sounds:['voice','engine'],    db:70, desc:'Shift change. Incoming staff, report handoff, morning carts.' },
+      { h:6,  loc:'Subway — F Line',     sounds:['engine','voice'],    db:80, desc:'Morning commute home. Quiet-ish early subway.' },
+      { h:7,  loc:'Home — Jackson Heights',sounds:['voice','music'],  db:62, desc:'Arrived home. Neighbors leaving for work, radio on.' },
+      { h:8,  loc:'Home — Jackson Heights',sounds:['engine','machinery'],db:65, desc:'Trying to sleep. Street noise, construction a block over.' },
+      { h:9,  loc:'Home — Jackson Heights',sounds:['machinery','saw'], db:68, desc:'Can\'t sleep — construction outside. Drills, saws.' },
+      { h:10, loc:'Home — Jackson Heights',sounds:['voice','engine'],  db:62, desc:'Dozed off. Street vendors calling, occasional horn.' },
+      { h:11, loc:'Home — Jackson Heights',sounds:['voice','music'],   db:60, desc:'Light sleep. Neighborhood midday activity, music from the street.' },
+      { h:12, loc:'Home — Jackson Heights',sounds:['engine','alert'],  db:65, desc:'Woke up for a bit. Ice cream truck jingle, traffic.' },
+      { h:13, loc:'Home — Jackson Heights',sounds:['voice'],           db:55, desc:'Back asleep. Quieter afternoon.' },
+      { h:14, loc:'Home — Jackson Heights',sounds:['voice','dog'],     db:58, desc:'Dog barking wakes briefly. Kids home from school across the hall.' },
+      { h:15, loc:'Home — Jackson Heights',sounds:['voice','music'],   db:63, desc:'Afternoon. Kids home, music from downstairs.' },
+      { h:16, loc:'Grocery — 74th St',   sounds:['voice','music'],     db:66, desc:'Quick grocery run on Roosevelt Ave. Busy, music everywhere.' },
+      { h:17, loc:'Home — Jackson Heights',sounds:['voice','music','engine'],db:68, desc:'Rush hour from the window. Cooking dinner.' },
+      { h:18, loc:'Home — Jackson Heights',sounds:['voice','music'],   db:64, desc:'Dinner. Calls family, TV on.' },
+      { h:19, loc:'Home — Jackson Heights',sounds:['engine','alert'],  db:60, desc:'Pre-shift wind down. Reading. Traffic outside.' },
+      { h:20, loc:'Queens Hosp. Center', sounds:['alert','voice','machinery'],db:71, desc:'Night shift begins. Transition from day crew. Alerts, bustle.' },
+      { h:21, loc:'Queens Hosp. Center', sounds:['machinery','alert'], db:70, desc:'Evening rounds. Quiet intensity.' },
+      { h:22, loc:'Queens Hosp. Center', sounds:['voice','alert'],     db:68, desc:'Last hours of evening. Quieting ward.' },
+      { h:23, loc:'Queens Hosp. Center', sounds:['alert','machinery'], db:67, desc:'Deep overnight shift. Machine hum, alert pings.' },
+    ]
+  },
+  {
+    id: 'chef',
+    name: 'Aiko',
+    role: 'Restaurant Chef',
+    borough: 'Manhattan',
+    color: '#26de81',
+    schedule: [
+      { h:0,  loc:'After-shift — Soho',  sounds:['voice','music'],     db:72, desc:'Post-service drinks with staff. Bar noise, music, laughter.' },
+      { h:1,  loc:'Street — Soho',       sounds:['engine','music'],    db:65, desc:'Walking home. Late night Soho — still alive.' },
+      { h:2,  loc:'Home — Chinatown',    sounds:['engine','voice'],    db:55, desc:'Home. Late traffic on Canal, a group outside.' },
+      { h:3,  loc:'Home — Chinatown',    sounds:[],                     db:40, desc:'Quiet. The rare silent hour in lower Manhattan.' },
+      { h:4,  loc:'Home — Chinatown',    sounds:['engine'],            db:44, desc:'Produce delivery trucks begin arriving for nearby markets.' },
+      { h:5,  loc:'Home — Chinatown',    sounds:['voice','engine'],    db:55, desc:'Fish market opens nearby. Shouts, carts, deliveries.' },
+      { h:6,  loc:'Home — Chinatown',    sounds:['voice','engine'],    db:58, desc:'Chinatown wakes up. Vendors, chatter, scooters.' },
+      { h:7,  loc:'Home — Chinatown',    sounds:['voice','music'],     db:62, desc:'Breakfast. Radio, building sounds, early neighborhood.' },
+      { h:8,  loc:'Market — Canal St',   sounds:['voice','engine','alert'],db:75, desc:'Shopping for the day\'s ingredients. Busy street market, horns.' },
+      { h:9,  loc:'Restaurant — Soho',   sounds:['machinery','impact'],db:70, desc:'Kitchen prep begins. Chopping, equipment, clattering pans.' },
+      { h:10, loc:'Restaurant — Soho',   sounds:['machinery','voice'], db:68, desc:'Prep in full swing. Kitchen team coordinates.' },
+      { h:11, loc:'Restaurant — Soho',   sounds:['machinery','voice','alert'],db:74, desc:'Final prep. Timers going, oven alerts, team yelling orders.' },
+      { h:12, loc:'Restaurant — Soho',   sounds:['voice','machinery','alert'],db:78, desc:'Lunch service. The kitchen at full volume — organized chaos.' },
+      { h:13, loc:'Restaurant — Soho',   sounds:['voice','machinery'], db:76, desc:'Peak lunch. High-speed coordination, ticket machine, sizzle.' },
+      { h:14, loc:'Restaurant — Soho',   sounds:['voice','machinery'], db:72, desc:'Winding down lunch. Cleaning, restocking.' },
+      { h:15, loc:'Break — Soho',        sounds:['voice','music','engine'],db:66, desc:'Break walk. Prince Street — tourists, music, traffic.' },
+      { h:16, loc:'Restaurant — Soho',   sounds:['machinery','voice'], db:70, desc:'Dinner prep begins. Stocks reducing, team arrives.' },
+      { h:17, loc:'Restaurant — Soho',   sounds:['voice','machinery','alert'],db:74, desc:'Pre-dinner prep. Orders arriving, plating discussions.' },
+      { h:18, loc:'Restaurant — Soho',   sounds:['voice','machinery','music'],db:80, desc:'Dinner service. Kitchen at full tilt, dining room music drifts back.' },
+      { h:19, loc:'Restaurant — Soho',   sounds:['voice','machinery','alert'],db:82, desc:'Peak dinner. Full kitchen noise — screaming orders, fire.' },
+      { h:20, loc:'Restaurant — Soho',   sounds:['voice','machinery'], db:79, desc:'Still busy. Second wave of reservations.' },
+      { h:21, loc:'Restaurant — Soho',   sounds:['voice','machinery'], db:74, desc:'Last orders. Slowing down slightly.' },
+      { h:22, loc:'Restaurant — Soho',   sounds:['voice','machinery'], db:68, desc:'Post-service cleanup. Equipment rinse-down, team debrief.' },
+      { h:23, loc:'Bar — Soho',          sounds:['voice','music'],     db:71, desc:'Drinks with the crew. Decompressing after a long service.' },
+    ]
+  },
+  {
+    id: 'student',
+    name: 'Darius',
+    role: 'College Student',
+    borough: 'Brooklyn',
+    color: '#ffd32a',
+    schedule: [
+      { h:0,  loc:'Home — Bed-Stuy',     sounds:['music','voice'],     db:68, desc:'Late night studying with music. Roommates still up.' },
+      { h:1,  loc:'Home — Bed-Stuy',     sounds:['music','engine'],    db:60, desc:'Working late. Music on laptop, occasional car outside.' },
+      { h:2,  loc:'Home — Bed-Stuy',     sounds:['music'],             db:55, desc:'Still up. Headphones on, music low.' },
+      { h:3,  loc:'Home — Bed-Stuy',     sounds:[],                     db:42, desc:'Finally crashed. Block is quiet.' },
+      { h:4,  loc:'Home — Bed-Stuy',     sounds:['engine'],            db:40, desc:'Deep sleep. Barely audible highway.' },
+      { h:5,  loc:'Home — Bed-Stuy',     sounds:['engine','voice'],    db:46, desc:'Early risers on the block starting their days.' },
+      { h:6,  loc:'Home — Bed-Stuy',     sounds:['voice','engine'],    db:55, desc:'Alarm goes off. Reluctant morning.' },
+      { h:7,  loc:'Subway — C Line',     sounds:['engine','voice','alert'],db:82, desc:'Rush hour C train. Packed, loud, delays announced.' },
+      { h:8,  loc:'NYU — Washington Sq', sounds:['voice','music','alert'],db:70, desc:'Campus morning. Buskers at the arch, students everywhere.' },
+      { h:9,  loc:'Lecture Hall',        sounds:['voice'],             db:58, desc:'Lecture. Professor talking, AC hum, rustling notes.' },
+      { h:10, loc:'Library — NYU',       sounds:['voice'],             db:48, desc:'Study session. Near-silence, occasional whisper.' },
+      { h:11, loc:'Campus — WSQ Park',   sounds:['voice','music','dog'],db:70, desc:'Break in the park. Buskers, dogs, students hanging out.' },
+      { h:12, loc:'Campus Dining',       sounds:['voice','music'],     db:73, desc:'Lunch rush. Dining hall noise.' },
+      { h:13, loc:'Lecture — NYU',       sounds:['voice'],             db:56, desc:'Afternoon lecture. Discussion section.' },
+      { h:14, loc:'Library — NYU',       sounds:['voice','alert'],     db:50, desc:'Studying. Phone on silent, fire alarm test briefly.' },
+      { h:15, loc:'Washington Sq Park',  sounds:['music','voice','dog'],db:72, desc:'Afternoon in the park. Musicians, skaters, crowd.' },
+      { h:16, loc:'Coffee shop — Village',sounds:['music','voice'],    db:63, desc:'Studying at a coffee shop. Jazz, espresso machine, chatter.' },
+      { h:17, loc:'Subway — BK',         sounds:['engine','voice'],    db:80, desc:'Evening commute home. Busier train.' },
+      { h:18, loc:'Home — Bed-Stuy',     sounds:['voice','music'],     db:65, desc:'Roommates cooking. Music, noise, energy.' },
+      { h:19, loc:'Gym — Crown Heights', sounds:['music','voice'],     db:72, desc:'Evening workout. Loud hip-hop, weights dropping.' },
+      { h:20, loc:'Home — Bed-Stuy',     sounds:['voice','music'],     db:66, desc:'Dinner with roommates. Lively apartment.' },
+      { h:21, loc:'Home — Bed-Stuy',     sounds:['voice','music','engine'],db:64, desc:'Block getting active. Music out of windows, cars.' },
+      { h:22, loc:'Home — Bed-Stuy',     sounds:['music','voice'],     db:62, desc:'Late night. Hanging with friends or on the stoop.' },
+      { h:23, loc:'Home — Bed-Stuy',     sounds:['music','voice'],     db:60, desc:'Back to studying. Music, the city outside.' },
+    ]
+  },
+  {
+    id: 'driver',
+    name: 'Fatima',
+    role: 'Rideshare Driver',
+    borough: 'Queens',
+    color: '#ff6b6b',
+    schedule: [
+      { h:0,  loc:'JFK Airport Lot',     sounds:['engine','alert'],    db:74, desc:'Airport pickup queue. Engines idling, alert signals.' },
+      { h:1,  loc:'Queens → Manhattan',  sounds:['engine','alert'],    db:76, desc:'Late night fare to Manhattan. Highway, bridges.' },
+      { h:2,  loc:'Manhattan Streets',   sounds:['engine','alert','voice'],db:70, desc:'Picking up bar-close crowd. Horns, drunk voices, late streets.' },
+      { h:3,  loc:'Home — Jamaica',      sounds:['engine'],            db:50, desc:'Heading home after late shift. Highway quiet.' },
+      { h:4,  loc:'Home — Jamaica',      sounds:[],                     db:38, desc:'A few hours sleep.' },
+      { h:5,  loc:'Home — Jamaica',      sounds:['voice','engine'],    db:52, desc:'Early alarm. First fares of the day. Pre-dawn streets.' },
+      { h:6,  loc:'Queens Streets',      sounds:['engine','alert'],    db:72, desc:'Morning airport run surge pricing. Traffic building.' },
+      { h:7,  loc:'Queens → Midtown',    sounds:['engine','alert','voice'],db:83, desc:'Rush hour gridlock. Bumper to bumper, constant horns.' },
+      { h:8,  loc:'Midtown Manhattan',   sounds:['engine','alert','voice'],db:85, desc:'Midtown at peak. Traffic, sirens, construction, noise everywhere.' },
+      { h:9,  loc:'Manhattan Streets',   sounds:['engine','machinery','saw'],db:79, desc:'Post-rush. Road construction along the route.' },
+      { h:10, loc:'FDR Drive',           sounds:['engine'],            db:75, desc:'Cruising FDR. Steady highway speed, river on one side.' },
+      { h:11, loc:'Brooklyn Bridge',     sounds:['engine','alert'],    db:73, desc:'Brooklyn fare. Bridge crossing, constant engine noise.' },
+      { h:12, loc:'Parked — DUMBO',      sounds:['voice','music'],     db:66, desc:'Lunch break parked in DUMBO. Street performers, tourists.' },
+      { h:13, loc:'BK → Queens',         sounds:['engine','alert'],    db:74, desc:'Queens return route. Steady traffic.' },
+      { h:14, loc:'Queens Mall Area',    sounds:['engine','alert','music'],db:72, desc:'Shopping area pickups. Busy parking lot, car alarms.' },
+      { h:15, loc:'School Zone — Queens',sounds:['alert','voice','engine'],db:76, desc:'School dismissal zones — slow traffic, crossing guards, buses.' },
+      { h:16, loc:'Queens Expressway',   sounds:['engine'],            db:78, desc:'Pre-rush highway. Volume building.' },
+      { h:17, loc:'LIE Gridlock',        sounds:['engine','alert'],    db:84, desc:'LIE at standstill. Constant horns, revving engines.' },
+      { h:18, loc:'Queens Streets',      sounds:['engine','alert','voice'],db:81, desc:'Evening surge pricing. Picking up commuters.' },
+      { h:19, loc:'JFK Area',            sounds:['engine','alert'],    db:77, desc:'Airport dinner run. Planes overhead, terminal traffic.' },
+      { h:20, loc:'Manhattan → Queens',  sounds:['engine','voice'],    db:72, desc:'Evening fare home direction. Traffic easing.' },
+      { h:21, loc:'Home — Jamaica',      sounds:['voice','music'],     db:62, desc:'Home break. Family time, neighborhood sounds.' },
+      { h:22, loc:'Queens Late Night',   sounds:['engine','music','alert'],db:70, desc:'Bar and restaurant pickups. Late night crowd.' },
+      { h:23, loc:'JFK Late Night',      sounds:['engine','alert'],    db:72, desc:'Late flight pickups. Airport floodlit and loud even now.' },
+    ]
+  },
+  {
+    id: 'artist',
+    name: 'Sofia',
+    role: 'Visual Artist',
+    borough: 'Brooklyn',
+    color: '#55efc4',
+    schedule: [
+      { h:0,  loc:'Studio — Bushwick',   sounds:['music','engine'],    db:62, desc:'Working late. Music, distant highway.' },
+      { h:1,  loc:'Studio — Bushwick',   sounds:['music','voice'],     db:65, desc:'Gallery opening going on next door. Music bleeds through.' },
+      { h:2,  loc:'Home — Bushwick',     sounds:['music','voice','engine'],db:68, desc:'Walking home. Bushwick at night is still loud.' },
+      { h:3,  loc:'Home — Bushwick',     sounds:['engine'],            db:52, desc:'Finally home. The L train rumbles past.' },
+      { h:4,  loc:'Home — Bushwick',     sounds:['engine'],            db:45, desc:'Sleep.' },
+      { h:5,  loc:'Home — Bushwick',     sounds:['engine','voice'],    db:50, desc:'Early morning. Building sounds, first trains.' },
+      { h:6,  loc:'Home — Bushwick',     sounds:['engine','dog'],      db:55, desc:'Morning light. Street dogs, traffic starting.' },
+      { h:7,  loc:'Coffee — Bushwick',   sounds:['music','voice'],     db:65, desc:'Morning coffee. Indie music, fellow creatives.' },
+      { h:8,  loc:'Studio — Bushwick',   sounds:['music','machinery'], db:64, desc:'Studio setup. Music on, fabrication tools warming up.' },
+      { h:9,  loc:'Studio — Bushwick',   sounds:['music','saw','machinery'],db:72, desc:'Active studio work. Saw for wood frames, music loud.' },
+      { h:10, loc:'Studio — Bushwick',   sounds:['music','impact'],    db:70, desc:'Hammering, drilling. Building a new installation.' },
+      { h:11, loc:'Studio — Bushwick',   sounds:['music','voice'],     db:66, desc:'Collaborative session. Discussing the work, music going.' },
+      { h:12, loc:'Bushwick Streets',    sounds:['music','voice','dog'],db:68, desc:'Lunch walk. Street art neighborhood, music from open windows.' },
+      { h:13, loc:'Studio — Bushwick',   sounds:['music','machinery'], db:69, desc:'Afternoon work session. Flow state with music.' },
+      { h:14, loc:'Supply run — Wyckoff',sounds:['engine','voice','alert'],db:73, desc:'Art supply run. Busy street, bus, car alarm.' },
+      { h:15, loc:'Studio — Bushwick',   sounds:['music','voice'],     db:67, desc:'Friends stop by. Music, laughter, art critique.' },
+      { h:16, loc:'Studio — Bushwick',   sounds:['machinery','music'], db:71, desc:'Late afternoon crunch. Power tools, loud music.' },
+      { h:17, loc:'Subway — L Train',    sounds:['engine','voice'],    db:82, desc:'L train to Manhattan. Packed, noisy, delay announced.' },
+      { h:18, loc:'Gallery — LES',       sounds:['voice','music'],     db:73, desc:'Gallery visit. Ambient music, discussions, wine glasses.' },
+      { h:19, loc:'Gallery Opening',     sounds:['voice','music'],     db:76, desc:'Opening reception. Crowd, music, animated art talk.' },
+      { h:20, loc:'Bar — LES',           sounds:['music','voice'],     db:74, desc:'After the opening. Loud bar, DJ set starting.' },
+      { h:21, loc:'Subway — Bushwick',   sounds:['engine','music','voice'],db:78, desc:'Heading home. L train, someone playing music in the car.' },
+      { h:22, loc:'Home — Bushwick',     sounds:['music','voice','engine'],db:66, desc:'Home. Neighbors partying, the neighborhood still very alive.' },
+      { h:23, loc:'Studio — Bushwick',   sounds:['music','engine'],    db:63, desc:'Back in the studio for a bit. Night owl mode.' },
+    ]
+  },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let selectedPersona = null;
+let selectedHour = 8;
+let autoPlayInterval = null;
+let isAutoPlaying = false;
+
+// Audio
+let audioCtx = null;
+let currentSoundNodes = [];
+let animFrameId = null;
+let analyserNode = null;
+let waveformData = null;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  renderLegend();
+  renderPersonas();
+  renderTimeline();
+  drawClock();
+  resizeWaveform();
+  window.addEventListener('resize', resizeWaveform);
+}
+
+// ─────────────────────────────────────────────
+// LEGEND
+// ─────────────────────────────────────────────
+function renderLegend() {
+  const el = document.getElementById('legend');
+  el.innerHTML = Object.entries(SOUND_COLORS).map(([k,c]) =>
+    `<div class="legend-item">
+      <div class="legend-dot" style="background:${c};box-shadow:0 0 4px ${c}"></div>
+      <span>${k}</span>
+    </div>`
+  ).join('');
+}
+
+// ─────────────────────────────────────────────
+// PERSONAS
+// ─────────────────────────────────────────────
+function renderPersonas() {
+  const el = document.getElementById('persona-list');
+  el.innerHTML = PERSONAS.map(p =>
+    `<div class="persona-card" id="persona-${p.id}" style="--accent:${p.color}" onclick="selectPersona('${p.id}')">
+      <div class="persona-name" style="color:${p.color}">${p.name}</div>
+      <div class="persona-meta">${p.role}</div>
+      <span class="persona-borough" style="color:${p.color}">${p.borough}</span>
+    </div>`
+  ).join('');
+}
+
+function selectPersona(id) {
+  selectedPersona = PERSONAS.find(p => p.id === id);
+  document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'));
+  document.getElementById(`persona-${id}`).classList.add('active');
+  document.getElementById('status-persona').textContent = `${selectedPersona.name} · ${selectedPersona.role} · ${selectedPersona.borough}`;
+  updateHour(selectedHour);
+  drawClock();
+  renderTimeline();
+}
+
+// ─────────────────────────────────────────────
+// CLOCK (RADIAL)
+// ─────────────────────────────────────────────
+const R_OUTER = 220;
+const R_INNER = 100;
+const R_LABEL = 238;
+
+function hourToAngle(h) {
+  return (h / 24) * 2 * Math.PI - Math.PI / 2;
+}
+
+function polarToXY(angle, r) {
+  return { x: Math.cos(angle) * r, y: Math.sin(angle) * r };
+}
+
+function describeArc(h, innerR, outerR) {
+  const startAngle = hourToAngle(h);
+  const endAngle = hourToAngle(h + 1) - 0.01;
+  const x1 = Math.cos(startAngle) * outerR;
+  const y1 = Math.sin(startAngle) * outerR;
+  const x2 = Math.cos(endAngle) * outerR;
+  const y2 = Math.sin(endAngle) * outerR;
+  const x3 = Math.cos(endAngle) * innerR;
+  const y3 = Math.sin(endAngle) * innerR;
+  const x4 = Math.cos(startAngle) * innerR;
+  const y4 = Math.sin(startAngle) * innerR;
+  return `M ${x1} ${y1} A ${outerR} ${outerR} 0 0 1 ${x2} ${y2} L ${x3} ${y3} A ${innerR} ${innerR} 0 0 0 ${x4} ${y4} Z`;
+}
+
+function getDominantColor(sounds) {
+  if (!sounds || sounds.length === 0) return '#1e2240';
+  const first = sounds[0];
+  return SOUND_COLORS[first] || '#a29bfe';
+}
+
+function drawClock() {
+  const svg = document.getElementById('clock-svg');
+  svg.innerHTML = '';
+
+  // defs
+  const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+
+  // glow filters
+  for (const [k,c] of Object.entries(SOUND_COLORS)) {
+    const f = document.createElementNS('http://www.w3.org/2000/svg','filter');
+    f.setAttribute('id', `glow-${k}`);
+    const fe = document.createElementNS('http://www.w3.org/2000/svg','feDropShadow');
+    fe.setAttribute('dx','0'); fe.setAttribute('dy','0');
+    fe.setAttribute('stdDeviation','6');
+    fe.setAttribute('flood-color', c);
+    fe.setAttribute('flood-opacity','0.8');
+    f.appendChild(fe);
+    defs.appendChild(f);
+  }
+  svg.appendChild(defs);
+
+  // Background rings
+  for (let r = R_INNER; r <= R_OUTER; r += (R_OUTER - R_INNER) / 4) {
+    const ring = document.createElementNS('http://www.w3.org/2000/svg','circle');
+    ring.setAttribute('r', r); ring.setAttribute('cx', 0); ring.setAttribute('cy', 0);
+    ring.setAttribute('fill','none'); ring.setAttribute('stroke','#1e2240'); ring.setAttribute('stroke-width','0.5');
+    svg.appendChild(ring);
+  }
+
+  // AM/PM labels
+  const amLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
+  amLabel.setAttribute('x', 0); amLabel.setAttribute('y', -R_INNER + 25);
+  amLabel.setAttribute('text-anchor','middle'); amLabel.setAttribute('class','hour-label');
+  amLabel.setAttribute('font-size','7'); amLabel.setAttribute('fill','#3a3f6a');
+  amLabel.textContent = 'AM';
+  svg.appendChild(amLabel);
+
+  const pmLabel = document.createElementNS('http://www.w3.org/2000/svg','text');
+  pmLabel.setAttribute('x', 0); pmLabel.setAttribute('y', R_INNER - 15);
+  pmLabel.setAttribute('text-anchor','middle'); pmLabel.setAttribute('class','hour-label');
+  pmLabel.setAttribute('font-size','7'); pmLabel.setAttribute('fill','#3a3f6a');
+  pmLabel.textContent = 'PM';
+  svg.appendChild(pmLabel);
+
+  // Hour segments
+  for (let h = 0; h < 24; h++) {
+    let sounds = [];
+    let db = 0;
+    if (selectedPersona) {
+      const data = selectedPersona.schedule[h];
+      sounds = data.sounds;
+      db = data.db;
+    }
+
+    const color = getDominantColor(sounds);
+    const isSelected = h === selectedHour;
+    const dbFactor = db > 0 ? (db - 35) / 65 : 0;
+    const segR = R_INNER + dbFactor * (R_OUTER - R_INNER) * 0.95;
+
+    // Main segment
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('d', describeArc(h, R_INNER, Math.max(R_INNER + 4, segR)));
+    path.setAttribute('fill', sounds.length > 0 ? color : '#13162a');
+    path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3');
+    if (isSelected && sounds.length > 0) {
+      path.setAttribute('filter', `url(#glow-${sounds[0]})`);
+    }
+    path.setAttribute('stroke', '#070810'); path.setAttribute('stroke-width','1');
+    path.style.cursor = 'pointer';
+    path.style.transition = 'opacity 0.2s, transform 0.2s';
+
+    const hh = h;
+    path.addEventListener('mouseenter', (e) => showTooltip(e, hh));
+    path.addEventListener('mousemove', (e) => moveTooltip(e));
+    path.addEventListener('mouseleave', () => hideTooltip());
+    path.addEventListener('click', () => { updateHour(hh); });
+    svg.appendChild(path);
+
+    // Multi-sound dots (stacked thin arcs for additional sounds)
+    if (sounds.length > 1) {
+      sounds.slice(1).forEach((s, si) => {
+        const dotAngle = hourToAngle(h) + (hourToAngle(h+1) - hourToAngle(h)) * 0.5;
+        const dotR = R_INNER + 12 + si * 10;
+        const dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+        dot.setAttribute('cx', Math.cos(dotAngle) * dotR);
+        dot.setAttribute('cy', Math.sin(dotAngle) * dotR);
+        dot.setAttribute('r', '3');
+        dot.setAttribute('fill', SOUND_COLORS[s] || '#666');
+        dot.setAttribute('opacity', '0.8');
+        dot.style.pointerEvents = 'none';
+        svg.appendChild(dot);
+      });
+    }
+
+    // Hour label
+    const midAngle = hourToAngle(h) + (hourToAngle(h+1) - hourToAngle(h)) / 2;
+    const labelPos = polarToXY(midAngle, R_LABEL);
+    if (h % 3 === 0) {
+      const lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+      lbl.setAttribute('x', labelPos.x); lbl.setAttribute('y', labelPos.y);
+      lbl.setAttribute('text-anchor','middle'); lbl.setAttribute('dominant-baseline','middle');
+      lbl.setAttribute('class','hour-label');
+      lbl.setAttribute('font-size','9');
+      const displayH = h === 0 ? '12' : h > 12 ? String(h-12) : String(h);
+      const suffix = h < 12 ? 'am' : 'pm';
+      lbl.textContent = displayH + suffix;
+      svg.appendChild(lbl);
+    }
+  }
+
+  // Center circle
+  const centerCircle = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  centerCircle.setAttribute('r', R_INNER - 2);
+  centerCircle.setAttribute('fill', '#070810');
+  svg.appendChild(centerCircle);
+
+  // Center persona info
+  if (selectedPersona) {
+    const nameEl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    nameEl.setAttribute('x', 0); nameEl.setAttribute('y', -14);
+    nameEl.setAttribute('text-anchor','middle');
+    nameEl.setAttribute('font-family', 'Syne, sans-serif');
+    nameEl.setAttribute('font-weight','700');
+    nameEl.setAttribute('font-size','18');
+    nameEl.setAttribute('fill', selectedPersona.color);
+    nameEl.textContent = selectedPersona.name;
+    svg.appendChild(nameEl);
+
+    const roleEl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    roleEl.setAttribute('x', 0); roleEl.setAttribute('y', 6);
+    roleEl.setAttribute('text-anchor','middle');
+    roleEl.setAttribute('font-family', 'DM Mono, monospace');
+    roleEl.setAttribute('font-size','8');
+    roleEl.setAttribute('fill','#5a5f8a');
+    roleEl.textContent = selectedPersona.role;
+    svg.appendChild(roleEl);
+
+    const boroughEl = document.createElementNS('http://www.w3.org/2000/svg','text');
+    boroughEl.setAttribute('x', 0); boroughEl.setAttribute('y', 20);
+    boroughEl.setAttribute('text-anchor','middle');
+    boroughEl.setAttribute('font-family', 'DM Mono, monospace');
+    boroughEl.setAttribute('font-size','7');
+    boroughEl.setAttribute('fill','#3a3f6a');
+    boroughEl.textContent = selectedPersona.borough.toUpperCase();
+    svg.appendChild(boroughEl);
+  } else {
+    const hint = document.createElementNS('http://www.w3.org/2000/svg','text');
+    hint.setAttribute('x', 0); hint.setAttribute('y', 0);
+    hint.setAttribute('text-anchor','middle'); hint.setAttribute('dominant-baseline','middle');
+    hint.setAttribute('font-family', 'DM Mono, monospace');
+    hint.setAttribute('font-size','8'); hint.setAttribute('fill','#3a3f6a');
+    hint.textContent = 'SELECT A PERSONA';
+    svg.appendChild(hint);
+  }
+
+  // Selected hour indicator needle
+  if (selectedPersona) {
+    const needleAngle = hourToAngle(selectedHour) + (hourToAngle(selectedHour+1) - hourToAngle(selectedHour))/2;
+    const n1 = polarToXY(needleAngle, R_INNER - 6);
+    const n2 = polarToXY(needleAngle, R_OUTER + 14);
+    const needle = document.createElementNS('http://www.w3.org/2000/svg','line');
+    needle.setAttribute('x1', n1.x); needle.setAttribute('y1', n1.y);
+    needle.setAttribute('x2', n2.x); needle.setAttribute('y2', n2.y);
+    needle.setAttribute('stroke', 'white'); needle.setAttribute('stroke-width','1.5');
+    needle.setAttribute('opacity','0.4');
+    svg.appendChild(needle);
+  }
+}
+
+// ─────────────────────────────────────────────
+// TOOLTIP
+// ─────────────────────────────────────────────
+function showTooltip(e, h) {
+  const tt = document.getElementById('hour-tooltip');
+  const data = selectedPersona ? selectedPersona.schedule[h] : null;
+  if (!data) return;
+
+  const displayH = h === 0 ? '12' : h > 12 ? h - 12 : h;
+  const suffix = h < 12 ? 'AM' : 'PM';
+  document.getElementById('tt-title').textContent = `${displayH}:00 ${suffix} — ${data.loc}`;
+
+  const soundsEl = document.getElementById('tt-sounds');
+  soundsEl.innerHTML = data.sounds.map(s =>
+    `<span class="sound-chip" style="color:${SOUND_COLORS[s]};border-color:${SOUND_COLORS[s]}">${s}</span>`
+  ).join('') || '<span style="color:#3a3f6a;font-size:0.6rem">no tagged sounds</span>';
+
+  document.getElementById('tt-desc').textContent = data.desc;
+  tt.classList.add('visible');
+  moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const tt = document.getElementById('hour-tooltip');
+  const rect = document.querySelector('.clock-container').getBoundingClientRect();
+  let x = e.clientX - rect.left + 16;
+  let y = e.clientY - rect.top - 20;
+  if (x + 220 > rect.width) x = e.clientX - rect.left - 230;
+  tt.style.left = x + 'px';
+  tt.style.top = y + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('hour-tooltip').classList.remove('visible');
+}
+
+// ─────────────────────────────────────────────
+// HOUR UPDATE
+// ─────────────────────────────────────────────
+function updateHour(h) {
+  selectedHour = h;
+  if (!selectedPersona) return;
+
+  const data = selectedPersona.schedule[h];
+  const displayH = h === 0 ? '12' : h > 12 ? h - 12 : h;
+  const suffix = h < 12 ? 'AM' : 'PM';
+
+  document.getElementById('journey-hour-text').textContent = `${displayH}:00 ${suffix}`;
+  document.getElementById('journey-location-text').textContent = data.loc;
+  document.getElementById('journey-desc-text').textContent = data.desc;
+
+  renderSoundsList(data.sounds, data.db);
+  animateDbMeter(data.db);
+  updateTimeline(h);
+  drawClock();
+
+  // Auto-play sounds for this hour
+  stopAllSounds();
+  if (data.sounds.length > 0) {
+    playSoundForType(data.sounds[0], data.db);
+  }
+}
+
+// ─────────────────────────────────────────────
+// SOUNDS LIST
+// ─────────────────────────────────────────────
+function renderSoundsList(sounds, db) {
+  const el = document.getElementById('sounds-list');
+  if (!sounds || sounds.length === 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:0.68rem;margin-top:8px">Quiet hour — no dominant sounds tagged.</div>';
+    return;
+  }
+
+  el.innerHTML = sounds.map((s, i) =>
+    `<div class="sound-row ${i===0?'playing':''}" id="srow-${s}" onclick="playSoundForType('${s}', ${db})" style="--accent-color:${SOUND_COLORS[s]}">
+      <div class="sound-dot" style="background:${SOUND_COLORS[s]};color:${SOUND_COLORS[s]}"></div>
+      <div class="sound-name">${s}</div>
+      <div class="sound-play-btn">${i===0?'● PLAYING':'▶ PLAY'}</div>
+    </div>`
+  ).join('');
+
+  // Also show fine-grained sounds
+  const detailEl = document.createElement('div');
+  detailEl.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid var(--border)';
+  detailEl.innerHTML = '<div class="panel-label" style="margin-bottom:8px;font-size:0.58rem">FINE-GRAINED TAGS</div>' +
+    sounds.flatMap(s => (SOUND_FINE[s]||[]).slice(0,2)).map(tag =>
+      `<div style="font-size:0.63rem;color:var(--muted);padding:2px 0">· ${tag}</div>`
+    ).join('');
+  el.appendChild(detailEl);
+}
+
+// ─────────────────────────────────────────────
+// DB METER
+// ─────────────────────────────────────────────
+function animateDbMeter(targetDb) {
+  const fill = document.getElementById('meter-fill');
+  const value = document.getElementById('db-value');
+  const pct = Math.min(100, Math.max(0, ((targetDb - 40) / 65) * 100));
+
+  let current = parseFloat(fill.style.width) || 0;
+  let currentDb = parseInt(value.textContent) || 40;
+
+  const animate = () => {
+    current += (pct - current) * 0.08;
+    currentDb += (targetDb - currentDb) * 0.08;
+    fill.style.width = current + '%';
+    value.textContent = Math.round(currentDb);
+
+    if (Math.abs(current - pct) > 0.3) requestAnimationFrame(animate);
+    else {
+      fill.style.width = pct + '%';
+      value.textContent = targetDb;
+    }
+  };
+  requestAnimationFrame(animate);
+}
+
+// ─────────────────────────────────────────────
+// TIMELINE STRIP
+// ─────────────────────────────────────────────
+function renderTimeline() {
+  const strip = document.getElementById('timeline-strip');
+  strip.innerHTML = '';
+  for (let h = 0; h < 24; h++) {
+    const cell = document.createElement('div');
+    cell.className = 'timeline-hour-cell' + (h === selectedHour ? ' current' : '');
+    cell.textContent = h;
+
+    let color = '#1e2240';
+    if (selectedPersona) {
+      const data = selectedPersona.schedule[h];
+      color = getDominantColor(data.sounds);
+      const db = data.db;
+      const alpha = Math.min(1, Math.max(0.15, (db - 40) / 55));
+      cell.style.background = color + Math.round(alpha * 255).toString(16).padStart(2,'0');
+    } else {
+      cell.style.background = '#13162a';
+    }
+    cell.style.borderRadius = '2px';
+    cell.addEventListener('click', () => updateHour(h));
+    cell.addEventListener('mouseenter', () => { cell.style.opacity = '0.8'; });
+    cell.addEventListener('mouseleave', () => { cell.style.opacity = '1'; });
+    strip.appendChild(cell);
+  }
+}
+
+function updateTimeline(h) {
+  document.querySelectorAll('.timeline-hour-cell').forEach((c, i) => {
+    c.classList.toggle('current', i === h);
+  });
+}
+
+// ─────────────────────────────────────────────
+// WAVEFORM CANVAS
+// ─────────────────────────────────────────────
+function resizeWaveform() {
+  const canvas = document.getElementById('waveform-canvas');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+}
+
+function drawWaveform() {
+  const canvas = document.getElementById('waveform-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  const color = selectedPersona ? selectedPersona.color : '#a29bfe';
+
+  if (analyserNode && waveformData) {
+    analyserNode.getByteTimeDomainData(waveformData);
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5 * window.devicePixelRatio;
+    ctx.shadowBlur = 8 * window.devicePixelRatio;
+    ctx.shadowColor = color;
+
+    const sliceWidth = W / waveformData.length;
+    let x = 0;
+    for (let i = 0; i < waveformData.length; i++) {
+      const v = waveformData[i] / 128.0;
+      const y = (v * H) / 2;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+      x += sliceWidth;
+    }
+    ctx.stroke();
+  } else {
+    // Idle animated waveform
+    const t = Date.now() / 1000;
+    const data = selectedPersona ? selectedPersona.schedule[selectedHour] : null;
+    const amp = data ? (data.db - 40) / 65 : 0.05;
+
+    ctx.beginPath();
+    ctx.strokeStyle = color + '88';
+    ctx.lineWidth = 1.5 * window.devicePixelRatio;
+    ctx.shadowBlur = 6 * window.devicePixelRatio;
+    ctx.shadowColor = color;
+
+    for (let i = 0; i <= W; i++) {
+      const x = i;
+      const freq1 = 3, freq2 = 7, freq3 = 13;
+      const y = H/2 +
+        Math.sin(i/W * Math.PI * freq1 * 2 + t * 1.5) * amp * H * 0.3 +
+        Math.sin(i/W * Math.PI * freq2 * 2 + t * 2.3) * amp * H * 0.15 +
+        Math.sin(i/W * Math.PI * freq3 * 2 + t * 0.8) * amp * H * 0.1;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // center line
+    ctx.beginPath();
+    ctx.strokeStyle = '#1e2240';
+    ctx.lineWidth = 0.5;
+    ctx.shadowBlur = 0;
+    ctx.moveTo(0, H/2); ctx.lineTo(W, H/2);
+    ctx.stroke();
+  }
+
+  animFrameId = requestAnimationFrame(drawWaveform);
+}
+requestAnimationFrame(drawWaveform);
+
+// ─────────────────────────────────────────────
+// WEB AUDIO SYNTHESIS
+// Each sound type has a distinct synthesized character
+// ─────────────────────────────────────────────
+function getAudioCtx() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyserNode = audioCtx.createAnalyser();
+    analyserNode.fftSize = 2048;
+    waveformData = new Uint8Array(analyserNode.frequencyBinCount);
+    analyserNode.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function stopAllSounds() {
+  currentSoundNodes.forEach(n => {
+    try { n.stop(); } catch(e) {}
+  });
+  currentSoundNodes = [];
+  analyserNode = null;
+  waveformData = null;
+}
+
+function playSoundForType(type, db) {
+  stopAllSounds();
+  const ctx = getAudioCtx();
+
+  // Reconnect analyser
+  analyserNode = ctx.createAnalyser();
+  analyserNode.fftSize = 2048;
+  waveformData = new Uint8Array(analyserNode.frequencyBinCount);
+  analyserNode.connect(ctx.destination);
+
+  const gainValue = Math.min(0.35, Math.max(0.05, (db - 40) / 70));
+  const masterGain = ctx.createGain();
+  masterGain.gain.setValueAtTime(0, ctx.currentTime);
+  masterGain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.3);
+  masterGain.gain.linearRampToValueAtTime(gainValue * 0.8, ctx.currentTime + 5);
+  masterGain.connect(analyserNode);
+
+  const now = ctx.currentTime;
+
+  const synths = {
+    engine: () => {
+      // Low rumble: multiple detuned oscillators
+      [55, 58, 110, 165].forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(freq + Math.random()*3, now);
+        osc.frequency.linearRampToValueAtTime(freq * 1.02, now + 2);
+        g.gain.setValueAtTime(0.4 - i*0.08, now);
+        osc.connect(g); g.connect(masterGain);
+        osc.start(now); osc.stop(now + 8);
+        currentSoundNodes.push(osc);
+      });
+
+      // LFO tremolo
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.setValueAtTime(8, now);
+      lfoGain.gain.setValueAtTime(5, now);
+      lfo.connect(lfoGain);
+      lfo.start(now); lfo.stop(now + 8);
+      currentSoundNodes.push(lfo);
+    },
+    machinery: () => {
+      // Rhythmic mechanical impacts
+      const rhythmStep = 0.22;
+      for (let i = 0; i < 20; i++) {
+        const t = now + i * rhythmStep;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(120 + (i%3)*40, t);
+        osc.frequency.exponentialRampToValueAtTime(60, t + 0.08);
+        g.gain.setValueAtTime(0.6, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+        osc.connect(g); g.connect(masterGain);
+        osc.start(t); osc.stop(t + 0.15);
+        currentSoundNodes.push(osc);
+      }
+    },
+    impact: () => {
+      // Sharp thud
+      for (let i = 0; i < 6; i++) {
+        const t = now + i * 0.7 + Math.random()*0.2;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(200, t);
+        osc.frequency.exponentialRampToValueAtTime(40, t + 0.15);
+        g.gain.setValueAtTime(0.8, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+        osc.connect(g); g.connect(masterGain);
+        osc.start(t); osc.stop(t + 0.25);
+        currentSoundNodes.push(osc);
+      }
+    },
+    saw: () => {
+      // High-pitched whine
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(1800, now);
+      osc.frequency.setValueAtTime(2400, now + 1.2);
+      osc.frequency.setValueAtTime(1600, now + 2.5);
+      osc.frequency.setValueAtTime(2200, now + 4);
+      g.gain.setValueAtTime(0.15, now);
+      osc.connect(g); g.connect(masterGain);
+      osc.start(now); osc.stop(now + 6);
+      currentSoundNodes.push(osc);
+    },
+    alert: () => {
+      // Siren-like alternating tone
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = 'sine';
+      for (let i = 0; i < 8; i++) {
+        osc.frequency.setValueAtTime(i%2===0 ? 880 : 660, now + i * 0.5);
+      }
+      g.gain.setValueAtTime(0.4, now);
+      osc.connect(g); g.connect(masterGain);
+      osc.start(now); osc.stop(now + 5);
+      currentSoundNodes.push(osc);
+    },
+    music: () => {
+      // Warm chord progression
+      const notes = [261.6, 329.6, 392, 493.9]; // C E G B
+      notes.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        g.gain.setValueAtTime(0, now);
+        g.gain.linearRampToValueAtTime(0.2 - i*0.03, now + 0.3 + i*0.1);
+        g.gain.linearRampToValueAtTime(0.15, now + 4);
+        osc.connect(g); g.connect(masterGain);
+        osc.start(now); osc.stop(now + 7);
+        currentSoundNodes.push(osc);
+      });
+    },
+    voice: () => {
+      // Formant-like babble
+      const freqs = [200, 450, 800, 1200];
+      freqs.forEach((f, i) => {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(f, now);
+        osc.frequency.linearRampToValueAtTime(f * (1 + Math.sin(i) * 0.1), now + 3);
+        g.gain.setValueAtTime(0.12 - i*0.02, now);
+        osc.connect(g); g.connect(masterGain);
+        osc.start(now); osc.stop(now + 6);
+        currentSoundNodes.push(osc);
+      });
+    },
+    dog: () => {
+      // Short bark bursts
+      for (let i = 0; i < 3; i++) {
+        const t = now + i * 1.4;
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(380, t);
+        osc.frequency.exponentialRampToValueAtTime(260, t + 0.12);
+        g.gain.setValueAtTime(0.5, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+        osc.connect(g); g.connect(masterGain);
+        osc.start(t); osc.stop(t + 0.22);
+        currentSoundNodes.push(osc);
+      }
+    },
+  };
+
+  // Execute the synth for this type
+  if (synths[type]) synths[type]();
+
+  // Update UI
+  document.querySelectorAll('.sound-row').forEach(r => {
+    r.classList.remove('playing');
+    r.querySelector('.sound-play-btn').textContent = '▶ PLAY';
+  });
+  const row = document.getElementById(`srow-${type}`);
+  if (row) {
+    row.classList.add('playing');
+    row.querySelector('.sound-play-btn').textContent = '● PLAYING';
+  }
+}
+
+// ─────────────────────────────────────────────
+// AUTO-PLAY
+// ─────────────────────────────────────────────
+function toggleAutoPlay() {
+  if (!selectedPersona) return;
+  const btn = document.getElementById('play-btn');
+  if (isAutoPlaying) {
+    clearInterval(autoPlayInterval);
+    isAutoPlaying = false;
+    stopAllSounds();
+    btn.textContent = '▶ AUTO-PLAY DAY';
+    btn.classList.remove('active');
+  } else {
+    isAutoPlaying = true;
+    btn.textContent = '■ STOP';
+    btn.classList.add('active');
+    updateHour(selectedHour);
+    autoPlayInterval = setInterval(() => {
+      selectedHour = (selectedHour + 1) % 24;
+      updateHour(selectedHour);
+    }, 3000);
+  }
+}
+
+// ─────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────
+init();
+</script>
+</body>
+</html>
