@@ -1152,10 +1152,10 @@ function updateHour(h) {
 
   // Auto-play sounds for this hour
   stopAllSounds();
-  if (data.noData) {
-    playSoundForType('flatline', data.db);
-  } else if (data.sounds.length > 0) {
+  if (data.sounds.length > 0) {
     playSoundForType(data.sounds[0], data.db);
+  } else {
+    playSoundForType('flatline', data.db);
   }
 }
 
@@ -1500,15 +1500,16 @@ function playSoundForType(type, db) {
       }
     },
 
-    // flatline: marks a data blind spot — barely audible, just enough to register in the analyser
-    // waveform will appear nearly flat, like a monitor with no signal
+    // flatline: no sounds this hour — very faint drone, skips masterGain so it stays audible
+    // connects directly to analyserNode at a fixed low level
     flatline: () => {
       const osc = ctx.createOscillator();
       const g = ctx.createGain();
       osc.type = 'sine';
-      osc.frequency.setValueAtTime(60, now);
-      g.gain.setValueAtTime(0.006, now);
-      osc.connect(g); g.connect(masterGain);
+      osc.frequency.setValueAtTime(100, now);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.018, now + 1.5); // slow fade in, stays barely there
+      osc.connect(g); g.connect(analyserNode); // bypass masterGain — fixed level regardless of db
       osc.start(now); osc.stop(now + 8);
       currentSoundNodes.push(osc);
     },
