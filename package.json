@@ -1,0 +1,14 @@
+{
+  "name": "nyc-soundscape",
+  "version": "2.0.0",
+  "description": "Interactive web visualization of NYC soundscape with SONYC-UST v2.3 dataset",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

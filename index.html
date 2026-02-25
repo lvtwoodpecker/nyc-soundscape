@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NYC Soundscape — A Day in the Life</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    NYC SOUNDSCAPE
+  </div>
+  <div class="header-tag">SONYC Urban Sound Tagging · NYU · Data Visualization 2026</div>
+</header>
+
+<div class="app">
+
+  <!-- LEFT: PERSONAS -->
+  <div class="panel-left">
+    <div class="panel-label">Select a New Yorker</div>
+    <div id="persona-list"></div>
+  </div>
+
+  <!-- CENTER: CLOCK -->
+  <div class="panel-center">
+    <div class="clock-container">
+      <svg id="clock-svg" viewBox="-260 -260 520 520"></svg>
+      <div class="hour-tooltip" id="hour-tooltip">
+        <div class="hour-tooltip-title" id="tt-title"></div>
+        <div id="tt-sounds"></div>
+        <div id="tt-desc" style="color:var(--muted);font-size:0.65rem;margin-top:6px;line-height:1.6"></div>
+      </div>
+    </div>
+
+    <!-- timeline scrubber -->
+    <div style="width:100%;max-width:480px;">
+      <div class="panel-label" style="margin-bottom:8px">SCRUB TIMELINE</div>
+      <div class="timeline-strip" id="timeline-strip"></div>
+      <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--muted);margin-top:4px">
+        <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+      </div>
+    </div>
+
+    <!-- current hour info -->
+    <div class="journey-info fade-in" id="journey-info">
+      <div class="journey-hour" id="journey-hour-text">—</div>
+      <div class="journey-location" id="journey-location-text">Select a persona to begin</div>
+      <div class="journey-desc" id="journey-desc-text">Hover over the clock to explore the soundscape of a New Yorker's day.</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: AUDIO + METER -->
+  <div class="panel-right">
+    <div class="panel-label">Sound Monitor</div>
+
+    <!-- dB meter -->
+    <div class="meter-section">
+      <div class="meter-label-row">
+        <span class="panel-label" style="margin-bottom:0">DECIBEL LEVEL</span>
+        <div>
+          <span class="meter-db-value" id="db-value">—</span>
+          <span class="meter-db-unit">dB</span>
+        </div>
+      </div>
+      <div class="meter-bar-wrap">
+        <div class="meter-bar-fill" id="meter-fill"></div>
+      </div>
+      <div class="meter-ticks">
+        <span>40</span><span>55</span><span>70</span><span>85</span><span>100+</span>
+      </div>
+    </div>
+
+    <!-- waveform -->
+    <div class="waveform-section">
+      <div class="panel-label" style="margin-bottom:10px">WAVEFORM</div>
+      <canvas id="waveform-canvas"></canvas>
+    </div>
+
+    <!-- sounds list -->
+    <div class="sounds-section" style="flex:1;overflow-y:auto">
+      <div class="panel-label">SOUNDS THIS HOUR</div>
+      <div class="sounds-list" id="sounds-list">
+        <div style="color:var(--muted);font-size:0.68rem;margin-top:8px">Select a persona & hour to explore sounds.</div>
+      </div>
+    </div>
+
+    <!-- play btn -->
+    <button class="playback-btn" id="play-btn">▶ AUTO-PLAY DAY</button>
+
+    <!-- legend -->
+    <div>
+      <div class="panel-label" style="margin-bottom:8px">SOUND TAXONOMY</div>
+      <div class="legend" id="legend"></div>
+    </div>
+  </div>
+
+  <div class="statusbar">
+    <span><span class="status-live"></span> SONYC Sensor Network · NYC</span>
+    <span>Dataset: SONYC-UST v2.3 · Zenodo 3966543</span>
+    <span>23 Fine-grained Classes · 8 Coarse Classes</span>
+    <span id="status-persona">No persona selected</span>
+  </div>
+</div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

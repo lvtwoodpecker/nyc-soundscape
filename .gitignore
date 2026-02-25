@@ -13,3 +13,8 @@ __pycache__/
 
 # Anaconda
 anaconda_projects/
+
+# Vite
+node_modules/
+dist/
+.DS_Store
