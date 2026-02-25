@@ -1,0 +1,43 @@
+{
+  "_comment": "Stretch goal: populate with real Cloudflare R2 URLs. Keys: sound_type \u2192 borough_code \u2192 clip URL. Borough codes: 1=Manhattan, 3=Brooklyn, 4=Queens.",
+  "engine": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "machinery": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "impact": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "saw": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "alert": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "music": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "voice": {
+    "1": null,
+    "3": null,
+    "4": null
+  },
+  "dog": {
+    "1": null,
+    "3": null,
+    "4": null
+  }
+}
