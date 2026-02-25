@@ -47,7 +47,7 @@ function updateHour(h) {
   const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
   const suffix = h < 12 ? 'AM' : 'PM'
   
-  document.getElementById('journey-hour-text').textContent = displayH
+  document.getElementById('journey-hour-text').textContent = `${displayH}:00 ${suffix}`
   document.getElementById('journey-location-text').textContent = data.loc
   document.getElementById('journey-desc-text').textContent = data.desc
   

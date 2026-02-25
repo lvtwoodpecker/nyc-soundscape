@@ -1,4 +1,4 @@
-import { SOUND_COLORS, PERSONAS } from './personas.js'
+import { SOUND_COLORS, SOUND_FINE, PERSONAS } from './personas.js'
 
 export function renderLegend() {
   const el = document.getElementById('legend')
@@ -45,6 +45,15 @@ export function renderSoundsList(sounds, db, noData) {
       <div class="sound-play-btn">PLAY</div>
     </div>
   `).join('')
+
+  const fineTags = sounds.flatMap(s => (SOUND_FINE[s] || []).slice(0, 2))
+  if (fineTags.length > 0) {
+    const detail = document.createElement('div')
+    detail.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid var(--border)'
+    detail.innerHTML = '<div class="panel-label" style="margin-bottom:6px;font-size:0.58rem">FINE-GRAINED TAGS</div>' +
+      fineTags.map(tag => `<div style="font-size:0.65rem;color:var(--muted);padding:2px 0">· ${tag}</div>`).join('')
+    el.appendChild(detail)
+  }
 }
 
 export function animateDbMeter(targetDb) {
