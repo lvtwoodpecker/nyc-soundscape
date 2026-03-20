@@ -131,7 +131,7 @@ def embed_batch(wavs, model, processor, device):
         arrays.append(y.astype(np.float32))
 
     inputs = processor(
-        audios=arrays,
+        audio=arrays,
         sampling_rate=TARGET_SR,
         return_tensors='pt',
         padding=True,
