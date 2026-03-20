@@ -13,18 +13,17 @@ export function renderLegend() {
 export function renderPersonas(onSelect) {
   const el = document.getElementById('persona-list')
   el.innerHTML = PERSONAS.map(p =>
-    `<div class="persona-card" id="persona-${p.id}" style="--accent:${p.color}">
+    `<div class="persona-card" id="persona-${p.id}" style="--accent:${p.color}" role="button" tabindex="0">
       <div class="persona-name" style="color:${p.color}">${p.name}</div>
       <div class="persona-meta">${p.role}</div>
       <span class="persona-borough" style="color:${p.color}">${p.borough}</span>
     </div>`
   ).join('')
-  
+
   document.querySelectorAll('.persona-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      const id = card.id.replace('persona-', '')
-      onSelect(id)
-    })
+    const id = card.id.replace('persona-', '')
+    card.addEventListener('click', () => onSelect(id))
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id) } })
   })
 }
 
@@ -49,9 +48,9 @@ export function renderSoundsList(sounds, db, noData) {
   const fineTags = sounds.flatMap(s => (SOUND_FINE[s] || []).slice(0, 2))
   if (fineTags.length > 0) {
     const detail = document.createElement('div')
-    detail.style.cssText = 'margin-top:10px;padding-top:10px;border-top:1px solid var(--border)'
+    detail.className = 'fine-tag-section'
     detail.innerHTML = '<div class="panel-label" style="margin-bottom:6px;font-size:0.58rem">FINE-GRAINED TAGS</div>' +
-      fineTags.map(tag => `<div style="font-size:0.65rem;color:var(--muted);padding:2px 0">· ${tag}</div>`).join('')
+      fineTags.map(tag => `<div class="fine-tag">· ${tag}</div>`).join('')
     el.appendChild(detail)
   }
 }

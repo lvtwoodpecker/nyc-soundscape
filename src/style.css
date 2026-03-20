@@ -18,6 +18,8 @@
   --neon-a: #a29bfe;
   --neon-b: #74b9ff;
   --neon-c: #fd79a8;
+
+  --text-dim: #9fa3c7;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -93,7 +95,7 @@ header {
   border-radius: 8px;
   border: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s;
   position: relative;
   overflow: hidden;
 }
@@ -214,7 +216,7 @@ header {
 }
 .journey-desc {
   font-size: 0.72rem;
-  color: #9fa3c7;
+  color: var(--text-dim);
   margin-top: 10px;
   line-height: 1.8;
   max-width: 340px;
@@ -228,7 +230,6 @@ header {
   gap: 28px;
 }
 
-.meter-section {}
 .meter-label-row {
   display: flex;
   justify-content: space-between;
@@ -270,7 +271,6 @@ header {
   color: var(--muted);
 }
 
-.waveform-section {}
 #waveform-canvas {
   width: 100%;
   height: 100px;
@@ -279,7 +279,10 @@ header {
   display: block;
 }
 
-.sounds-section {}
+.sounds-section {
+  flex: 1;
+  overflow-y: auto;
+}
 .sounds-list {
   display: flex;
   flex-direction: column;
@@ -325,9 +328,10 @@ header {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, color 0.2s;
 }
 .playback-btn:hover { border-color: var(--neon-a); color: var(--neon-a); }
+.playback-btn:focus-visible { outline: 1px solid var(--neon-a); outline-offset: 2px; }
 .playback-btn.active { background: var(--bg3); border-color: var(--neon-c); color: var(--neon-c); }
 
 .legend {
@@ -396,8 +400,29 @@ header {
 .statusbar span { display: flex; align-items: center; gap: 6px; }
 .status-live {
   width: 6px; height: 6px;
-  background: #26de81;
+  background: var(--c-saw);
   border-radius: 50%;
-  box-shadow: 0 0 8px #26de81;
+  box-shadow: 0 0 8px var(--c-saw);
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+.persona-card:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+.sound-row:focus-visible { outline: 1px solid var(--border); outline-offset: 1px; }
+
+#tt-desc {
+  color: var(--muted);
+  font-size: 0.65rem;
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+.fine-tag-section {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.fine-tag {
+  font-size: 0.65rem;
+  color: var(--muted);
+  padding: 2px 0;
 }

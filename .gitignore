@@ -1,6 +1,7 @@
 # Raw dataset — too large to commit (14.5MB CSV, ~13GB audio)
 data/metadata/annotations.csv
 data/metadata/*.tar.gz
+public/data/metadata/annotations.csv
 audio/
 
 # macOS
@@ -18,3 +19,9 @@ anaconda_projects/
 node_modules/
 dist/
 .DS_Store
+
+# Claude Code
+.claude/
+
+# stray extraction folders
+audio-*/
