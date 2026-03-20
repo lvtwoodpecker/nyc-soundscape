@@ -16,7 +16,7 @@ export function renderPersonas(onSelect) {
     `<div class="persona-card" id="persona-${p.id}" style="--accent:${p.color}" role="button" tabindex="0">
       <div class="persona-name" style="color:${p.color}">${p.name}</div>
       <div class="persona-meta">${p.role}</div>
-      <span class="persona-borough" style="color:${p.color}">${p.borough}</span>
+      <span class="persona-borough" style="color:${p.color}">${p.home}</span>
     </div>`
   ).join('')
 

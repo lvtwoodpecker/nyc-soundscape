@@ -4,4 +4,5 @@ export const state = {
   analyserNode: null,
   isAutoPlaying: false,
   autoPlayInterval: null,
+  hourlyStats: null,
 }

@@ -4,6 +4,17 @@ const R_OUTER = 220
 const R_INNER = 100
 const R_LABEL = 238
 
+// higher = more visually interesting, low-weighted sounds won't dominate the color
+const INTEREST = { saw: 4, machinery: 3, dog: 2.5, music: 2, alert: 1.5, impact: 1.2, voice: 0.6, engine: 0.4 }
+
+function featureColor(sounds, prevalence) {
+  if (!sounds || sounds.length === 0) return '#1e2240'
+  const top = sounds.slice().sort((a, b) =>
+    (prevalence[b] || 0) * (INTEREST[b] || 1) - (prevalence[a] || 0) * (INTEREST[a] || 1)
+  )[0]
+  return SOUND_COLORS[top] || '#1e2240'
+}
+
 export function hourToAngle(h) {
   return (h / 24) * 2 * Math.PI - Math.PI / 2
 }
@@ -32,7 +43,7 @@ export function getDominantColor(sounds) {
   return SOUND_COLORS[first] || '#a29bfe'
 }
 
-export function showTooltip(e, h, persona) {
+export function showTooltip(e, h, persona, hourlyStats) {
   const tt = document.getElementById('hour-tooltip')
   const data = persona ? persona.schedule[h] : null
   if (!data) return
@@ -41,10 +52,23 @@ export function showTooltip(e, h, persona) {
   const suffix = h < 12 ? 'AM' : 'PM'
   document.getElementById('tt-title').textContent = `${displayH}:00 ${suffix} — ${data.loc}`
 
-  const soundChips = data.sounds.map(s =>
+  let sounds = []
+  if (hourlyStats) {
+    const bData = hourlyStats.by_borough[String(data.borough)]
+    const hData = bData?.[String(h)]
+    if (hData) {
+      sounds = Object.entries(hData.prevalence)
+        .filter(([, v]) => v >= 0.05)
+        .sort((a, b) => b[1] - a[1])
+        .map(([k]) => k)
+        .slice(0, 4)
+    }
+  }
+
+  const soundChips = sounds.map(s =>
     `<span class="sound-chip" style="color:${SOUND_COLORS[s]||'#666'}">${s}</span>`
   ).join('')
-  document.getElementById('tt-sounds').innerHTML = soundChips || '<span style="color:var(--muted);font-size:0.65rem">No sounds recorded</span>'
+  document.getElementById('tt-sounds').innerHTML = soundChips || '<span style="color:var(--muted);font-size:0.65rem">No data this hour</span>'
   document.getElementById('tt-desc').textContent = data.desc
 
   tt.classList.add('visible')
@@ -64,7 +88,7 @@ export function hideTooltip() {
   document.getElementById('hour-tooltip').classList.remove('visible')
 }
 
-export function drawClock(persona, selectedHour) {
+export function drawClock(persona, selectedHour, hourlyStats) {
   const svg = document.getElementById('clock-svg')
   svg.innerHTML = ''
 
@@ -116,16 +140,29 @@ export function drawClock(persona, selectedHour) {
 
   for (let h = 0; h < 24; h++) {
     let sounds = []
+    let prevalence = {}
     let db = 0
     if (persona) {
-      const data = persona.schedule[h]
-      sounds = data.sounds
-      db = data.db
+      const hourEntry = persona.schedule[h]
+      if (hourlyStats) {
+        const bData = hourlyStats.by_borough[String(hourEntry.borough)]
+        const hData = bData?.[String(h)]
+        if (hData) {
+          prevalence = hData.prevalence
+          sounds = Object.entries(prevalence)
+            .filter(([, v]) => v >= 0.05)
+            .sort((a, b) => b[1] - a[1])
+            .map(([k]) => k)
+            .slice(0, 4)
+          db = hData.db
+        }
+      }
     }
 
-    const color = getDominantColor(sounds)
+    const color = featureColor(sounds, prevalence)
     const isSelected = h === selectedHour
-    const dbFactor = db > 0 ? (db - 35) / 65 : 0
+    // cube the factor so small dB differences (3am vs 9am) become visually obvious
+    const dbFactor = db > 0 ? Math.pow((db - 35) / 65, 3) : 0
     const segR = R_INNER + dbFactor * (R_OUTER - R_INNER) * 0.95
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
@@ -133,14 +170,17 @@ export function drawClock(persona, selectedHour) {
     path.setAttribute('fill', sounds.length > 0 ? color : '#13162a')
     path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3')
     if (isSelected && sounds.length > 0) {
-      path.setAttribute('filter', `url(#glow-${sounds[0]})`)
+      const glowSound = sounds.slice().sort((a, b) =>
+        (prevalence[b] || 0) * (INTEREST[b] || 1) - (prevalence[a] || 0) * (INTEREST[a] || 1)
+      )[0]
+      path.setAttribute('filter', `url(#glow-${glowSound})`)
     }
     path.setAttribute('stroke', '#070810')
     path.setAttribute('stroke-width', '1')
     path.style.cursor = 'pointer'
     path.style.transition = 'opacity 0.2s, transform 0.2s'
 
-    path.addEventListener('mouseenter', (e) => showTooltip(e, h, persona))
+    path.addEventListener('mouseenter', (e) => showTooltip(e, h, persona, hourlyStats))
     path.addEventListener('mousemove', (e) => moveTooltip(e))
     path.addEventListener('mouseleave', () => hideTooltip())
     path.addEventListener('click', () => window.updateHourGlobal?.(h))
@@ -212,7 +252,7 @@ export function drawClock(persona, selectedHour) {
     boroughEl.setAttribute('font-family', 'DM Mono, monospace')
     boroughEl.setAttribute('font-size', '7')
     boroughEl.setAttribute('fill', '#3a3f6a')
-    boroughEl.textContent = persona.borough.toUpperCase()
+    boroughEl.textContent = (persona.home || '').toUpperCase()
     svg.appendChild(boroughEl)
   } else {
     const hint = document.createElementNS('http://www.w3.org/2000/svg', 'text')

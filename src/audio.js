@@ -2,6 +2,46 @@ export let audioCtx = null
 export let analyserNode = null
 let currentSoundNodes = []
 
+// coarse class -> fine-grained clip classes in clip-index.json
+const COARSE_TO_FINE = {
+  engine:    ['small-engine', 'medium-engine', 'large-engine'],
+  machinery: ['rock-drill', 'jackhammer', 'hoe-ram', 'pile-driver'],
+  impact:    ['impact'],
+  saw:       ['chainsaw', 'small-saw', 'large-saw'],
+  alert:     ['car-horn', 'car-alarm', 'siren', 'reverse-beeper'],
+  music:     ['stationary-music', 'mobile-music', 'ice-cream-truck'],
+  voice:     ['talking', 'shouting', 'large-crowd', 'amplified-speech'],
+  dog:       ['dog'],
+  busking:   ['stationary-music', 'mobile-music'],
+}
+
+let clipPool = {}       // coarse type -> { all: [url], 1: [url], 3: [url], 4: [url] }
+const bufferCache = new Map()
+
+export async function loadClipIndex() {
+  try {
+    const res = await fetch('data/processed/clip-index.json')
+    const index = await res.json()
+    for (const [coarse, fineClasses] of Object.entries(COARSE_TO_FINE)) {
+      const pool = { all: [] }
+      for (const f of fineClasses) {
+        for (const clip of (index[f] || [])) {
+          const url = clip.url || clip
+          const b = clip.borough
+          if (b) {
+            if (!pool[b]) pool[b] = []
+            pool[b].push(url)
+          }
+          pool.all.push(url)
+        }
+      }
+      clipPool[coarse] = pool
+    }
+  } catch (e) {
+    console.warn('clip-index not loaded, using synthesis')
+  }
+}
+
 export function getAudioCtx() {
   if (!audioCtx) {
     const AudioContext = window.AudioContext || window.webkitAudioContext
@@ -18,23 +58,45 @@ export function getAudioCtx() {
 
 export function stopAllSounds() {
   currentSoundNodes.forEach(node => {
-    try {
-      node.stop(0)
-    } catch (e) {}
+    try { node.stop(0) } catch (e) {}
   })
   currentSoundNodes = []
 }
 
-export function playSoundType(type, db) {
+async function playClip(url, db) {
   const ctx = getAudioCtx()
-  if (!ctx) return
-  
+  let buffer = bufferCache.get(url)
+  if (!buffer) {
+    const res = await fetch(url)
+    const raw = await res.arrayBuffer()
+    buffer = await ctx.decodeAudioData(raw)
+    bufferCache.set(url, buffer)
+  }
+
   stopAllSounds()
 
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+
+  const gainValue = Math.max(0.3, Math.min(0.9, 0.6 + (db - 70) / 200))
   const masterGain = ctx.createGain()
+  masterGain.gain.setValueAtTime(0, ctx.currentTime)
+  masterGain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.3)
+  masterGain.gain.linearRampToValueAtTime(gainValue * 0.85, ctx.currentTime + 9)
+  masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 10)
+
+  source.connect(masterGain)
   masterGain.connect(analyserNode)
+  source.start()
+  currentSoundNodes.push(source)
+}
+
+export function playSoundType(type, db, borough) {
+  const ctx = getAudioCtx()
+  if (!ctx) return
 
   if (type === 'flatline') {
+    stopAllSounds()
     const osc = ctx.createOscillator()
     const g = ctx.createGain()
     osc.frequency.value = 100
@@ -46,6 +108,27 @@ export function playSoundType(type, db) {
     currentSoundNodes.push(osc)
     return
   }
+
+  // try real clip, prefer borough-matched, fall back to any, then synthesis
+  const pool = clipPool[type]
+  if (pool) {
+    const urls = (borough && pool[borough]?.length) ? pool[borough] : pool.all
+    if (urls?.length > 0) {
+      const url = urls[Math.floor(Math.random() * urls.length)]
+      playClip(url, db).catch(() => playSynth(type, db))
+      return
+    }
+  }
+
+  playSynth(type, db)
+}
+
+function playSynth(type, db) {
+  const ctx = getAudioCtx()
+  stopAllSounds()
+
+  const masterGain = ctx.createGain()
+  masterGain.connect(analyserNode)
 
   const gainValue = Math.max(0.05, Math.min(0.3, (db - 40) / 60))
   masterGain.gain.setValueAtTime(0, ctx.currentTime)
