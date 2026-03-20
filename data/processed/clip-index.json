@@ -1,43 +1,940 @@
 {
-  "_comment": "Stretch goal: populate with real Cloudflare R2 URLs. Keys: sound_type \u2192 borough_code \u2192 clip URL. Borough codes: 1=Manhattan, 3=Brooklyn, 4=Queens.",
-  "engine": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "machinery": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "impact": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "saw": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "alert": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "music": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "voice": {
-    "1": null,
-    "3": null,
-    "4": null
-  },
-  "dog": {
-    "1": null,
-    "3": null,
-    "4": null
-  }
+  "amplified-speech": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-07.mp3",
+      "borough": "1"
+    }
+  ],
+  "car-alarm": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-01.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "car-horn": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-04.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-06.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-07.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-09.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-horn-10.mp3",
+      "borough": "3"
+    }
+  ],
+  "chainsaw": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-02.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "dog": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "hoe-ram": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "ice-cream-truck": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-06.mp3",
+      "borough": "1"
+    }
+  ],
+  "impact": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-09.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/impact-10.mp3",
+      "borough": "4"
+    }
+  ],
+  "jackhammer": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/jackhammer-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "large-crowd": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "large-engine": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-06.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-09.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-engine-10.mp3",
+      "borough": "4"
+    }
+  ],
+  "large-saw": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-saw-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "medium-engine": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-07.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-09.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-engine-10.mp3",
+      "borough": "4"
+    }
+  ],
+  "mobile-music": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "pile-driver": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/pile-driver-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "reverse-beeper": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "rock-drill": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/rock-drill-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "shouting": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/shouting-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "siren": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-05.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-09.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/siren-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "small-engine": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-01.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-07.mp3",
+      "borough": "4"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-09.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-engine-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "small-saw": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-03.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-08.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-saw-10.mp3",
+      "borough": "1"
+    }
+  ],
+  "stationary-music": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-02.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-03.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-04.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-05.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-06.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-07.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/stationary-music-10.mp3",
+      "borough": "3"
+    }
+  ],
+  "talking": [
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-01.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-02.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-03.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-04.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-05.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-06.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-07.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-08.mp3",
+      "borough": "3"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-09.mp3",
+      "borough": "1"
+    },
+    {
+      "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/talking-10.mp3",
+      "borough": "1"
+    }
+  ]
 }
