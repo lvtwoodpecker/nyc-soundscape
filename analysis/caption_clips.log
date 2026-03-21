@@ -1,0 +1,6 @@
+loaded 18510 clips from analysis/embeddings_meta.jsonl
+spending limit: $3.00 (edit MAX_COST_USD in script to change)
+
+── archive 0 (1000 clips) ──
+  extracting audio/audio-0.tar.gz...
+  1000 WAVs extracted, captioning at 500 RPM...

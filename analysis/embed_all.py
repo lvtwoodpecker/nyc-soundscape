@@ -139,7 +139,13 @@ def embed_batch(wavs, model, processor, device):
     inputs = {k: v.to(device) for k, v in inputs.items()}
 
     with torch.no_grad():
-        embs = model.get_audio_features(**inputs)
+        # transformers 5.x: get_audio_features may return a model output object
+        # so go through audio_model + audio_projection directly
+        audio_out = model.audio_model(
+            input_features=inputs['input_features'],
+            is_longer=inputs.get('is_longer'),
+        )
+        embs = model.audio_projection(audio_out.pooler_output)
 
     # normalize to unit sphere (standard for cosine similarity)
     embs = embs / embs.norm(dim=-1, keepdim=True)
