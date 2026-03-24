@@ -69,7 +69,7 @@ function selectPersona(id) {
   
   state.hour = 0
   updateHour(0)
-  renderTimeline(state.persona)
+  renderTimeline(state.persona, state.hourlyStats)
 }
 
 function updateHour(h) {

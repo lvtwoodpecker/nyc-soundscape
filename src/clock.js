@@ -178,7 +178,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     path.setAttribute('stroke', '#070810')
     path.setAttribute('stroke-width', '1')
     path.style.cursor = 'pointer'
-    path.style.transition = 'opacity 0.2s, transform 0.2s'
+    path.style.transition = 'opacity 0.2s'
 
     path.addEventListener('mouseenter', (e) => showTooltip(e, h, persona, hourlyStats))
     path.addEventListener('mousemove', (e) => moveTooltip(e))

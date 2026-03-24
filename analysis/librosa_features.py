@@ -24,7 +24,7 @@ import numpy as np
 
 CURATED_DIR = 'audio/curated'
 MANIFEST_PATH = 'audio/curated/manifest.json'
-OUTPUT_PATH = 'analysis/librosa_features.json'
+OUTPUT_PATH = 'analysis/outputs/librosa_features.json'
 
 SR = 22050  # resample to this for consistency
 

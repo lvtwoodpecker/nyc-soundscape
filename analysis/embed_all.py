@@ -31,8 +31,8 @@ from transformers import ClapModel, ClapProcessor
 
 AUDIO_DIR = 'audio'
 ANNOTATIONS_CSV = 'public/data/metadata/annotations.csv'
-OUTPUT_NPY = 'analysis/embeddings.npy'
-OUTPUT_META = 'analysis/embeddings_meta.jsonl'
+OUTPUT_NPY = 'analysis/outputs/embeddings.npy'
+OUTPUT_META = 'analysis/outputs/embeddings_meta.jsonl'
 CHECKPOINT_DIR = 'analysis/checkpoints'
 BATCH_SIZE = 16
 MODEL_ID = 'laion/larger_clap_music_and_speech'

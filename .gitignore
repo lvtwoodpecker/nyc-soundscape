@@ -27,8 +27,5 @@ dist/
 audio-*/
 .wrangler/
 analysis/checkpoints/
-analysis/embeddings.npy
-analysis/embeddings_meta.jsonl
-analysis/librosa_features.json
-analysis/captions.json
-analysis/candidates.json
+analysis/outputs/
+analysis/logs/

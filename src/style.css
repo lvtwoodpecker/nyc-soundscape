@@ -1,6 +1,5 @@
 :root {
   --bg: #070810;
-  --bg2: #0d0f1a;
   --bg3: #12152a;
   --text: #e8eaf6;
   --muted: #5a5f8a;
@@ -71,7 +70,6 @@ header {
   grid-template-columns: 320px 1fr 300px;
   grid-template-rows: 1fr auto;
   height: calc(100vh - 73px);
-  gap: 0;
 }
 
 .panel-left {
@@ -87,8 +85,17 @@ header {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   padding-left: 4px;
+}
+.meter-label-row .panel-label { margin-bottom: 0; }
+.panel-left > .panel-label { margin-bottom: 8px; }
+.fine-tag-section .panel-label { margin-bottom: 6px; font-size: 0.58rem; }
+
+#persona-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .persona-card {
   padding: 14px 16px;
@@ -168,7 +175,7 @@ header {
   position: absolute;
   background: var(--bg3);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 14px 16px;
   pointer-events: none;
   opacity: 0;
@@ -177,6 +184,7 @@ header {
   z-index: 10;
   font-size: 0.72rem;
   line-height: 1.7;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 .hour-tooltip.visible { opacity: 1; }
 .hour-tooltip-title {
@@ -210,9 +218,8 @@ header {
 }
 .journey-location {
   font-size: 0.78rem;
-  color: var(--muted);
+  color: var(--text-dim);
   margin-top: 6px;
-  letter-spacing: 0.06em;
 }
 .journey-desc {
   font-size: 0.72rem;
@@ -227,7 +234,7 @@ header {
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 22px;
 }
 
 .meter-label-row {
@@ -253,13 +260,13 @@ header {
   height: 8px;
   background: var(--bg3);
   border-radius: 4px;
+  border: 1px solid var(--border);
   overflow: hidden;
   position: relative;
 }
 .meter-bar-fill {
   height: 100%;
-  border-radius: 4px;
-  background: linear-gradient(90deg, #26de81, #ffd32a, #ff6b6b);
+  background: linear-gradient(90deg, var(--c-saw), var(--c-impact), var(--c-engine));
   width: 0%;
   transition: width 0.05s;
 }
@@ -276,6 +283,7 @@ header {
   height: 100px;
   border-radius: 8px;
   background: var(--bg3);
+  border: 1px solid var(--border);
   display: block;
 }
 
@@ -287,7 +295,6 @@ header {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
 }
 .sound-row {
   display: flex;
@@ -297,7 +304,7 @@ header {
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid transparent;
-  transition: all 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 .sound-row:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
 .sound-row.playing { background: rgba(255,255,255,0.05); border-color: var(--accent-color,#a29bfe); }
@@ -328,17 +335,16 @@ header {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 .playback-btn:hover { border-color: var(--neon-a); color: var(--neon-a); }
 .playback-btn:focus-visible { outline: 1px solid var(--neon-a); outline-offset: 2px; }
-.playback-btn.active { background: var(--bg3); border-color: var(--neon-c); color: var(--neon-c); }
+.playback-btn.active { border-color: var(--neon-c); color: var(--neon-c); box-shadow: 0 0 12px rgba(253,121,168,0.15); }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 4px;
 }
 .legend-item {
   display: flex;
@@ -355,7 +361,6 @@ header {
 .timeline-strip {
   display: flex;
   align-items: center;
-  gap: 0;
   height: 32px;
   position: relative;
   cursor: pointer;
@@ -370,7 +375,7 @@ header {
   justify-content: center;
   font-size: 0.5rem;
   color: transparent;
-  transition: all 0.15s;
+  transition: filter 0.15s, opacity 0.15s, color 0.15s;
   border-radius: 2px;
 }
 .timeline-hour-cell:hover { color: var(--muted); filter: brightness(1.3); }
@@ -410,10 +415,17 @@ header {
 .sound-row:focus-visible { outline: 1px solid var(--border); outline-offset: 1px; }
 
 #tt-desc {
-  color: var(--muted);
+  color: var(--text-dim);
   font-size: 0.65rem;
   margin-top: 6px;
   line-height: 1.6;
+}
+
+.sounds-empty {
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.6;
+  margin-top: 4px;
 }
 
 .fine-tag-section {
@@ -425,4 +437,16 @@ header {
   font-size: 0.65rem;
   color: var(--muted);
   padding: 2px 0;
+}
+
+.timeline-wrapper {
+  width: 100%;
+  max-width: 480px;
+}
+.timeline-time-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.55rem;
+  color: var(--muted);
+  margin-top: 4px;
 }

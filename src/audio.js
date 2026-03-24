@@ -2,16 +2,16 @@ export let audioCtx = null
 export let analyserNode = null
 let currentSoundNodes = []
 
-// coarse class -> fine-grained clip classes in clip-index.json
+// coarse class -> fine-grained clip classes in clip-index.json (SONYC names)
 const COARSE_TO_FINE = {
-  engine:    ['small-engine', 'medium-engine', 'large-engine'],
+  engine:    ['small-sounding-engine', 'medium-sounding-engine', 'large-sounding-engine'],
   machinery: ['rock-drill', 'jackhammer', 'hoe-ram', 'pile-driver'],
-  impact:    ['impact'],
-  saw:       ['chainsaw', 'small-saw', 'large-saw'],
+  impact:    ['non-machinery-impact'],
+  saw:       ['chainsaw', 'small-medium-rotating-saw', 'large-rotating-saw'],
   alert:     ['car-horn', 'car-alarm', 'siren', 'reverse-beeper'],
   music:     ['stationary-music', 'mobile-music', 'ice-cream-truck'],
-  voice:     ['talking', 'shouting', 'large-crowd', 'amplified-speech'],
-  dog:       ['dog'],
+  voice:     ['person-or-small-group-talking', 'person-or-small-group-shouting', 'large-crowd', 'amplified-speech'],
+  dog:       ['dog-barking-whining'],
   busking:   ['stationary-music', 'mobile-music'],
 }
 

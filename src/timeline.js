@@ -1,21 +1,34 @@
-export function renderTimeline(persona) {
+import { SOUND_COLORS } from './personas.js'
+
+export function renderTimeline(persona, hourlyStats) {
   const el = document.getElementById('timeline-strip')
   if (!persona) {
-    el.innerHTML = Array(24).fill(0).map((_, h) =>
+    el.innerHTML = Array(24).fill(0).map(() =>
       `<div class="timeline-hour-cell" style="background:#13162a"></div>`
     ).join('')
     return
   }
 
   el.innerHTML = persona.schedule.map((data, h) => {
-    const dominantSound = data.sounds[0] || ''
-    const hasData = data.sounds.length > 0
-    const color = hasData ? `var(--c-${dominantSound})` : '#13162a'
-    return `<div class="timeline-hour-cell" data-hour="${h}" style="background:${color};opacity:${hasData ? 0.7 : 0.3}"></div>`
+    let color = '#13162a'
+    let opacity = 0.3
+    if (hourlyStats) {
+      const hData = hourlyStats.by_borough?.[String(data.borough)]?.[String(h)]
+      if (hData) {
+        const top = Object.entries(hData.prevalence)
+          .filter(([, v]) => v >= 0.05)
+          .sort((a, b) => b[1] - a[1])[0]
+        if (top) {
+          color = SOUND_COLORS[top[0]] || '#13162a'
+          opacity = 0.7
+        }
+      }
+    }
+    return `<div class="timeline-hour-cell" data-hour="${h}" style="background:${color};opacity:${opacity}"></div>`
   }).join('')
 
   document.querySelectorAll('.timeline-hour-cell').forEach(cell => {
-    cell.addEventListener('click', (e) => {
+    cell.addEventListener('click', () => {
       const h = parseInt(cell.dataset.hour)
       window.updateHourGlobal?.(h)
     })

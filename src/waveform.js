@@ -42,8 +42,6 @@ export function drawWaveform(analyserNode, personaColor) {
 
       ctx.shadowColor = personaColor || '#a29bfe'
       ctx.shadowBlur = 8
-      ctx.shadowOffsetX = 0
-      ctx.shadowOffsetY = 0
       ctx.stroke()
       ctx.shadowColor = 'transparent'
     } else {

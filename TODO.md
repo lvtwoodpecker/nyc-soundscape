@@ -17,6 +17,11 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 - [x] SONYC audio archives downloaded to `audio/` (gitignored)
 - [x] Cloudflare R2 bucket created: `soundscape-nyc`
   - Public URL: `https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev`
+- [x] CLAP embeddings across all 18,500 clips → `analysis/outputs/embeddings.npy`
+- [x] Gemini 2.5 Flash-Lite captions for all 18,510 clips → `analysis/outputs/captions.jsonl`
+- [x] `analysis/analyze_captions.py` — scores/ranks captions per fine class → `analysis/outputs/curated_manifest.json`
+  - Key finding: SONYC gt-labels mean "sound was present" not "sound is audible/dominant"
+  - 7 sparse classes (car-alarm, ice-cream-truck, large-crowd, hoe-ram, pile-driver, amplified-speech, large-rotating-saw) have no keyword-matched clips → synthesis fallback for those
 
 ---
 
@@ -24,31 +29,10 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 
 **Goal:** Replace Web Audio synthesis with real SONYC clips. This is the centerpiece of the experience.
 
-**Target:** 10 clips per fine-grained class × 23 classes = ~230 clips (~230MB on R2)
-
-### Fine-grained classes to curate (23 total)
-```
-engine:    small-sounding-engine / medium-sounding-engine / large-sounding-engine
-machinery: rock-drill / jackhammer / hoe-ram / pile-driver
-impact:    non-machinery-impact
-saw:       chainsaw / small-medium-rotating-saw / large-rotating-saw
-alert:     car-horn / car-alarm / siren / reverse-beeper
-music:     stationary-music / mobile-music / ice-cream-truck
-voice:     talking / shouting / large-crowd / amplified-speech
-dog:       dog-barking / dog-whining
-```
+**Target:** up to 10 clips per class for the 16 classes with audible examples; synthesis fallback for the 7 sparse/inaudible classes.
 
 ### Steps
-- [ ] Write `analysis/curate_clips.py`:
-  - Read `annotations.csv`
-  - Filter by fine-grained `presence=1`
-  - Prefer ground-truth rows (`annotator_id=0`)
-  - For each class, select top N clips ranked by annotation confidence
-  - Output a manifest: `(fine_class, archive_number, filename)` for extraction
-- [ ] Write `analysis/extract_clips.sh`:
-  - For each entry in manifest, extract just that file from the matching `audio-N.tar.gz`
-  - Save to `audio/curated/<fine_class>/`
-- [ ] Convert WAV → MP3 at 128kbps (ffmpeg, ~10x size reduction)
+- [x] Write `analysis/extract_clips.py` — reads curated_manifest.json, extracts WAVs from archives, converts to MP3 (loudnorm -16 LUFS, 128kbps), saves to `audio/curated/<fine_class>/`
 - [ ] Upload to R2 bucket `soundscape-nyc` via wrangler CLI
 - [ ] Populate `public/data/processed/clip-index.json`:
   ```json
@@ -64,13 +48,13 @@ dog:       dog-barking / dog-whining
 - [ ] Update `src/audio.js`:
   - Load `clip-index.json` at startup
   - `playSound(fineClass, db)` → pick random clip from matching array → `AudioContext.decodeAudioData` → play
-  - Fallback to synthesis if no clip found (keeps noData flatline working)
+  - Fallback to synthesis if no clip found (keeps noData flatline working for sparse classes)
 - [ ] Update `src/personas.js` schedules: use fine-grained class names in `sounds[]` arrays where possible
 - [ ] Test: each persona's full 24h journey plays real clips
 
-### Expanding later
+### Future
+- Wire Gemini captions into UI: when a clip plays, show its caption text as a "what you're hearing" tooltip or card
 - Add borough-specific clips (same class, different sensor locations)
-- Add more clips per class for more variety (no hard limit on R2)
 
 ---
 
@@ -117,7 +101,6 @@ dog:       dog-barking / dog-whining
 
 ## Nice to Have (Post-Submission)
 
-- [ ] Annotator agreement visualization (citizen science vs. ground truth confidence)
 - [ ] Borough comparison panel
 - [ ] Proximity data (near/far) shown on sound chips
 - [ ] Export persona's day as shareable image

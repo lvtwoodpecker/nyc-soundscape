@@ -1,14 +1,14 @@
 """
-Gemini 2.5 Flash audio captioning for all SONYC clips.
+Gemini audio captioning for all SONYC clips.
 
-Streams archives one at a time — extracts WAVs to a temp dir, captions each,
-saves a checkpoint per archive. Fully resumable if interrupted.
+Streams archives one at a time — extracts WAVs to a temp dir, captions with
+concurrent workers, saves a checkpoint per archive. Resumable if interrupted.
 
 Usage:
   source analysis/.venv/bin/activate
   export GEMINI_API_KEY=your_key_here
-  python analysis/caption_clips.py --dry-run     # cost estimate + 5 sample captions
-  python analysis/caption_clips.py --confirm     # full run (~$1, ~3-5h)
+  python analysis/caption_clips.py --dry-run     # cost estimate + 100 sample captions
+  python analysis/caption_clips.py --confirm     # full run (remaining archives only)
 
 Output:
   analysis/captions.jsonl — one JSON line per clip:
@@ -21,8 +21,10 @@ import os
 import random
 import tarfile
 import tempfile
+import threading
 import time
 import warnings
+from concurrent.futures import ThreadPoolExecutor, as_completed
 warnings.filterwarnings('ignore')
 
 try:
@@ -34,18 +36,19 @@ except ImportError:
     exit(1)
 
 AUDIO_DIR      = 'audio'
-META_PATH      = 'analysis/embeddings_meta.jsonl'
-OUTPUT_PATH    = 'analysis/captions.jsonl'
+META_PATH      = 'analysis/outputs/embeddings_meta.jsonl'
+OUTPUT_PATH    = 'analysis/outputs/captions.jsonl'
 CHECKPOINT_DIR = 'analysis/checkpoints'
-MODEL_NAME     = 'gemini-2.5-flash'
+MODEL_NAME     = 'gemini-2.5-flash-lite'
 
-# tune for your API tier — gemini-2.5-flash pay-as-you-go allows 1000 RPM
-# using 60 to be conservative; I/O from archives is the real bottleneck anyway
-REQUESTS_PER_MIN = 500
+# 60 concurrent workers × ~6s latency = ~600 RPM (under the 4000 RPM flash-lite limit)
+MAX_WORKERS = 60
 
 # hard spending limit — script saves checkpoint and exits cleanly when hit
-MAX_COST_USD = 3.00
+MAX_COST_USD = 5.00
 
+# AI usage disclosure (contest requirement): Gemini 2.5 Flash-Lite prompt used to
+# generate natural-language descriptions of 18,510 SONYC audio clips.
 PROMPT = (
     'Describe this 10-second urban sound recording in 2-3 sentences. '
     'Be specific: what sounds are present, how prominent are they, '
@@ -58,8 +61,9 @@ AUDIO_TOKENS_PER_SEC = 32
 CLIP_SECS            = 10
 PROMPT_TOKENS        = 60
 RESPONSE_TOKENS      = 100
-INPUT_PRICE_PER_M    = 0.15   # $ per 1M input tokens (gemini-2.5-flash approx)
-OUTPUT_PRICE_PER_M   = 0.60   # $ per 1M output tokens
+# gemini-2.5-flash-lite: audio input $0.30/M, text output $0.40/M (no thinking mode)
+INPUT_PRICE_PER_M    = 0.30   # using audio rate for all input (audio dominates, slight overestimate)
+OUTPUT_PRICE_PER_M   = 0.40
 
 
 def load_meta():
@@ -77,29 +81,30 @@ def estimate_cost(n_clips):
     return cost, input_tokens, output_tokens
 
 
-class BudgetExceeded(Exception):
-    pass
-
-
-class RateLimitHit(Exception):
-    pass
-
-
 def tokens_to_cost(input_tokens, output_tokens):
     return (input_tokens / 1e6) * INPUT_PRICE_PER_M + (output_tokens / 1e6) * OUTPUT_PRICE_PER_M
 
 
 def caption_one(wav_path, client):
-    """read WAV bytes, send inline to Gemini, return (caption, usage_metadata)"""
+    """send WAV bytes inline to Gemini, return (caption, usage_metadata)"""
     audio_bytes = open(wav_path, 'rb').read()
-    resp = client.models.generate_content(
-        model=MODEL_NAME,
-        contents=[
-            PROMPT,
-            types.Part.from_bytes(data=audio_bytes, mime_type='audio/wav'),
-        ],
-    )
-    return resp.text.strip(), resp.usage_metadata
+    for attempt in range(4):
+        try:
+            resp = client.models.generate_content(
+                model=MODEL_NAME,
+                contents=[
+                    PROMPT,
+                    types.Part.from_bytes(data=audio_bytes, mime_type='audio/wav'),
+                ],
+            )
+            return resp.text.strip(), resp.usage_metadata
+        except Exception as e:
+            msg = str(e)
+            # retry on transient server errors, not on quota/auth errors
+            if attempt < 3 and ('503' in msg or '500' in msg):
+                time.sleep(2 ** attempt)  # 1s, 2s, 4s
+                continue
+            raise
 
 
 def extract_one(archive_num, filename, tmpdir):
@@ -127,86 +132,106 @@ def already_done():
 
 
 def run_dry_run(meta, client):
-    n = len(meta)
-    cost, input_tok, output_tok = estimate_cost(n)
+    done = already_done()
+    by_archive = {}
+    for m in meta:
+        by_archive.setdefault(m['archive'], []).append(m)
 
-    print('\n── cost estimate (projected) ──')
-    print(f'  clips:         {n:,}')
-    print(f'  input tokens:  ~{input_tok:,.0f}  (${(input_tok / 1e6) * INPUT_PRICE_PER_M:.2f})')
-    print(f'  output tokens: ~{output_tok:,.0f}  (${(output_tok / 1e6) * OUTPUT_PRICE_PER_M:.2f})')
-    print(f'  total (projected): ~${cost:.2f}')
-    print(f'  note: audio token rate may differ — real count measured below')
+    remaining_archives = sorted(n for n in by_archive if n not in done)
+    remaining_clips    = sum(len(by_archive[n]) for n in remaining_archives)
 
-    # pick 5 samples with variety
-    labeled   = [m for m in meta if m.get('classes')]
-    unlabeled = [m for m in meta if not m.get('classes')]
-    samples   = []
-    for target in ['engine', 'machinery', 'music', 'dog']:
-        matches = [m for m in labeled if any(target in c for c in m.get('classes', []))]
-        if matches:
-            samples.append(random.choice(matches))
-    if unlabeled:
-        samples.append(random.choice(unlabeled))
-    samples = samples[:5]
+    print(f'\n── progress ──')
+    print(f'  done archives:      {sorted(done)}  ({len(done) * 1000:,} clips)')
+    print(f'  remaining archives: {remaining_archives}  ({remaining_clips:,} clips)')
 
-    print(f'\n── 5 sample captions ──')
-    delay = 60.0 / REQUESTS_PER_MIN
+    if not remaining_archives:
+        print('  all archives done — nothing to run')
+        return
+
+    # pull 100 clips from the first remaining archive for a real cost measurement
+    first_archive = remaining_archives[0]
+    pool = by_archive[first_archive]
+    samples = random.sample(pool, min(100, len(pool)))
+
+    print(f'\n── dry run: 100 clips from archive {first_archive} with {MAX_WORKERS} workers ──')
     total_input_tokens  = 0
     total_output_tokens = 0
-    n_measured = 0
+    n_ok  = 0
+    n_err = 0
+    lock  = threading.Lock()
+    t0    = time.time()
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        for i, m in enumerate(samples):
-            print(f'\n[{i + 1}/5]  {m["filename"]}  archive={m["archive"]}')
-            print(f'        classes={m.get("classes", [])[:3]}  borough={m.get("borough")}  h={m.get("hour")}')
-            wav_path = extract_one(m['archive'], m['filename'], tmpdir)
-            if not wav_path:
-                print('  could not extract from archive')
-                continue
-            try:
-                t0 = time.time()
-                caption, usage = caption_one(wav_path, client)
-                elapsed = time.time() - t0
-                print(f'  -> "{caption}"  ({elapsed:.1f}s)')
-                if usage:
-                    inp = getattr(usage, 'prompt_token_count', 0) or 0
-                    out = getattr(usage, 'candidates_token_count', 0) or 0
-                    print(f'     tokens: {inp} in / {out} out')
-                    total_input_tokens  += inp
-                    total_output_tokens += out
-                    n_measured += 1
-            except Exception as e:
-                print(f'  error: {e}')
-            if i < len(samples) - 1:
-                time.sleep(delay)
+        archive_path = os.path.join(AUDIO_DIR, f'audio-{first_archive}.tar.gz')
+        print(f'  extracting {archive_path}...')
+        with tarfile.open(archive_path, 'r:gz') as tf:
+            sample_names = {m['filename'] for m in samples}
+            targets = [mb for mb in tf.getmembers() if os.path.basename(mb.name) in sample_names]
+            tf.extractall(tmpdir, members=targets)
 
-    print('\n── real cost projection (from measured token counts) ──')
-    if n_measured > 0:
-        avg_in  = total_input_tokens  / n_measured
-        avg_out = total_output_tokens / n_measured
-        real_cost = (avg_in * n / 1e6) * INPUT_PRICE_PER_M + \
-                    (avg_out * n / 1e6) * OUTPUT_PRICE_PER_M
-        print(f'  avg tokens/clip: {avg_in:.0f} in / {avg_out:.0f} out  (from {n_measured} real clips)')
-        print(f'  projected total for {n:,} clips: ~${real_cost:.2f}')
-        est_hours = n / REQUESTS_PER_MIN / 60
-        print(f'  time @ {REQUESTS_PER_MIN} RPM: ~{est_hours:.1f} hours')
+        path_map = {}
+        for root, _, files in os.walk(tmpdir):
+            for f in files:
+                if f.endswith('.wav'):
+                    path_map[f] = os.path.join(root, f)
+
+        def process_one(m):
+            wav_path = path_map.get(m['filename'])
+            if not wav_path:
+                return None, None, 'missing'
+            try:
+                caption, usage = caption_one(wav_path, client)
+                return caption, usage, None
+            except Exception as e:
+                return None, None, str(e)
+
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            futures = {executor.submit(process_one, m): m for m in samples}
+            for future in as_completed(futures):
+                caption, usage, error = future.result()
+                with lock:
+                    if error:
+                        n_err += 1
+                        if n_err <= 3:
+                            print(f'  error: {error}')
+                    else:
+                        n_ok += 1
+                        if usage:
+                            total_input_tokens  += getattr(usage, 'prompt_token_count', 0) or 0
+                            total_output_tokens += getattr(usage, 'candidates_token_count', 0) or 0
+
+    elapsed = time.time() - t0
+    print(f'  done: {n_ok} ok, {n_err} errors, {elapsed:.0f}s elapsed')
+
+    print('\n── real cost projection ──')
+    if n_ok > 0:
+        avg_in  = total_input_tokens  / n_ok
+        avg_out = total_output_tokens / n_ok
+        cost_100     = tokens_to_cost(total_input_tokens, total_output_tokens)
+        cost_remain  = (avg_in * remaining_clips / 1e6) * INPUT_PRICE_PER_M + \
+                       (avg_out * remaining_clips / 1e6) * OUTPUT_PRICE_PER_M
+        throughput = MAX_WORKERS / (elapsed / n_ok)
+        est_min = remaining_clips / throughput / 60
+        print(f'  model:            {MODEL_NAME}')
+        print(f'  avg tokens/clip:  {avg_in:.0f} in / {avg_out:.0f} out  (from {n_ok} clips)')
+        print(f'  cost for 100:     ${cost_100:.4f}')
+        print(f'  projected for {remaining_clips:,} remaining clips: ~${cost_remain:.2f}')
+        print(f'  time estimate:    ~{est_min:.0f} min with {MAX_WORKERS} workers')
+        print(f'  spending limit:   ${MAX_COST_USD:.2f}')
     else:
-        print(f'  all samples failed — fix errors above before running full batch')
+        print('  all samples failed — fix errors above before running full batch')
         return
 
     print()
-    print('set a Cloud budget alert before running full batch:')
-    print('  console.cloud.google.com -> Billing -> Budgets & alerts')
-    print()
-    print('to run full batch:')
+    print('to run full batch (skips already-done archives):')
     print('  python analysis/caption_clips.py --confirm')
 
 
-def process_archive(archive_num, archive_meta, client, spend):
+def process_archive(archive_num, archive_meta, client, spend, stop_event):
     checkpoint = os.path.join(CHECKPOINT_DIR, f'captions_archive_{archive_num}.jsonl')
     print(f'\n── archive {archive_num} ({len(archive_meta)} clips) ──')
     results = []
-    delay   = 60.0 / REQUESTS_PER_MIN
+    lock = threading.Lock()
 
     with tempfile.TemporaryDirectory() as tmpdir:
         archive_path = os.path.join(AUDIO_DIR, f'audio-{archive_num}.tar.gz')
@@ -221,49 +246,54 @@ def process_archive(archive_num, archive_meta, client, spend):
                 if f.endswith('.wav'):
                     path_map[f] = os.path.join(root, f)
 
-        print(f'  {len(path_map)} WAVs extracted, captioning at {REQUESTS_PER_MIN} RPM...')
+        print(f'  {len(path_map)} WAVs extracted, captioning with {MAX_WORKERS} workers...')
 
-        for i, m in enumerate(archive_meta):
+        def process_one(m):
+            if stop_event.is_set():
+                return m, None, None, 'stopped'
             wav_path = path_map.get(m['filename'])
             if not wav_path:
-                continue
-            t0 = time.time()
+                return m, None, None, 'missing'
             try:
                 caption, usage = caption_one(wav_path, client)
-                results.append({**m, 'caption': caption})
-                # track spend and bail out if we hit the budget
-                if usage:
-                    inp = getattr(usage, 'prompt_token_count', 0) or 0
-                    out = getattr(usage, 'candidates_token_count', 0) or 0
-                    spend['input']  += inp
-                    spend['output'] += out
-                    current = tokens_to_cost(spend['input'], spend['output'])
-                    if current >= MAX_COST_USD:
-                        print(f'\n  budget limit ${MAX_COST_USD:.2f} reached (spent ~${current:.2f}) — stopping cleanly')
-                        raise BudgetExceeded()
-            except BudgetExceeded:
-                # save whatever we have so far before propagating
-                with open(checkpoint, 'w') as f:
-                    for r in results:
-                        f.write(json.dumps(r) + '\n')
-                raise
+                return m, caption, usage, None
             except Exception as e:
-                # 429 = daily quota hit — stop cleanly, don't mark remaining as failed
-                if '429' in str(e) or 'quota' in str(e).lower():
-                    print(f'\n  API rate limit hit (daily quota) — stopping cleanly')
-                    print(f'  resume tomorrow with: python analysis/caption_clips.py --confirm')
-                    raise RateLimitHit()
-                print(f'  error {m["filename"]}: {e}')
-                results.append({**m, 'caption': None, 'error': str(e)})
+                return m, None, None, str(e)
 
-            elapsed = time.time() - t0
-            wait = max(0, delay - elapsed)
-            if wait:
-                time.sleep(wait)
+        done_count = 0
+        with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+            futures = {executor.submit(process_one, m): m for m in archive_meta}
+            for future in as_completed(futures):
+                m, caption, usage, error = future.result()
 
-            if (i + 1) % 100 == 0:
-                current = tokens_to_cost(spend['input'], spend['output'])
-                print(f'  {i + 1}/{len(archive_meta)} done  (~${current:.2f} spent so far)')
+                with lock:
+                    if error == 'stopped':
+                        continue
+                    elif error == 'missing':
+                        continue
+                    elif error and ('429' in error or 'quota' in error.lower()):
+                        print(f'\n  API daily quota hit — stopping cleanly')
+                        print(f'  resume tomorrow: python analysis/caption_clips.py --confirm')
+                        stop_event.set()
+                    elif error:
+                        print(f'  error {m["filename"]}: {error}')
+                        results.append({**m, 'caption': None, 'error': error})
+                    else:
+                        results.append({**m, 'caption': caption})
+                        if usage:
+                            inp = getattr(usage, 'prompt_token_count', 0) or 0
+                            out = getattr(usage, 'candidates_token_count', 0) or 0
+                            spend['input']  += inp
+                            spend['output'] += out
+                            current = tokens_to_cost(spend['input'], spend['output'])
+                            if current >= MAX_COST_USD:
+                                print(f'\n  budget limit ${MAX_COST_USD:.2f} reached (~${current:.2f}) — stopping')
+                                stop_event.set()
+
+                    done_count += 1
+                    if done_count % 100 == 0:
+                        current = tokens_to_cost(spend['input'], spend['output'])
+                        print(f'  {done_count}/{len(archive_meta)} done  (~${current:.3f} spent)')
 
     with open(checkpoint, 'w') as f:
         for r in results:
@@ -271,6 +301,112 @@ def process_archive(archive_num, archive_meta, client, spend):
 
     succeeded = sum(1 for r in results if r.get('caption'))
     print(f'  checkpoint saved: {succeeded}/{len(results)} captioned')
+
+
+def retry_errors(client, spend, stop_event):
+    """re-caption any clips that previously failed (caption is None)"""
+    checkpoints = sorted(
+        f for f in os.listdir(CHECKPOINT_DIR)
+        if f.startswith('captions_archive_') and f.endswith('.jsonl')
+    )
+    if not checkpoints:
+        print('no checkpoints found')
+        return
+
+    total_errors = 0
+    for fname in checkpoints:
+        path = os.path.join(CHECKPOINT_DIR, fname)
+        rows = []
+        with open(path) as f:
+            for line in f:
+                rows.append(json.loads(line))
+        errors = [r for r in rows if not r.get('caption')]
+        total_errors += len(errors)
+
+    print(f'found {total_errors} failed clips across {len(checkpoints)} archives')
+    if total_errors == 0:
+        print('nothing to retry')
+        return
+
+    for fname in checkpoints:
+        if stop_event.is_set():
+            break
+        path = os.path.join(CHECKPOINT_DIR, fname)
+        rows = []
+        with open(path) as f:
+            for line in f:
+                rows.append(json.loads(line))
+
+        to_retry = {r['filename']: r for r in rows if not r.get('caption')}
+        if not to_retry:
+            continue
+
+        archive_num = int(fname.replace('captions_archive_', '').replace('.jsonl', ''))
+        print(f'\n── archive {archive_num}: retrying {len(to_retry)} failed clips ──')
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            archive_path = os.path.join(AUDIO_DIR, f'audio-{archive_num}.tar.gz')
+            with tarfile.open(archive_path, 'r:gz') as tf:
+                targets = [m for m in tf.getmembers() if os.path.basename(m.name) in to_retry]
+                tf.extractall(tmpdir, members=targets)
+
+            path_map = {}
+            for root, _, files in os.walk(tmpdir):
+                for f in files:
+                    if f.endswith('.wav'):
+                        path_map[f] = os.path.join(root, f)
+
+            lock = threading.Lock()
+            results_map = {}
+
+            def process_one(m):
+                if stop_event.is_set():
+                    return m, None, None, 'stopped'
+                wav_path = path_map.get(m['filename'])
+                if not wav_path:
+                    return m, None, None, 'missing'
+                try:
+                    caption, usage = caption_one(wav_path, client)
+                    return m, caption, usage, None
+                except Exception as e:
+                    return m, None, None, str(e)
+
+            with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+                futures = {executor.submit(process_one, m): m for m in to_retry.values()}
+                for future in as_completed(futures):
+                    m, caption, usage, error = future.result()
+                    with lock:
+                        if error == 'stopped':
+                            continue
+                        elif error and ('429' in error or 'quota' in error.lower()):
+                            print(f'\n  API daily quota hit — stopping cleanly')
+                            stop_event.set()
+                        elif error:
+                            print(f'  still failing {m["filename"]}: {error}')
+                            results_map[m['filename']] = {**m, 'caption': None, 'error': error}
+                        else:
+                            results_map[m['filename']] = {**m, 'caption': caption}
+                            if usage:
+                                inp = getattr(usage, 'prompt_token_count', 0) or 0
+                                out = getattr(usage, 'candidates_token_count', 0) or 0
+                                spend['input'] += inp
+                                spend['output'] += out
+                                current = tokens_to_cost(spend['input'], spend['output'])
+                                if current >= MAX_COST_USD:
+                                    print(f'\n  budget limit ${MAX_COST_USD:.2f} reached — stopping')
+                                    stop_event.set()
+
+        # update checkpoint: replace failed rows with new results
+        updated = []
+        for r in rows:
+            updated.append(results_map.get(r['filename'], r))
+
+        with open(path, 'w') as f:
+            for r in updated:
+                f.write(json.dumps(r) + '\n')
+
+        fixed = sum(1 for r in updated if r.get('caption') and r['filename'] in to_retry)
+        print(f'  fixed {fixed}/{len(to_retry)} in archive {archive_num}')
 
 
 def merge_checkpoints():
@@ -297,12 +433,15 @@ def main():
                         help='print cost estimate and run 5 sample captions only')
     parser.add_argument('--confirm', action='store_true',
                         help='run the full batch')
+    parser.add_argument('--retry-errors', action='store_true',
+                        help='re-caption any clips that failed (caption is None) in existing checkpoints')
     args = parser.parse_args()
 
-    if not args.dry_run and not args.confirm:
+    if not args.dry_run and not args.confirm and not args.retry_errors:
         print('usage:')
-        print('  python analysis/caption_clips.py --dry-run    # preview + 5 samples')
-        print('  python analysis/caption_clips.py --confirm    # full run')
+        print('  python analysis/caption_clips.py --dry-run       # preview + 5 samples')
+        print('  python analysis/caption_clips.py --confirm       # full run (~$2, ~30 min)')
+        print('  python analysis/caption_clips.py --retry-errors  # re-run failed clips')
         return
 
     api_key = os.environ.get('GEMINI_API_KEY')
@@ -319,6 +458,17 @@ def main():
         run_dry_run(meta, client)
         return
 
+    # retry errors mode
+    if args.retry_errors:
+        os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+        spend = {'input': 0, 'output': 0}
+        stop_event = threading.Event()
+        retry_errors(client, spend, stop_event)
+        merge_checkpoints()
+        print(f'\ntotal spent this retry run: ~${tokens_to_cost(spend["input"], spend["output"]):.2f}')
+        print('done.')
+        return
+
     # full run
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
@@ -326,23 +476,21 @@ def main():
     for m in meta:
         by_archive.setdefault(m['archive'], []).append(m)
 
-    archives = sorted(by_archive.keys())
-    done = already_done()
+    archives   = sorted(by_archive.keys())
+    done       = already_done()
+    spend      = {'input': 0, 'output': 0}
+    stop_event = threading.Event()
+
     if done:
         print(f'skipping already-done archives: {sorted(done)}')
+    print(f'spending limit: ${MAX_COST_USD:.2f}  |  workers: {MAX_WORKERS}')
 
-    spend = {'input': 0, 'output': 0}
-    print(f'spending limit: ${MAX_COST_USD:.2f} (edit MAX_COST_USD in script to change)')
-
-    try:
-        for n in archives:
-            if n in done:
-                continue
-            process_archive(n, by_archive[n], client, spend)
-    except BudgetExceeded:
-        print(f'\nstopped at ${MAX_COST_USD:.2f} budget limit — run again to resume from here')
-    except RateLimitHit:
-        print(f'\nstopped at daily quota limit (10K RPD) — run again tomorrow to resume')
+    for n in archives:
+        if n in done:
+            continue
+        process_archive(n, by_archive[n], client, spend, stop_event)
+        if stop_event.is_set():
+            break
 
     merge_checkpoints()
     total_spent = tokens_to_cost(spend['input'], spend['output'])

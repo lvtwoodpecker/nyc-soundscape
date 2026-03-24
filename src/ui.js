@@ -30,11 +30,11 @@ export function renderPersonas(onSelect) {
 export function renderSoundsList(sounds, db, noData) {
   const el = document.getElementById('sounds-list')
   if (noData) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:0.68rem;margin-top:8px;line-height:1.6">Data unavailable for this location and hour.<br/>Displaying flatline tone.</div>'
+    el.innerHTML = '<div class="sounds-empty">Data unavailable for this location and hour.<br/>Displaying flatline tone.</div>'
     return
   }
   if (!sounds || sounds.length === 0) {
-    el.innerHTML = '<div style="color:var(--muted);font-size:0.68rem;margin-top:8px">No sounds detected this hour.</div>'
+    el.innerHTML = '<div class="sounds-empty">No sounds detected this hour.</div>'
     return
   }
   el.innerHTML = sounds.map(s => `
@@ -49,7 +49,7 @@ export function renderSoundsList(sounds, db, noData) {
   if (fineTags.length > 0) {
     const detail = document.createElement('div')
     detail.className = 'fine-tag-section'
-    detail.innerHTML = '<div class="panel-label" style="margin-bottom:6px;font-size:0.58rem">FINE-GRAINED TAGS</div>' +
+    detail.innerHTML = '<div class="panel-label">FINE-GRAINED TAGS</div>' +
       fineTags.map(tag => `<div class="fine-tag">· ${tag}</div>`).join('')
     el.appendChild(detail)
   }
