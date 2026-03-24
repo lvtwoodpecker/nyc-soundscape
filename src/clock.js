@@ -272,13 +272,13 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     const n1 = polarToXY(needleAngle, R_INNER - 6)
     const n2 = polarToXY(needleAngle, R_OUTER + 14)
     const needle = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+    needle.setAttribute('id', 'clock-needle-line')
     needle.setAttribute('x1', n1.x)
     needle.setAttribute('y1', n1.y)
     needle.setAttribute('x2', n2.x)
     needle.setAttribute('y2', n2.y)
     needle.setAttribute('stroke', 'white')
     needle.setAttribute('stroke-width', '1.5')
-    needle.setAttribute('opacity', '0.4')
     svg.appendChild(needle)
   }
 }

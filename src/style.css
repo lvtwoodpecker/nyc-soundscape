@@ -81,10 +81,11 @@ header {
   gap: 8px;
 }
 .panel-label {
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
+  opacity: 0.3;
   margin-bottom: 12px;
   padding-left: 4px;
 }
@@ -100,9 +101,8 @@ header {
 .persona-card {
   padding: 14px 16px;
   border-radius: 8px;
-  border: 1px solid var(--border);
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+  transition: background 0.2s;
   position: relative;
   overflow: hidden;
 }
@@ -115,9 +115,9 @@ header {
   opacity: 0;
   transition: opacity 0.2s;
 }
-.persona-card:hover { border-color: var(--accent); background: rgba(255,255,255,0.02); }
+.persona-card:hover { background: rgba(255,255,255,0.02); }
 .persona-card:hover::before { opacity: 0.5; }
-.persona-card.active { background: rgba(255,255,255,0.04); border-color: var(--accent); }
+.persona-card.active { background: rgba(255,255,255,0.04); }
 .persona-card.active::before { opacity: 1; }
 
 .persona-name {
@@ -234,7 +234,7 @@ header {
   padding: 32px 24px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 16px;
 }
 
 .meter-label-row {
@@ -260,13 +260,12 @@ header {
   height: 8px;
   background: var(--bg3);
   border-radius: 4px;
-  border: 1px solid var(--border);
   overflow: hidden;
   position: relative;
 }
 .meter-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--c-saw), var(--c-impact), var(--c-engine));
+  background: linear-gradient(90deg, var(--playing-color, var(--c-saw)), var(--c-engine));
   width: 0%;
   transition: width 0.05s;
 }
@@ -283,7 +282,6 @@ header {
   height: 100px;
   border-radius: 8px;
   background: var(--bg3);
-  border: 1px solid var(--border);
   display: block;
 }
 
@@ -304,10 +302,14 @@ header {
   padding: 8px 10px;
   border-radius: 6px;
   border: 1px solid transparent;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.sound-row:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
-.sound-row.playing { background: rgba(255,255,255,0.05); border-color: var(--accent-color,#a29bfe); }
+.sound-row:hover { background: rgba(255,255,255,0.03); }
+.sound-row.playing {
+  background: rgba(255,255,255,0.05);
+  border-color: var(--accent-color, #a29bfe);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color, #a29bfe) 35%, transparent);
+}
 .sound-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
@@ -327,7 +329,7 @@ header {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   background: var(--bg3);
   color: var(--text);
   font-family: 'DM Mono', monospace;
@@ -413,6 +415,34 @@ header {
 
 .persona-card:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
 .sound-row:focus-visible { outline: 1px solid var(--border); outline-offset: 1px; }
+
+/* sound dot pulse when playing */
+@keyframes soundPulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.6; }
+}
+.sound-row.playing .sound-dot {
+  animation: soundPulse 1.5s ease-in-out infinite;
+}
+
+/* clock needle fade-in on each hour change */
+@keyframes needleFadeIn {
+  from { opacity: 0; }
+  to { opacity: 0.4; }
+}
+#clock-needle-line {
+  animation: needleFadeIn 0.4s ease forwards;
+}
+
+/* panel-left border flash on persona select */
+@keyframes panelFlash {
+  0% { border-right-color: var(--border); }
+  35% { border-right-color: var(--accent, var(--neon-a)); }
+  100% { border-right-color: var(--border); }
+}
+.panel-left.panel-flash {
+  animation: panelFlash 0.9s ease forwards;
+}
 
 #tt-desc {
   color: var(--text-dim);

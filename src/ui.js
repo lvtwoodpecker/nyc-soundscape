@@ -55,9 +55,19 @@ export function renderSoundsList(sounds, db, noData) {
   }
 }
 
+export function setPlayingColor(color) {
+  document.documentElement.style.setProperty('--playing-color', color || '')
+}
+
 export function animateDbMeter(targetDb) {
   const valueEl = document.getElementById('db-value')
   const fillEl = document.getElementById('meter-fill')
+
+  // tint the dB number toward the playing sound's color at higher levels
+  const playingColor = getComputedStyle(document.documentElement).getPropertyValue('--playing-color').trim()
+  const dBFrac = Math.min(1, Math.max(0, (targetDb - 50) / 40))
+  valueEl.style.color = (playingColor && dBFrac > 0.35) ? playingColor : ''
+
   const updateFrame = () => {
     const current = parseFloat(valueEl.textContent)
     if (isNaN(current)) {

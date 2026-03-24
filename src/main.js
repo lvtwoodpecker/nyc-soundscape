@@ -1,16 +1,22 @@
 import { state } from './state.js'
-import { PERSONAS } from './personas.js'
+import { PERSONAS, SOUND_COLORS } from './personas.js'
 import { drawClock } from './clock.js'
-import { renderLegend, renderPersonas, renderSoundsList, animateDbMeter } from './ui.js'
+import { renderLegend, renderPersonas, renderSoundsList, animateDbMeter, setPlayingColor } from './ui.js'
 import { playSoundType, analyserNode, getAudioCtx, loadClipIndex } from './audio.js'
 import { resizeWaveform, drawWaveform } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 
 window.updateHourGlobal = updateHour
-window.playSoundGlobal = playSoundType
 window.selectPersonaGlobal = selectPersona
 
+// wrapper so clicking a sound row also updates playing state + color
+window.playSoundGlobal = (type, db, borough) => {
+  playSound(type, db, borough)
+}
+
 async function init() {
+  console.log('%c NYC never sleeps. Neither does this data. ', 'background:#070810;color:#a29bfe;font-family:monospace;padding:4px 8px')
+
   loadClipIndex()
   getAudioCtx()
   state.analyserNode = analyserNode
@@ -30,6 +36,18 @@ async function init() {
   window.addEventListener('resize', resizeWaveform)
 
   updateHour(0)
+}
+
+// plays a sound and updates the UI playing state + color
+function playSound(type, db, borough) {
+  const color = SOUND_COLORS[type] || ''
+  setPlayingColor(color)
+  document.querySelectorAll('.sound-row').forEach(r => {
+    const isThis = r.dataset.sound === type
+    r.classList.toggle('playing', isThis)
+    if (isThis && color) r.style.setProperty('--accent-color', color)
+  })
+  playSoundType(type, db, borough)
 }
 
 // how sonically interesting each type is — weights the audio pick toward unusual sounds
@@ -61,12 +79,22 @@ function pickFeatureSound(sounds, prevalence) {
 function selectPersona(id) {
   state.persona = PERSONAS.find(p => p.id === id)
   if (!state.persona) return
-  
+
   document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'))
   document.getElementById(`persona-${id}`).classList.add('active')
-  document.getElementById('status-persona').textContent = 
+  document.getElementById('status-persona').textContent =
     `${state.persona.name} · ${state.persona.role} · ${state.persona.home}`
-  
+
+  // reset dB so it counts up from 0 on select
+  document.getElementById('db-value').textContent = '0'
+
+  // brief flash of persona color on left panel border
+  const leftPanel = document.querySelector('.panel-left')
+  leftPanel.style.setProperty('--accent', state.persona.color)
+  leftPanel.classList.remove('panel-flash')
+  void leftPanel.offsetWidth
+  leftPanel.classList.add('panel-flash')
+
   state.hour = 0
   updateHour(0)
   renderTimeline(state.persona, state.hourlyStats)
@@ -94,10 +122,10 @@ function updateHour(h) {
   drawWaveform(analyserNode, state.persona.color)
 
   if (noData) {
-    playSoundType('flatline', db, data.borough)
+    playSound('flatline', db, data.borough)
   } else {
     const feature = pickFeatureSound(sounds, prevalence)
-    if (feature) playSoundType(feature, db, data.borough)
+    if (feature) playSound(feature, db, data.borough)
   }
 }
 
