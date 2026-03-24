@@ -167,8 +167,8 @@ function toggleAutoPlay() {
   btn.classList.add('active')
   btn.textContent = '⏸ PAUSE'
 
-  updateHour(0)
-  let h = 0
+  // resume from current hour, not from 0
+  let h = state.hour ?? 0
   state.autoPlayInterval = setInterval(() => {
     h = (h + 1) % 24
     updateHour(h)
