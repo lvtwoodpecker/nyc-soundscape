@@ -313,3 +313,22 @@ python3 -m http.server 8080
 - [ ] AI usage documented (this project was designed with Claude claude.ai assistance — prompts should be commented in code per contest rules)
 - [ ] Submitted via https://nyu.qualtrics.com/jfe/form/SV_7Nv5S3ocb2BTOnA before **April 3, 2026 at 11:59pm**
 - [ ] RSVP for April 9 showcase at 370 Jay, Room 1201, 3–6pm
+
+---
+
+## Design Context
+
+**Users**: NYU contest judges — professors, urban planners, data scientists. Academic audience, design-literate, looking for originality and insight over slickness.
+
+**Brand personality**: Precise, evocative, nocturnal. Like looking at a city from a rooftop at 3am.
+
+**Emotional goal**: Wonder at the city's hidden acoustic life. The feeling of eavesdropping on NYC.
+
+**Anti-references**: Grafana/Tableau dashboards, generic dark-mode SaaS, AI-generated "neon on black" visualizations.
+
+**Design principles**:
+1. The 8 sound colors carry all the semantic meaning — they're the only accent colors; don't dilute them with chrome
+2. The clock is sacred — everything else serves it
+3. Restraint everywhere except where sound is present
+4. The right panel should feel like a field recording kit, not a metrics panel
+5. Delight = city sounds leaking into the interface

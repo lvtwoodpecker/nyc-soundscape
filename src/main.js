@@ -2,7 +2,7 @@ import { state } from './state.js'
 import { PERSONAS, SOUND_COLORS } from './personas.js'
 import { drawClock } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume } from './audio.js'
 import { resizeWaveform, drawWaveform } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 
@@ -34,6 +34,27 @@ async function init() {
 
   resizeWaveform()
   window.addEventListener('resize', resizeWaveform)
+
+  document.getElementById('vol-slider').addEventListener('input', e => {
+    setMasterVolume(parseFloat(e.target.value))
+  })
+
+  document.addEventListener('keydown', e => {
+    // ignore when typing in an input
+    if (e.target.tagName === 'INPUT') return
+    if (e.key === ' ') {
+      e.preventDefault()
+      toggleAutoPlay()
+    } else if (e.key === 'ArrowRight' && state.persona) {
+      e.preventDefault()
+      if (state.isAutoPlaying) return
+      updateHour((state.hour + 1) % 24)
+    } else if (e.key === 'ArrowLeft' && state.persona) {
+      e.preventDefault()
+      if (state.isAutoPlaying) return
+      updateHour((state.hour + 23) % 24)
+    }
+  })
 
   updateHour(0)
 }
@@ -113,6 +134,7 @@ function updateHour(h) {
   document.getElementById('journey-hour-text').textContent = `${displayH}:00 ${suffix}`
   document.getElementById('journey-location-text').textContent = data.loc
   document.getElementById('journey-desc-text').textContent = data.desc
+  document.getElementById('journey-info').style.setProperty('--persona-color', state.persona.color)
 
   renderSoundsList(sounds, db, noData)
   animateDbMeter(db)
@@ -135,21 +157,27 @@ function toggleAutoPlay() {
     state.isAutoPlaying = false
     clearInterval(state.autoPlayInterval)
     btn.classList.remove('active')
-    btn.textContent = '▶ AUTO-PLAY DAY'
+    btn.textContent = '▶ PLAY THE DAY'
     return
   }
-  
+
   if (!state.persona) return
-  
+
   state.isAutoPlaying = true
   btn.classList.add('active')
-  btn.textContent = '■ STOP'
-  
+  btn.textContent = '⏸ PAUSE'
+
   updateHour(0)
   let h = 0
   state.autoPlayInterval = setInterval(() => {
     h = (h + 1) % 24
     updateHour(h)
+    if (h === 23) {
+      state.isAutoPlaying = false
+      clearInterval(state.autoPlayInterval)
+      btn.classList.remove('active')
+      btn.textContent = '▶ PLAY THE DAY'
+    }
   }, 3000)
 }
 

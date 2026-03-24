@@ -1,5 +1,6 @@
 export let audioCtx = null
 export let analyserNode = null
+let masterVolumeNode = null
 let currentSoundNodes = []
 
 // coarse class -> fine-grained clip classes in clip-index.json (SONYC names)
@@ -48,12 +49,19 @@ export function getAudioCtx() {
     audioCtx = new AudioContext()
     analyserNode = audioCtx.createAnalyser()
     analyserNode.fftSize = 2048
-    analyserNode.connect(audioCtx.destination)
+    masterVolumeNode = audioCtx.createGain()
+    masterVolumeNode.gain.value = 0.7
+    analyserNode.connect(masterVolumeNode)
+    masterVolumeNode.connect(audioCtx.destination)
   }
   if (audioCtx.state === 'suspended') {
     audioCtx.resume()
   }
   return audioCtx
+}
+
+export function setMasterVolume(val) {
+  if (masterVolumeNode) masterVolumeNode.gain.value = val
 }
 
 export function stopAllSounds() {
@@ -102,7 +110,7 @@ export function playSoundType(type, db, borough) {
     osc.frequency.value = 100
     g.gain.value = 0.018
     osc.connect(g)
-    g.connect(ctx.destination)
+    g.connect(masterVolumeNode || ctx.destination)
     osc.start()
     osc.stop(ctx.currentTime + 4)
     currentSoundNodes.push(osc)

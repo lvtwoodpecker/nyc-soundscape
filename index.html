@@ -11,11 +11,11 @@
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-dot"></div>
-    NYC SOUNDSCAPE
+  <div class="header-editorial">
+    <div class="header-title">A Day in the Life of New York</div>
+    <div class="header-sub">NYC Soundscape &middot; 62,022 recordings</div>
   </div>
-  <div class="header-tag">SONYC Urban Sound Tagging · NYU · Data Visualization 2026</div>
+  <div class="header-tag">SONYC-UST &middot; NYU &middot; 2026</div>
 </header>
 
 <div class="app">
@@ -43,6 +43,7 @@
       <div class="timeline-strip" id="timeline-strip"></div>
       <div class="timeline-time-labels">
         <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
+        <span class="timeline-kb-hint">← →</span>
       </div>
     </div>
 
@@ -80,6 +81,12 @@
       <canvas id="waveform-canvas"></canvas>
     </div>
 
+    <!-- volume -->
+    <div class="volume-row">
+      <span class="vol-label">VOL</span>
+      <input type="range" id="vol-slider" min="0" max="1" step="0.01" value="0.7">
+    </div>
+
     <!-- sounds list -->
     <div class="sounds-section">
       <div class="panel-label">SOUNDS THIS HOUR</div>
@@ -89,7 +96,7 @@
     </div>
 
     <!-- play btn -->
-    <button class="playback-btn" id="play-btn">▶ AUTO-PLAY DAY</button>
+    <button class="playback-btn" id="play-btn">▶ PLAY THE DAY</button>
 
     <!-- legend -->
     <div>

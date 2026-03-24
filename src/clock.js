@@ -69,7 +69,9 @@ export function showTooltip(e, h, persona, hourlyStats) {
     `<span class="sound-chip" style="color:${SOUND_COLORS[s]||'#666'}">${s}</span>`
   ).join('')
   document.getElementById('tt-sounds').innerHTML = soundChips || '<span style="color:var(--muted);font-size:0.65rem">No data this hour</span>'
-  document.getElementById('tt-desc').textContent = data.desc
+  document.getElementById('tt-desc').textContent = h === 0
+    ? 'The city never stops.'
+    : data.desc
 
   tt.classList.add('visible')
   moveTooltip(e)
