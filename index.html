@@ -6,8 +6,8 @@
   <title>NYC Soundscape — A Day in the Life</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/nyc-soundscape/assets/index-wolqyAK8.js"></script>
-  <link rel="stylesheet" crossorigin href="/nyc-soundscape/assets/index-BLl-KHmU.css">
+  <script type="module" crossorigin src="/nyc-soundscape/assets/index-DLfMLiMm.js"></script>
+  <link rel="stylesheet" crossorigin href="/nyc-soundscape/assets/index-DHRR2IZ7.css">
 </head>
 <body>
 
@@ -39,10 +39,10 @@
     </div>
 
     <!-- timeline scrubber -->
-    <div style="width:100%;max-width:480px;">
-      <div class="panel-label" style="margin-bottom:8px">SCRUB TIMELINE</div>
+    <div class="timeline-wrapper">
+      <div class="panel-label">SCRUB TIMELINE</div>
       <div class="timeline-strip" id="timeline-strip"></div>
-      <div style="display:flex;justify-content:space-between;font-size:0.55rem;color:var(--muted);margin-top:4px">
+      <div class="timeline-time-labels">
         <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
       </div>
     </div>
@@ -57,12 +57,11 @@
 
   <!-- RIGHT: AUDIO + METER -->
   <div class="panel-right">
-    <div class="panel-label">Sound Monitor</div>
 
     <!-- dB meter -->
     <div class="meter-section">
       <div class="meter-label-row">
-        <span class="panel-label" style="margin-bottom:0">DECIBEL LEVEL</span>
+        <span class="panel-label">DECIBEL LEVEL</span>
         <div>
           <span class="meter-db-value" id="db-value">—</span>
           <span class="meter-db-unit">dB</span>
@@ -78,7 +77,7 @@
 
     <!-- waveform -->
     <div class="waveform-section">
-      <div class="panel-label" style="margin-bottom:10px">WAVEFORM</div>
+      <div class="panel-label">WAVEFORM</div>
       <canvas id="waveform-canvas"></canvas>
     </div>
 
@@ -86,7 +85,7 @@
     <div class="sounds-section">
       <div class="panel-label">SOUNDS THIS HOUR</div>
       <div class="sounds-list" id="sounds-list">
-        <div style="color:var(--muted);font-size:0.68rem;margin-top:8px">Select a persona & hour to explore sounds.</div>
+        <div class="sounds-empty">Select a persona &amp; hour to explore sounds.</div>
       </div>
     </div>
 
@@ -95,7 +94,7 @@
 
     <!-- legend -->
     <div>
-      <div class="panel-label" style="margin-bottom:8px">SOUND TAXONOMY</div>
+      <div class="panel-label">SOUND TAXONOMY</div>
       <div class="legend" id="legend"></div>
     </div>
   </div>
