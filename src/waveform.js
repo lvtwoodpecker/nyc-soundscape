@@ -21,14 +21,14 @@ export function drawWaveform(analyserNode, personaColor) {
   const midY = h / 2
 
   const draw = () => {
-    ctx.fillStyle = '#12152a'
+    ctx.fillStyle = '#120d0a'
     ctx.fillRect(0, 0, w, h)
 
     if (analyserNode && analyserNode.context.state === 'running') {
       const dataArray = new Uint8Array(analyserNode.frequencyBinCount)
       analyserNode.getByteTimeDomainData(dataArray)
 
-      ctx.strokeStyle = personaColor || '#a29bfe'
+      ctx.strokeStyle = personaColor || '#f4a261'
       ctx.lineWidth = 1.5
       ctx.lineCap = 'round'
       ctx.beginPath()
@@ -40,7 +40,7 @@ export function drawWaveform(analyserNode, personaColor) {
       }
       ctx.stroke()
 
-      ctx.shadowColor = personaColor || '#a29bfe'
+      ctx.shadowColor = personaColor || '#f4a261'
       ctx.shadowBlur = 8
       ctx.stroke()
       ctx.shadowColor = 'transparent'
@@ -49,7 +49,7 @@ export function drawWaveform(analyserNode, personaColor) {
       const freqs = [3, 7, 13]
       const phases = freqs.map((f, i) => now * f * (1 + i * 0.1))
 
-      ctx.strokeStyle = personaColor || '#a29bfe'
+      ctx.strokeStyle = personaColor || '#f4a261'
       ctx.lineWidth = 1.5
       ctx.lineCap = 'round'
       ctx.beginPath()
@@ -64,7 +64,7 @@ export function drawWaveform(analyserNode, personaColor) {
       }
       ctx.stroke()
 
-      ctx.shadowColor = personaColor || '#a29bfe'
+      ctx.shadowColor = personaColor || '#f4a261'
       ctx.shadowBlur = 6
       ctx.stroke()
       ctx.shadowColor = 'transparent'

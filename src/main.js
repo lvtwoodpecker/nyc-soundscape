@@ -15,7 +15,7 @@ window.playSoundGlobal = (type, db, borough) => {
 }
 
 async function init() {
-  console.log('%c NYC never sleeps. Neither does this data. ', 'background:#070810;color:#a29bfe;font-family:monospace;padding:4px 8px')
+  console.log('%c NYC never sleeps. Neither does this data. ', 'background:#09070a;color:#f4a261;font-family:monospace;padding:4px 8px')
 
   loadClipIndex()
   getAudioCtx()

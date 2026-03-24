@@ -1,9 +1,9 @@
 :root {
-  --bg: #070810;
-  --bg3: #12152a;
-  --text: #e8eaf6;
-  --muted: #5a5f8a;
-  --border: #1e2240;
+  --bg: #09070a;
+  --bg3: #120d0a;
+  --text: #ede8e2;
+  --muted: #6b5f52;
+  --border: #1e1710;
 
   --c-engine:    #ff6b6b;
   --c-machinery: #ff9f43;
@@ -14,11 +14,11 @@
   --c-voice:     #74b9ff;
   --c-dog:       #55efc4;
 
-  --neon-a: #a29bfe;
-  --neon-b: #74b9ff;
-  --neon-c: #fd79a8;
+  --neon-a: #f4a261;
+  --neon-b: #e76f51;
+  --neon-c: #e89f96;
 
-  --text-dim: #9fa3c7;
+  --text-dim: #a09484;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -57,10 +57,12 @@ header {
   color: var(--muted);
   letter-spacing: 0.04em;
 }
+
 @keyframes pulse {
   0%,100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.7); }
 }
+
 .header-tag {
   font-size: 0.68rem;
   color: var(--muted);
@@ -118,9 +120,9 @@ header {
   opacity: 0;
   transition: opacity 0.2s;
 }
-.persona-card:hover { background: rgba(255,255,255,0.02); }
+.persona-card:hover { background: rgba(244,162,97,0.05); }
 .persona-card:hover::before { opacity: 0.5; }
-.persona-card.active { background: rgba(255,255,255,0.04); }
+.persona-card.active { background: rgba(244,162,97,0.08); }
 .persona-card.active::before { opacity: 1; }
 
 .persona-name {
@@ -305,7 +307,7 @@ header {
   border: 1px solid transparent;
   transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
-.sound-row:hover { background: rgba(255,255,255,0.03); }
+.sound-row:hover { background: rgba(244,162,97,0.06); }
 .sound-row.playing {
   background: rgba(255,255,255,0.05);
   border-color: var(--accent-color, #a29bfe);
