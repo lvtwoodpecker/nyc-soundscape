@@ -8,11 +8,11 @@ const R_LABEL = 238
 const INTEREST = { saw: 4, machinery: 3, dog: 2.5, music: 2, alert: 1.5, impact: 1.2, voice: 0.6, engine: 0.4 }
 
 function featureColor(sounds, prevalence) {
-  if (!sounds || sounds.length === 0) return '#1e2240'
+  if (!sounds || sounds.length === 0) return '#e4e3de'
   const top = sounds.slice().sort((a, b) =>
     (prevalence[b] || 0) * (INTEREST[b] || 1) - (prevalence[a] || 0) * (INTEREST[a] || 1)
   )[0]
-  return SOUND_COLORS[top] || '#1e2240'
+  return SOUND_COLORS[top] || '#e4e3de'
 }
 
 export function hourToAngle(h) {
@@ -38,9 +38,9 @@ export function describeArc(h, innerR, outerR) {
 }
 
 export function getDominantColor(sounds) {
-  if (!sounds || sounds.length === 0) return '#1e2240'
+  if (!sounds || sounds.length === 0) return '#e4e3de'
   const first = sounds[0]
-  return SOUND_COLORS[first] || '#a29bfe'
+  return SOUND_COLORS[first] || '#6b5fd4'
 }
 
 export function showTooltip(e, h, persona, hourlyStats) {
@@ -68,7 +68,7 @@ export function showTooltip(e, h, persona, hourlyStats) {
   const soundChips = sounds.map(s =>
     `<span class="sound-chip" style="color:${SOUND_COLORS[s]||'#666'}">${s}</span>`
   ).join('')
-  document.getElementById('tt-sounds').innerHTML = soundChips || '<span style="color:var(--muted);font-size:0.65rem">No data this hour</span>'
+  document.getElementById('tt-sounds').innerHTML = soundChips || '<span style="color:var(--muted);font-size:0.9rem">No data this hour</span>'
   document.getElementById('tt-desc').textContent = h === 0
     ? 'The city never stops.'
     : data.desc
@@ -103,7 +103,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     fe.setAttribute('dy', '0')
     fe.setAttribute('stdDeviation', '6')
     fe.setAttribute('flood-color', c)
-    fe.setAttribute('flood-opacity', '0.8')
+    fe.setAttribute('flood-opacity', '0.4')
     f.appendChild(fe)
     defs.appendChild(f)
   }
@@ -115,7 +115,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     ring.setAttribute('cx', 0)
     ring.setAttribute('cy', 0)
     ring.setAttribute('fill', 'none')
-    ring.setAttribute('stroke', '#1e2240')
+    ring.setAttribute('stroke', '#d8d7d2')
     ring.setAttribute('stroke-width', '0.5')
     svg.appendChild(ring)
   }
@@ -125,8 +125,8 @@ export function drawClock(persona, selectedHour, hourlyStats) {
   amLabel.setAttribute('y', -R_INNER + 25)
   amLabel.setAttribute('text-anchor', 'middle')
   amLabel.setAttribute('class', 'hour-label')
-  amLabel.setAttribute('font-size', '7')
-  amLabel.setAttribute('fill', '#3a3f6a')
+  amLabel.setAttribute('font-size', '14')
+  amLabel.setAttribute('fill', '#aaa')
   amLabel.textContent = 'AM'
   svg.appendChild(amLabel)
 
@@ -135,8 +135,8 @@ export function drawClock(persona, selectedHour, hourlyStats) {
   pmLabel.setAttribute('y', R_INNER - 15)
   pmLabel.setAttribute('text-anchor', 'middle')
   pmLabel.setAttribute('class', 'hour-label')
-  pmLabel.setAttribute('font-size', '7')
-  pmLabel.setAttribute('fill', '#3a3f6a')
+  pmLabel.setAttribute('font-size', '14')
+  pmLabel.setAttribute('fill', '#aaa')
   pmLabel.textContent = 'PM'
   svg.appendChild(pmLabel)
 
@@ -169,7 +169,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
     path.setAttribute('d', describeArc(h, R_INNER, Math.max(R_INNER + 4, segR)))
-    path.setAttribute('fill', sounds.length > 0 ? color : '#13162a')
+    path.setAttribute('fill', sounds.length > 0 ? color : '#e4e3de')
     path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3')
     if (isSelected && sounds.length > 0) {
       const glowSound = sounds.slice().sort((a, b) =>
@@ -177,7 +177,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
       )[0]
       path.setAttribute('filter', `url(#glow-${glowSound})`)
     }
-    path.setAttribute('stroke', '#070810')
+    path.setAttribute('stroke', '#f7f6f2')
     path.setAttribute('stroke-width', '1')
     path.style.cursor = 'pointer'
     path.style.transition = 'opacity 0.2s'
@@ -212,7 +212,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
       lbl.setAttribute('text-anchor', 'middle')
       lbl.setAttribute('dominant-baseline', 'middle')
       lbl.setAttribute('class', 'hour-label')
-      lbl.setAttribute('font-size', '9')
+      lbl.setAttribute('font-size', '16')
       const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
       const suffix = h < 12 ? 'am' : 'pm'
       lbl.textContent = displayH + suffix
@@ -222,7 +222,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
   const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
   centerCircle.setAttribute('r', R_INNER - 2)
-  centerCircle.setAttribute('fill', '#070810')
+  centerCircle.setAttribute('fill', '#f7f6f2')
   svg.appendChild(centerCircle)
 
   if (persona) {
@@ -230,9 +230,9 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     nameEl.setAttribute('x', 0)
     nameEl.setAttribute('y', -14)
     nameEl.setAttribute('text-anchor', 'middle')
-    nameEl.setAttribute('font-family', 'Syne, sans-serif')
+    nameEl.setAttribute('font-family', 'Crimson Pro, serif')
     nameEl.setAttribute('font-weight', '700')
-    nameEl.setAttribute('font-size', '18')
+    nameEl.setAttribute('font-size', '24')
     nameEl.setAttribute('fill', persona.color)
     nameEl.textContent = persona.name
     svg.appendChild(nameEl)
@@ -241,9 +241,9 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     roleEl.setAttribute('x', 0)
     roleEl.setAttribute('y', 6)
     roleEl.setAttribute('text-anchor', 'middle')
-    roleEl.setAttribute('font-family', 'DM Mono, monospace')
-    roleEl.setAttribute('font-size', '8')
-    roleEl.setAttribute('fill', '#5a5f8a')
+    roleEl.setAttribute('font-family', 'Fredoka, sans-serif')
+    roleEl.setAttribute('font-size', '14')
+    roleEl.setAttribute('fill', '#888884')
     roleEl.textContent = persona.role
     svg.appendChild(roleEl)
 
@@ -251,9 +251,9 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     boroughEl.setAttribute('x', 0)
     boroughEl.setAttribute('y', 20)
     boroughEl.setAttribute('text-anchor', 'middle')
-    boroughEl.setAttribute('font-family', 'DM Mono, monospace')
-    boroughEl.setAttribute('font-size', '7')
-    boroughEl.setAttribute('fill', '#3a3f6a')
+    boroughEl.setAttribute('font-family', 'Fredoka, sans-serif')
+    boroughEl.setAttribute('font-size', '12')
+    boroughEl.setAttribute('fill', '#aaa')
     boroughEl.textContent = (persona.home || '').toUpperCase()
     svg.appendChild(boroughEl)
   } else {
@@ -262,9 +262,9 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     hint.setAttribute('y', 0)
     hint.setAttribute('text-anchor', 'middle')
     hint.setAttribute('dominant-baseline', 'middle')
-    hint.setAttribute('font-family', 'DM Mono, monospace')
-    hint.setAttribute('font-size', '8')
-    hint.setAttribute('fill', '#3a3f6a')
+    hint.setAttribute('font-family', 'Fredoka, sans-serif')
+    hint.setAttribute('font-size', '14')
+    hint.setAttribute('fill', '#aaa')
     hint.textContent = 'SELECT A PERSONA'
     svg.appendChild(hint)
   }

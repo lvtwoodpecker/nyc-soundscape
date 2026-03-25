@@ -4,13 +4,13 @@ export function renderTimeline(persona, hourlyStats) {
   const el = document.getElementById('timeline-strip')
   if (!persona) {
     el.innerHTML = Array(24).fill(0).map(() =>
-      `<div class="timeline-hour-cell" style="background:#13162a"></div>`
+      `<div class="timeline-hour-cell" style="background:#e4e3de"></div>`
     ).join('')
     return
   }
 
   el.innerHTML = persona.schedule.map((data, h) => {
-    let color = '#13162a'
+    let color = '#e4e3de'
     let opacity = 0.3
     if (hourlyStats) {
       const hData = hourlyStats.by_borough?.[String(data.borough)]?.[String(h)]
@@ -19,7 +19,7 @@ export function renderTimeline(persona, hourlyStats) {
           .filter(([, v]) => v >= 0.05)
           .sort((a, b) => b[1] - a[1])[0]
         if (top) {
-          color = SOUND_COLORS[top[0]] || '#13162a'
+          color = SOUND_COLORS[top[0]] || '#e4e3de'
           opacity = 0.7
         }
       }

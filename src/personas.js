@@ -1,12 +1,12 @@
 export const SOUND_COLORS = {
-  'engine':    '#ff6b6b',
-  'machinery': '#ff9f43',
-  'impact':    '#ffd32a',
-  'saw':       '#26de81',
-  'alert':     '#fd79a8',
-  'music':     '#a29bfe',
-  'voice':     '#74b9ff',
-  'dog':       '#55efc4',
+  'engine':    '#d94f4f',
+  'machinery': '#c97c28',
+  'impact':    '#b89000',
+  'saw':       '#1a9e5c',
+  'alert':     '#c9456e',
+  'music':     '#6b5fd4',
+  'voice':     '#3a7fd4',
+  'dog':       '#1eaa88',
 }
 
 export const SOUND_FINE = {
@@ -29,7 +29,7 @@ export const PERSONAS = [
     name: 'Amara',
     role: 'Music MFA · Busker',
     home: 'Bed-Stuy, Brooklyn',
-    color: '#a29bfe',
+    color: '#6b5fd4',
     schedule: [
       { h:0,  lat:40.6872, lng:-73.9418, loc:'Home — Bed-Stuy',         borough:3, desc:'Asleep. Late night is quiet on this block — the music stopped around midnight.' },
       { h:1,  lat:40.6872, lng:-73.9418, loc:'Home — Bed-Stuy',         borough:3, desc:'Asleep. Engine and a distant voice. The city doesn\'t fully stop.' },
@@ -62,7 +62,7 @@ export const PERSONAS = [
     name: 'Carlos',
     role: 'Construction Crew · Tandon Site',
     home: 'Sunset Park, Brooklyn',
-    color: '#ff9f43',
+    color: '#c97c28',
     schedule: [
       { h:0,  lat:40.6462, lng:-74.0097, loc:'Home — Sunset Park',       borough:3, desc:'Asleep. BQE hum through the window. Engine on 4th Ave. Unremarkable.' },
       { h:1,  lat:40.6462, lng:-74.0097, loc:'Home — Sunset Park',       borough:3, desc:'Asleep.' },
@@ -95,7 +95,7 @@ export const PERSONAS = [
     name: 'Maya',
     role: 'CS Undergrad · Tandon',
     home: 'Elmhurst, Queens',
-    color: '#ffd32a',
+    color: '#b89000',
     schedule: [
       { h:0,  lat:40.7372, lng:-73.8800, loc:'Home — Elmhurst',          borough:4, desc:'Asleep. No SONYC sensor coverage in Elmhurst overnight. The city here is unmeasured.' },
       { h:1,  lat:40.7372, lng:-73.8800, loc:'Home — Elmhurst',          borough:4, desc:'Asleep. The dataset has nothing to say about this corner of Queens at 1am.' },
@@ -128,7 +128,7 @@ export const PERSONAS = [
     name: 'Keisha',
     role: 'Dog Walker · Part-Time Student',
     home: 'West Village, Manhattan',
-    color: '#55efc4',
+    color: '#1eaa88',
     schedule: [
       { h:0,  lat:40.7345, lng:-74.0058, loc:'Home — West Village',      borough:1, desc:'Asleep. 7th Ave engine through the window. Manhattan never fully quiets.' },
       { h:1,  lat:40.7345, lng:-74.0058, loc:'Home — West Village',      borough:1, desc:'Asleep.' },
@@ -161,7 +161,7 @@ export const PERSONAS = [
     name: 'Prof. Marcus',
     role: 'Urban Studies Faculty · NYU',
     home: 'Upper East Side',
-    color: '#74b9ff',
+    color: '#3a7fd4',
     schedule: [
       { h:0,  lat:40.7800, lng:-73.9490, loc:'Home — Upper East Side',   borough:1, desc:'Asleep. 2nd Ave engine and alert. Manhattan at midnight: 79.5 dB average. He\'s lived here 22 years.' },
       { h:1,  lat:40.7800, lng:-73.9490, loc:'Home — Upper East Side',   borough:1, desc:'Asleep.' },
@@ -194,7 +194,7 @@ export const PERSONAS = [
     name: 'Jordan',
     role: 'Night Security · Tandon',
     home: 'Bushwick, Brooklyn',
-    color: '#fd79a8',
+    color: '#c9456e',
     schedule: [
       { h:0,  lat:40.6932, lng:-73.9861, loc:'Tandon — On Shift',        borough:3, desc:'On the security desk. Building quiet inside. Brooklyn midnight: engine, occasional voice. Checks the monitors.' },
       { h:1,  lat:40.6932, lng:-73.9861, loc:'Tandon — Patrol',          borough:3, desc:'Patrol round. Walks the floors. Brooklyn 1am is as close to quiet as it gets.' },
@@ -227,7 +227,7 @@ export const PERSONAS = [
     name: 'Rosa',
     role: 'Food Cart Vendor · WSP',
     home: 'Lower East Side',
-    color: '#ff6b6b',
+    color: '#d94f4f',
     schedule: [
       { h:0,  lat:40.7157, lng:-73.9863, loc:'Home — Lower East Side',   borough:1, desc:'Asleep. Delancey engine and alert. She\'s used to it.' },
       { h:1,  lat:40.7157, lng:-73.9863, loc:'Home — Lower East Side',   borough:1, desc:'Asleep. Voice at 23% — LES still has people out.' },
@@ -260,7 +260,7 @@ export const PERSONAS = [
     name: 'Dr. Lin',
     role: 'CUSP Researcher · Tandon',
     home: 'Carroll Gardens, Brooklyn',
-    color: '#26de81',
+    color: '#1a9e5c',
     schedule: [
       { h:0,  lat:40.6796, lng:-73.9989, loc:'Home — Carroll Gardens',   borough:3, desc:'Asleep. Carroll Gardens is quiet after midnight — engine on Smith St, occasional voice.' },
       { h:1,  lat:40.6796, lng:-73.9989, loc:'Home — Carroll Gardens',   borough:3, desc:'Asleep.' },
