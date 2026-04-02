@@ -1,24 +1,21 @@
 :root {
-  --bg: #070810;
-  --bg3: #12152a;
-  --text: #e8eaf6;
-  --muted: #5a5f8a;
-  --border: #1e2240;
+  --bg:      #0c0c12;
+  --bg2:     #12121e;
+  --bg3:     #18182a;
+  --text:    #eeeef8;
+  --muted:   #5858a0;
+  --border:  #22223a;
+  --text-dim: #9090c0;
+  --ink:     #eeeef8;
 
   --c-engine:    #ff6b6b;
   --c-machinery: #ff9f43;
-  --c-impact:    #ffd32a;
+  --c-impact:    #d4a010;
   --c-saw:       #26de81;
   --c-alert:     #fd79a8;
   --c-music:     #a29bfe;
   --c-voice:     #74b9ff;
   --c-dog:       #55efc4;
-
-  --neon-a: #a29bfe;
-  --neon-b: #74b9ff;
-  --neon-c: #fd79a8;
-
-  --text-dim: #9fa3c7;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -88,7 +85,7 @@ header {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
-  opacity: 0.3;
+  opacity: 0.5;
   margin-bottom: 12px;
   padding-left: 4px;
 }
@@ -103,25 +100,38 @@ header {
 }
 .persona-card {
   padding: 14px 16px;
-  border-radius: 8px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
   position: relative;
   overflow: hidden;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  /* sticker: faint die-cut ring + hard shadow */
+  box-shadow: 0 0 0 1px rgba(238,238,248,0.04), 3px 4px 0 rgba(0,0,0,0.6);
 }
 .persona-card::before {
   content: '';
   position: absolute;
   left: 0; top: 0; bottom: 0;
-  width: 3px;
+  width: 4px;
+  border-radius: 14px 0 0 14px;
   background: var(--accent);
   opacity: 0;
-  transition: opacity 0.2s;
+  transition: opacity 0.2s, width 0.2s;
 }
-.persona-card:hover { background: rgba(255,255,255,0.02); }
+.persona-card:hover {
+  background: rgba(238,238,248,0.03);
+  box-shadow: 0 0 0 1px rgba(238,238,248,0.07), 3px 4px 0 rgba(0,0,0,0.6);
+}
 .persona-card:hover::before { opacity: 0.5; }
-.persona-card.active { background: rgba(255,255,255,0.04); }
-.persona-card.active::before { opacity: 1; }
+/* active: persona color drives everything */
+.persona-card.active {
+  border-color: var(--accent);
+  background: rgba(238,238,248,0.03);
+  box-shadow: 0 0 0 2px rgba(238,238,248,0.1), 4px 5px 0 var(--accent);
+}
+.persona-card.active::before { opacity: 1; width: 7px; }
 
 .persona-name {
   font-family: 'Syne', sans-serif;
@@ -138,7 +148,7 @@ header {
   display: inline-block;
   font-size: 0.58rem;
   padding: 2px 7px;
-  border-radius: 20px;
+  border-radius: 4px;
   margin-top: 6px;
   border: 1px solid currentColor;
   opacity: 0.7;
@@ -176,8 +186,8 @@ header {
 .hour-tooltip {
   position: absolute;
   background: var(--bg3);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
   padding: 14px 16px;
   pointer-events: none;
   opacity: 0;
@@ -186,7 +196,8 @@ header {
   z-index: 10;
   font-size: 0.72rem;
   line-height: 1.7;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  /* sticker die-cut edge */
+  box-shadow: 0 0 0 1px rgba(238,238,248,0.06), 4px 4px 0 rgba(0,0,0,0.5);
 }
 .hour-tooltip.visible { opacity: 1; }
 .hour-tooltip-title {
@@ -195,13 +206,15 @@ header {
   font-size: 0.82rem;
   margin-bottom: 8px;
 }
+/* badge shape — square corners, no fill = line art */
 .sound-chip {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: 20px;
+  border-radius: 4px;
   font-size: 0.6rem;
   margin: 2px 3px 2px 0;
-  border: 1px solid currentColor;
+  border: 1.5px solid currentColor;
+  background: transparent;
 }
 
 .journey-info {
@@ -214,7 +227,7 @@ header {
   font-size: 3rem;
   font-weight: 800;
   line-height: 1;
-  color: var(--persona-color, var(--neon-a));
+  color: var(--persona-color, var(--text));
   transition: color 0.3s;
 }
 .journey-location {
@@ -246,10 +259,11 @@ header {
 }
 .meter-db-value {
   font-family: 'Syne', sans-serif;
-  font-size: 2.4rem;
+  font-size: 3.2rem;
   font-weight: 800;
   line-height: 1;
   color: var(--text);
+  letter-spacing: -0.02em;
   transition: color 0.3s;
 }
 .meter-db-unit {
@@ -259,14 +273,14 @@ header {
 }
 .meter-bar-wrap {
   height: 8px;
-  background: var(--bg3);
+  background: var(--border);
   border-radius: 4px;
   overflow: hidden;
   position: relative;
 }
 .meter-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--playing-color, var(--c-saw)), var(--c-engine));
+  background: var(--playing-color, var(--c-saw));
   width: 0%;
   transition: width 0.05s;
 }
@@ -281,7 +295,7 @@ header {
 #waveform-canvas {
   width: 100%;
   height: 100px;
-  border-radius: 8px;
+  border-radius: 10px;
   background: var(--bg3);
   display: block;
 }
@@ -293,7 +307,7 @@ header {
 .sounds-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 .sound-row {
   display: flex;
@@ -301,21 +315,24 @@ header {
   gap: 10px;
   cursor: pointer;
   padding: 8px 10px;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+  border-radius: 8px;
+  /* always slightly outlined — line art feel */
+  border: 1px solid rgba(238,238,248,0.04);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
-.sound-row:hover { background: rgba(255,255,255,0.03); }
+.sound-row:hover {
+  background: rgba(238,238,248,0.04);
+  border-color: rgba(238,238,248,0.1);
+}
 .sound-row.playing {
-  background: rgba(255,255,255,0.05);
-  border-color: var(--accent-color, #a29bfe);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color, #a29bfe) 35%, transparent);
+  background: rgba(238,238,248,0.04);
+  border-color: var(--accent-color, var(--c-saw));
+  box-shadow: 2px 2px 0 color-mix(in srgb, var(--accent-color, var(--c-saw)) 35%, transparent);
 }
 .sound-dot {
   width: 8px; height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  box-shadow: 0 0 6px currentColor;
 }
 .sound-name { font-size: 0.7rem; flex: 1; }
 .sound-play-btn {
@@ -324,14 +341,14 @@ header {
   letter-spacing: 0.08em;
 }
 .sound-row:hover .sound-play-btn { color: var(--text); }
-.sound-row.playing .sound-play-btn { color: var(--neon-c); }
+.sound-row.playing .sound-play-btn { color: var(--accent-color, var(--c-saw)); }
 
 .playback-btn {
   width: 100%;
   padding: 12px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg2);
   color: var(--text);
   font-family: 'DM Mono', monospace;
   font-size: 0.72rem;
@@ -339,10 +356,20 @@ header {
   text-transform: uppercase;
   cursor: pointer;
   transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  /* sticker: white-edge + hard shadow */
+  box-shadow: 0 0 0 1px rgba(238,238,248,0.06), 3px 3px 0 rgba(0,0,0,0.5);
 }
-.playback-btn:hover { border-color: var(--neon-a); color: var(--neon-a); }
-.playback-btn:focus-visible { outline: 1px solid var(--neon-a); outline-offset: 2px; }
-.playback-btn.active { border-color: var(--neon-c); color: var(--neon-c); box-shadow: 0 0 12px rgba(253,121,168,0.15); }
+.playback-btn:hover {
+  border-color: var(--ink);
+  color: var(--ink);
+  box-shadow: 0 0 0 1px rgba(238,238,248,0.12), 3px 3px 0 rgba(0,0,0,0.5);
+}
+.playback-btn:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
+.playback-btn.active {
+  border-color: var(--c-saw);
+  color: var(--c-saw);
+  box-shadow: 0 0 0 1px rgba(238,238,248,0.08), 3px 3px 0 var(--c-saw);
+}
 
 .legend {
   display: flex;
@@ -364,15 +391,15 @@ header {
 .timeline-strip {
   display: flex;
   align-items: center;
-  height: 32px;
+  height: 38px;
   position: relative;
   cursor: pointer;
   margin-top: 4px;
+  gap: 2px;
 }
 .timeline-hour-cell {
   flex: 1;
   height: 100%;
-  border-right: 1px solid var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -381,8 +408,8 @@ header {
   transition: filter 0.15s, opacity 0.15s, color 0.15s;
   border-radius: 2px;
 }
-.timeline-hour-cell:hover { color: var(--muted); filter: brightness(1.3); }
-.timeline-hour-cell.current { outline: 1px solid white; outline-offset: -1px; }
+.timeline-hour-cell:hover { color: var(--muted); filter: brightness(0.85); }
+.timeline-hour-cell.current { outline: 2px solid var(--text); outline-offset: -1px; }
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
@@ -410,14 +437,12 @@ header {
   width: 6px; height: 6px;
   background: var(--c-saw);
   border-radius: 50%;
-  box-shadow: 0 0 8px var(--c-saw);
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.persona-card:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+.persona-card:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
 .sound-row:focus-visible { outline: 1px solid var(--border); outline-offset: 1px; }
 
-/* sound dot pulse when playing */
 @keyframes soundPulse {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.5); opacity: 0.6; }
@@ -426,19 +451,17 @@ header {
   animation: soundPulse 1.5s ease-in-out infinite;
 }
 
-/* clock needle fade-in on each hour change */
 @keyframes needleFadeIn {
   from { opacity: 0; }
-  to { opacity: 0.4; }
+  to { opacity: 0.6; }
 }
 #clock-needle-line {
   animation: needleFadeIn 0.4s ease forwards;
 }
 
-/* panel-left border flash on persona select */
 @keyframes panelFlash {
   0% { border-right-color: var(--border); }
-  35% { border-right-color: var(--accent, var(--neon-a)); }
+  35% { border-right-color: var(--ink); }
   100% { border-right-color: var(--border); }
 }
 .panel-left.panel-flash {

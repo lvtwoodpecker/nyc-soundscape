@@ -21,7 +21,7 @@ export function drawWaveform(analyserNode, personaColor) {
   const midY = h / 2
 
   const draw = () => {
-    ctx.fillStyle = '#12152a'
+    ctx.fillStyle = '#18182a'
     ctx.fillRect(0, 0, w, h)
 
     if (analyserNode && analyserNode.context.state === 'running') {
@@ -41,7 +41,7 @@ export function drawWaveform(analyserNode, personaColor) {
       ctx.stroke()
 
       ctx.shadowColor = personaColor || '#a29bfe'
-      ctx.shadowBlur = 8
+      ctx.shadowBlur = 6
       ctx.stroke()
       ctx.shadowColor = 'transparent'
     } else {
@@ -65,7 +65,7 @@ export function drawWaveform(analyserNode, personaColor) {
       ctx.stroke()
 
       ctx.shadowColor = personaColor || '#a29bfe'
-      ctx.shadowBlur = 6
+      ctx.shadowBlur = 4
       ctx.stroke()
       ctx.shadowColor = 'transparent'
     }

@@ -1,7 +1,7 @@
 export const SOUND_COLORS = {
   'engine':    '#ff6b6b',
   'machinery': '#ff9f43',
-  'impact':    '#ffd32a',
+  'impact':    '#d4a010',
   'saw':       '#26de81',
   'alert':     '#fd79a8',
   'music':     '#a29bfe',
@@ -95,7 +95,7 @@ export const PERSONAS = [
     name: 'Maya',
     role: 'CS Undergrad · Tandon',
     home: 'Elmhurst, Queens',
-    color: '#ffd32a',
+    color: '#d4a010',
     schedule: [
       { h:0,  lat:40.7372, lng:-73.8800, loc:'Home — Elmhurst',          borough:4, desc:'Asleep. No SONYC sensor coverage in Elmhurst overnight. The city here is unmeasured.' },
       { h:1,  lat:40.7372, lng:-73.8800, loc:'Home — Elmhurst',          borough:4, desc:'Asleep. The dataset has nothing to say about this corner of Queens at 1am.' },
