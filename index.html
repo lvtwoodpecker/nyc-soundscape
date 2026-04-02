@@ -6,6 +6,7 @@
   <title>NYC Soundscape — A Day in the Life</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Fredoka:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
@@ -26,42 +27,49 @@
     <div id="persona-list"></div>
   </div>
 
-  <!-- CENTER: CLOCK -->
-  <div class="panel-center">
-    <div class="clock-container">
-      <svg id="clock-svg" viewBox="-260 -260 520 520"></svg>
-      <div class="hour-tooltip" id="hour-tooltip">
-        <div class="hour-tooltip-title" id="tt-title"></div>
-        <div id="tt-sounds"></div>
-        <div id="tt-desc"></div>
-      </div>
-    </div>
+  <!-- CENTER: MAP -->
+  <div class="map-area">
+    <div id="map"></div>
+  </div>
 
-    <!-- timeline scrubber -->
-    <div class="timeline-wrapper">
-      <div class="panel-label">SCRUB TIMELINE</div>
-      <div class="timeline-strip" id="timeline-strip"></div>
-      <div class="timeline-time-labels">
-        <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>11PM</span>
-        <span class="timeline-kb-hint">← →</span>
-      </div>
-    </div>
-
-    <!-- current hour info -->
-    <div class="journey-info fade-in" id="journey-info">
-      <div class="journey-hour" id="journey-hour-text">—</div>
-      <div class="journey-location" id="journey-location-text">Select a persona to begin</div>
-      <div class="journey-desc" id="journey-desc-text">Hover over the clock to explore the soundscape of a New Yorker's day.</div>
+  <!-- CLOCK PANEL -->
+  <div class="clock-panel">
+    <svg id="clock-svg" viewBox="-260 -260 520 520"></svg>
+    <div class="hour-tooltip" id="hour-tooltip">
+      <div class="hour-tooltip-title" id="tt-title"></div>
+      <div id="tt-sounds"></div>
+      <div id="tt-desc"></div>
     </div>
   </div>
 
-  <!-- RIGHT: AUDIO + METER -->
-  <div class="panel-right">
+  <!-- BOTTOM INFO STRIP -->
+  <div class="info-strip">
 
-    <!-- dB meter -->
-    <div class="meter-section">
+    <!-- Col 1: time + location + timeline -->
+    <div class="info-col info-col-time">
+      <div class="journey-info fade-in" id="journey-info">
+        <div class="journey-hour" id="journey-hour-text">—</div>
+        <div class="journey-location" id="journey-location-text">Select a persona to begin</div>
+      </div>
+      <div class="timeline-wrapper">
+        <div class="panel-label">24 Hour Timeline</div>
+        <div class="timeline-strip" id="timeline-strip"></div>
+        <div class="timeline-time-labels">
+          <span>12AM</span><span>6AM</span><span>12PM</span><span>6PM</span><span>12AM</span>
+          <span class="timeline-kb-hint">← →</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Col 2: description -->
+    <div class="info-col info-col-desc">
+      <div class="journey-desc" id="journey-desc-text">Hover over the clock to explore the soundscape of a New Yorker's day.</div>
+    </div>
+
+    <!-- Col 2: dB meter + waveform -->
+    <div class="info-col info-col-meter">
+      <div class="panel-label">Decibel Level</div>
       <div class="meter-label-row">
-        <span class="panel-label">DECIBEL LEVEL</span>
         <div>
           <span class="meter-db-value" id="db-value">—</span>
           <span class="meter-db-unit">dB</span>
@@ -71,48 +79,32 @@
         <div class="meter-bar-fill" id="meter-fill"></div>
       </div>
       <div class="meter-ticks">
-        <span>40</span><span>55</span><span>70</span><span>85</span><span>100+</span>
+        <span>&lt;60</span><span>55</span><span>70</span><span>85</span><span>100+</span>
       </div>
-    </div>
-
-    <!-- waveform -->
-    <div class="waveform-section">
-      <div class="panel-label">WAVEFORM</div>
+      <div class="panel-label" style="margin-top:16px">Waveform</div>
       <canvas id="waveform-canvas"></canvas>
     </div>
 
-    <!-- volume -->
-    <div class="volume-row">
-      <span class="vol-label">VOL</span>
-      <input type="range" id="vol-slider" min="0" max="1" step="0.01" value="0.7">
-    </div>
-
-    <!-- sounds list -->
-    <div class="sounds-section">
-      <div class="panel-label">SOUNDS THIS HOUR</div>
+    <!-- Col 3: sounds this hour -->
+    <div class="info-col info-col-sounds">
+      <div class="panel-label">Sounds This Hour</div>
       <div class="sounds-list" id="sounds-list">
         <div class="sounds-empty">Select a persona &amp; hour to explore sounds.</div>
       </div>
     </div>
 
-    <!-- play btn -->
-    <button class="playback-btn" id="play-btn">▶ PLAY THE DAY</button>
-
-    <!-- legend -->
-    <div>
-      <div class="panel-label">SOUND TAXONOMY</div>
-      <div class="legend" id="legend"></div>
+    <!-- Col 4: fine-grained tags -->
+    <div class="info-col info-col-tags">
+      <div class="panel-label">Fine-Grained Tags</div>
+      <div id="fine-tags-list"></div>
     </div>
+
   </div>
 
-  <div class="statusbar">
-    <span><span class="status-live"></span> SONYC Sensor Network · NYC</span>
-    <span>Dataset: SONYC-UST v2.3 · Zenodo 3966543</span>
-    <span>23 Fine-grained Classes · 8 Coarse Classes</span>
-    <span id="status-persona">No persona selected</span>
-  </div>
 </div>
 
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script type="module" src="/src/main.js"></script>
 </body>
 </html>

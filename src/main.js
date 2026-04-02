@@ -14,7 +14,25 @@ window.playSoundGlobal = (type, db, borough) => {
   playSound(type, db, borough)
 }
 
+function initMap() {
+  if (typeof L === 'undefined' || !document.getElementById('map')) return
+  const map = L.map('map', {
+    center: [40.720, -73.990],
+    zoom: 12,
+    dragging: false,
+    touchZoom: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    zoomControl: false,
+    attributionControl: false,
+  })
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    opacity: 0.5,
+  }).addTo(map)
+}
+
 async function init() {
+  initMap()
   console.log('%c NYC never sleeps. Neither does this data. ', 'background:#070810;color:#a29bfe;font-family:monospace;padding:4px 8px')
 
   loadClipIndex()
@@ -35,7 +53,7 @@ async function init() {
   resizeWaveform()
   window.addEventListener('resize', resizeWaveform)
 
-  document.getElementById('vol-slider').addEventListener('input', e => {
+  document.getElementById('vol-slider')?.addEventListener('input', e => {
     setMasterVolume(parseFloat(e.target.value))
   })
 
@@ -68,6 +86,14 @@ function playSound(type, db, borough) {
     r.classList.toggle('playing', isThis)
     if (isThis && color) r.style.setProperty('--accent-color', color)
   })
+  const nameEl = document.getElementById('now-playing-name')
+  const subEl = document.getElementById('now-playing-sub')
+  const dotEl = document.getElementById('player-sound-dot')
+  const fillEl = document.getElementById('player-progress-fill')
+  if (nameEl) nameEl.textContent = type === 'flatline' ? 'No signal' : type.charAt(0).toUpperCase() + type.slice(1)
+  if (subEl && state.persona) subEl.textContent = `${state.persona.role} · ${state.persona.schedule[state.hour]?.loc || ''}`
+  if (dotEl) dotEl.style.background = color || 'var(--muted)'
+  if (fillEl) fillEl.style.setProperty('--playing-color', color)
   playSoundType(type, db, borough)
 }
 
@@ -103,8 +129,8 @@ function selectPersona(id) {
 
   document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'))
   document.getElementById(`persona-${id}`).classList.add('active')
-  document.getElementById('status-persona').textContent =
-    `${state.persona.name} · ${state.persona.role} · ${state.persona.home}`
+  const statusEl = document.getElementById('status-persona')
+  if (statusEl) statusEl.textContent = `${state.persona.name} · ${state.persona.role} · ${state.persona.home}`
 
   // reset dB so it counts up from 0 on select
   document.getElementById('db-value').textContent = '0'
@@ -157,7 +183,7 @@ function toggleAutoPlay() {
     state.isAutoPlaying = false
     clearInterval(state.autoPlayInterval)
     btn.classList.remove('active')
-    btn.textContent = '▶ PLAY THE DAY'
+    btn.textContent = '▶'
     return
   }
 
@@ -165,7 +191,7 @@ function toggleAutoPlay() {
 
   state.isAutoPlaying = true
   btn.classList.add('active')
-  btn.textContent = '⏸ PAUSE'
+  btn.textContent = '⏸'
 
   updateHour(0)
   let h = 0
@@ -176,11 +202,11 @@ function toggleAutoPlay() {
       state.isAutoPlaying = false
       clearInterval(state.autoPlayInterval)
       btn.classList.remove('active')
-      btn.textContent = '▶ PLAY THE DAY'
+      btn.textContent = '▶'
     }
   }, 3000)
 }
 
-document.getElementById('play-btn').addEventListener('click', toggleAutoPlay)
+document.getElementById('play-btn')?.addEventListener('click', toggleAutoPlay)
 
 init()

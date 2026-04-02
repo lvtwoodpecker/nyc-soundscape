@@ -2,6 +2,7 @@ import { SOUND_COLORS, SOUND_FINE, PERSONAS } from './personas.js'
 
 export function renderLegend() {
   const el = document.getElementById('legend')
+  if (!el) return
   el.innerHTML = Object.entries(SOUND_COLORS).map(([k, c]) =>
     `<div class="legend-item">
       <div class="legend-dot" style="background:${c};box-shadow:0 0 4px ${c}"></div>
@@ -29,12 +30,16 @@ export function renderPersonas(onSelect) {
 
 export function renderSoundsList(sounds, db, noData) {
   const el = document.getElementById('sounds-list')
+  const tagsEl = document.getElementById('fine-tags-list')
+
   if (noData) {
     el.innerHTML = '<div class="sounds-empty">Data unavailable for this location and hour.<br/>Displaying flatline tone.</div>'
+    if (tagsEl) tagsEl.innerHTML = ''
     return
   }
   if (!sounds || sounds.length === 0) {
     el.innerHTML = '<div class="sounds-empty">No sounds detected this hour.</div>'
+    if (tagsEl) tagsEl.innerHTML = ''
     return
   }
   el.innerHTML = sounds.map(s => `
@@ -45,13 +50,9 @@ export function renderSoundsList(sounds, db, noData) {
     </div>
   `).join('')
 
-  const fineTags = sounds.flatMap(s => (SOUND_FINE[s] || []).slice(0, 2))
-  if (fineTags.length > 0) {
-    const detail = document.createElement('div')
-    detail.className = 'fine-tag-section'
-    detail.innerHTML = '<div class="panel-label">FINE-GRAINED TAGS</div>' +
-      fineTags.map(tag => `<div class="fine-tag">· ${tag}</div>`).join('')
-    el.appendChild(detail)
+  if (tagsEl) {
+    const fineTags = sounds.flatMap(s => (SOUND_FINE[s] || []).slice(0, 2))
+    tagsEl.innerHTML = fineTags.map(tag => `<div class="fine-tag">· ${tag}</div>`).join('')
   }
 }
 
