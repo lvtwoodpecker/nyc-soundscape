@@ -1,4 +1,4 @@
-import { SOUND_COLORS, SOUND_FINE, PERSONAS } from './personas.js'
+import { SOUND_COLORS, PERSONAS } from './personas.js'
 
 export function renderLegend() {
   const el = document.getElementById('legend')
@@ -30,16 +30,13 @@ export function renderPersonas(onSelect) {
 
 export function renderSoundsList(sounds, db, noData) {
   const el = document.getElementById('sounds-list')
-  const tagsEl = document.getElementById('fine-tags-list')
 
   if (noData) {
-    el.innerHTML = '<div class="sounds-empty">Data unavailable for this location and hour.<br/>Displaying flatline tone.</div>'
-    if (tagsEl) tagsEl.innerHTML = ''
+    el.innerHTML = '<div class="sounds-empty">No data this hour.</div>'
     return
   }
   if (!sounds || sounds.length === 0) {
     el.innerHTML = '<div class="sounds-empty">No sounds detected this hour.</div>'
-    if (tagsEl) tagsEl.innerHTML = ''
     return
   }
   el.innerHTML = sounds.map(s => `
@@ -49,20 +46,27 @@ export function renderSoundsList(sounds, db, noData) {
       <div class="sound-play-btn">PLAY</div>
     </div>
   `).join('')
+}
 
-  if (tagsEl) {
-    const fineTags = sounds.flatMap(s => (SOUND_FINE[s] || []).slice(0, 2))
-    tagsEl.innerHTML = fineTags.map(tag => `<div class="fine-tag">· ${tag}</div>`).join('')
-  }
+export function renderStory(log) {
+  const el = document.getElementById('journey-desc-text')
+  if (!el) return
+  el.innerHTML = [...log].reverse().map(({ displayH, suffix, desc }) =>
+    `<div class="story-entry"><span class="story-time">${displayH}:00 ${suffix}</span>${desc}</div>`
+  ).join('')
 }
 
 export function setPlayingColor(color) {
   document.documentElement.style.setProperty('--playing-color', color || '')
 }
 
+let dbRafId = null
+
 export function animateDbMeter(targetDb) {
   const valueEl = document.getElementById('db-value')
-  const fillEl = document.getElementById('meter-fill')
+  if (!valueEl) return
+
+  if (dbRafId) cancelAnimationFrame(dbRafId)
 
   // tint the dB number toward the playing sound's color at higher levels
   const playingColor = getComputedStyle(document.documentElement).getPropertyValue('--playing-color').trim()
@@ -73,18 +77,15 @@ export function animateDbMeter(targetDb) {
     const current = parseFloat(valueEl.textContent)
     if (isNaN(current)) {
       valueEl.textContent = targetDb
-      fillEl.style.width = Math.min(100, (targetDb - 35) / 65 * 100) + '%'
       return
     }
     const next = current + (targetDb - current) * 0.1
     if (Math.abs(next - targetDb) < 0.5) {
       valueEl.textContent = targetDb
-      fillEl.style.width = Math.min(100, (targetDb - 35) / 65 * 100) + '%'
       return
     }
     valueEl.textContent = Math.round(next)
-    fillEl.style.width = Math.min(100, (next - 35) / 65 * 100) + '%'
-    requestAnimationFrame(updateFrame)
+    dbRafId = requestAnimationFrame(updateFrame)
   }
   updateFrame()
 }

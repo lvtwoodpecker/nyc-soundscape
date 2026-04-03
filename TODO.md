@@ -58,19 +58,19 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 
 ---
 
-## Phase 2 — Leaflet Map
+## Phase 2 — Neighborhood Map (done: WSP; TODO: Brooklyn/Tandon)
 
-**Goal:** The radial clock overlaid on an animated NYC map — personas physically move through the city.
+**Current:** WSP-area SVG hex tile map live in `src/neighborhoodmap.js`. ~9 named neighborhood tiles, pure SVG no dependencies.
 
-- [ ] Add Leaflet.js 1.9.4 (CDN) to `index.html`
-- [ ] Replace center panel clock-only layout with map + clock overlay
-- [ ] On persona select: `map.fitBounds()` to their full route
-- [ ] On hour change: `map.panTo()` smoothly to current location
-- [ ] Persona marker: custom `L.divIcon` with pulsing CSS ring
-- [ ] Full-day dashed route polyline on persona select
-- [ ] Visited trail polyline (solid, colored) that grows as hours advance
-- [ ] Sensor heatmap layer (toggle, uses `sensors.json`)
-- [ ] Dark map tiles: OSM with `filter: brightness(0.22) saturate(0.3) hue-rotate(200deg)`
+**TODO — Add Brooklyn/Tandon map for Carlos (and future personas):**
+- [ ] Add Tandon-area tiles to `TILES` in `src/neighborhoodmap.js`:
+  - `{ id: 'downtown_bk', name: 'Downtown\nBrooklyn', clat: 40.692, clng: -73.988, px: ?, py: ? }`
+  - `{ id: 'metroteched', name: 'MetroTech', clat: 40.694, clng: -73.987, px: ?, py: ? }`
+  - `{ id: 'sunset_park', name: 'Sunset\nPark', clat: 40.646, clng: -74.010, px: ?, py: ? }`
+- [ ] Extend SVG `VIEWBOX` height to accommodate Brooklyn tiles below Manhattan
+- [ ] Extend projection bounds (lat min) to cover Brooklyn (~40.62)
+- [ ] Update `OFF_MAP_THRESHOLD` or remove it for personas that should show Brooklyn tiles
+- [ ] Carlos's `schedule` hours will then auto-map to Brooklyn tiles via `nearestTile()`
 
 ---
 

@@ -5,7 +5,7 @@ const R_INNER = 100
 const R_LABEL = 238
 
 // higher = more visually interesting, low-weighted sounds won't dominate the color
-const INTEREST = { saw: 4, machinery: 3, dog: 2.5, music: 2, alert: 1.5, impact: 1.2, voice: 0.6, engine: 0.4 }
+export const INTEREST = { saw: 4, machinery: 3, dog: 2.5, music: 2, alert: 1.5, impact: 1.2, voice: 0.6, engine: 0.4 }
 
 function featureColor(sounds, prevalence) {
   if (!sounds || sounds.length === 0) return '#e4e3de'
@@ -89,6 +89,11 @@ export function moveTooltip(e) {
 export function hideTooltip() {
   document.getElementById('hour-tooltip').classList.remove('visible')
 }
+
+// attach once — svg.innerHTML = '' doesn't remove listeners on the svg itself
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('clock-svg')?.addEventListener('mouseleave', () => hideTooltip())
+})
 
 export function drawClock(persona, selectedHour, hourlyStats) {
   const svg = document.getElementById('clock-svg')
@@ -184,7 +189,6 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
     path.addEventListener('mouseenter', (e) => showTooltip(e, h, persona, hourlyStats))
     path.addEventListener('mousemove', (e) => moveTooltip(e))
-    path.addEventListener('mouseleave', () => hideTooltip())
     path.addEventListener('click', () => window.updateHourGlobal?.(h))
     svg.appendChild(path)
 
@@ -241,7 +245,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     roleEl.setAttribute('x', 0)
     roleEl.setAttribute('y', 6)
     roleEl.setAttribute('text-anchor', 'middle')
-    roleEl.setAttribute('font-family', 'Fredoka, sans-serif')
+    roleEl.setAttribute('font-family', 'DM Mono, monospace')
     roleEl.setAttribute('font-size', '14')
     roleEl.setAttribute('fill', '#888884')
     roleEl.textContent = persona.role
@@ -251,7 +255,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     boroughEl.setAttribute('x', 0)
     boroughEl.setAttribute('y', 20)
     boroughEl.setAttribute('text-anchor', 'middle')
-    boroughEl.setAttribute('font-family', 'Fredoka, sans-serif')
+    boroughEl.setAttribute('font-family', 'DM Mono, monospace')
     boroughEl.setAttribute('font-size', '12')
     boroughEl.setAttribute('fill', '#aaa')
     boroughEl.textContent = (persona.home || '').toUpperCase()
@@ -262,7 +266,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     hint.setAttribute('y', 0)
     hint.setAttribute('text-anchor', 'middle')
     hint.setAttribute('dominant-baseline', 'middle')
-    hint.setAttribute('font-family', 'Fredoka, sans-serif')
+    hint.setAttribute('font-family', 'DM Mono, monospace')
     hint.setAttribute('font-size', '14')
     hint.setAttribute('fill', '#aaa')
     hint.textContent = 'SELECT A PERSONA'

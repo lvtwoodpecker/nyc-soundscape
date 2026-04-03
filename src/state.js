@@ -5,4 +5,5 @@ export const state = {
   isAutoPlaying: false,
   autoPlayInterval: null,
   hourlyStats: null,
+  storyLog: [],
 }

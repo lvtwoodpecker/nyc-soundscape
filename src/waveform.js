@@ -1,6 +1,13 @@
 let canvas = null
 let ctx = null
 let animationId = null
+let waveformActive = false
+let currentColor = '#6b5fd4'
+
+export function setWaveformActive(active, color) {
+  waveformActive = active
+  if (color) currentColor = color
+}
 
 export function resizeWaveform() {
   canvas = document.getElementById('waveform-canvas')
@@ -11,63 +18,44 @@ export function resizeWaveform() {
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio)
 }
 
-export function drawWaveform(analyserNode, personaColor) {
+export function drawWaveform(analyserNode) {
   if (!canvas || !ctx) return
-
   if (animationId) cancelAnimationFrame(animationId)
 
-  const w = canvas.offsetWidth
-  const h = canvas.offsetHeight
-  const midY = h / 2
-
   const draw = () => {
+    const w = canvas.offsetWidth
+    const h = canvas.offsetHeight
     ctx.fillStyle = '#ededea'
     ctx.fillRect(0, 0, w, h)
 
-    if (analyserNode && analyserNode.context.state === 'running') {
-      const dataArray = new Uint8Array(analyserNode.frequencyBinCount)
-      analyserNode.getByteTimeDomainData(dataArray)
+    if (waveformActive && analyserNode && analyserNode.context.state === 'running') {
+      const bufLen = analyserNode.frequencyBinCount
+      const freqData = new Uint8Array(bufLen)
+      analyserNode.getByteFrequencyData(freqData)
 
-      ctx.strokeStyle = personaColor || '#6b5fd4'
-      ctx.lineWidth = 1.5
-      ctx.lineCap = 'round'
-      ctx.beginPath()
-      for (let i = 0; i < dataArray.length; i++) {
-        const x = (i / dataArray.length) * w
-        const y = midY - (dataArray[i] / 128 - 1) * (h / 2)
-        if (i === 0) ctx.moveTo(x, y)
-        else ctx.lineTo(x, y)
+      const barCount = Math.min(bufLen, 80)
+      const barW = w / barCount
+      const step = Math.floor(bufLen / barCount)
+
+      for (let i = 0; i < barCount; i++) {
+        const val = freqData[i * step] / 255
+        const barH = val * h * 0.92
+        const x = i * barW
+        const grad = ctx.createLinearGradient(0, h, 0, h - barH)
+        grad.addColorStop(0, currentColor + '40')
+        grad.addColorStop(1, currentColor + 'cc')
+        ctx.fillStyle = grad
+        ctx.fillRect(x + 0.5, h - barH, barW - 1, barH)
       }
-      ctx.stroke()
-
-      ctx.shadowColor = personaColor || '#6b5fd4'
-      ctx.shadowBlur = 3
-      ctx.stroke()
-      ctx.shadowColor = 'transparent'
     } else {
-      const now = Date.now() / 1000
-      const freqs = [3, 7, 13]
-      const phases = freqs.map((f, i) => now * f * (1 + i * 0.1))
-
-      ctx.strokeStyle = personaColor || '#6b5fd4'
-      ctx.lineWidth = 1.5
-      ctx.lineCap = 'round'
+      // idle: flat line at center
+      const midY = h / 2
+      ctx.strokeStyle = currentColor + '44'
+      ctx.lineWidth = 1
       ctx.beginPath()
-      for (let i = 0; i < w; i++) {
-        let y = 0
-        freqs.forEach((f, idx) => {
-          y += Math.sin((i / w) * f * Math.PI * 2 + phases[idx]) * 0.3
-        })
-        const py = midY + y * (h / 3)
-        if (i === 0) ctx.moveTo(i, py)
-        else ctx.lineTo(i, py)
-      }
+      ctx.moveTo(0, midY)
+      ctx.lineTo(w, midY)
       ctx.stroke()
-
-      ctx.shadowColor = personaColor || '#6b5fd4'
-      ctx.shadowBlur = 3
-      ctx.stroke()
-      ctx.shadowColor = 'transparent'
     }
 
     animationId = requestAnimationFrame(draw)

@@ -1,10 +1,11 @@
 import { state } from './state.js'
 import { PERSONAS, SOUND_COLORS } from './personas.js'
 import { drawClock } from './clock.js'
-import { renderLegend, renderPersonas, renderSoundsList, animateDbMeter, setPlayingColor } from './ui.js'
+import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
 import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume } from './audio.js'
-import { resizeWaveform, drawWaveform } from './waveform.js'
+import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
+import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap } from './neighborhoodmap.js'
 
 window.updateHourGlobal = updateHour
 window.selectPersonaGlobal = selectPersona
@@ -14,25 +15,8 @@ window.playSoundGlobal = (type, db, borough) => {
   playSound(type, db, borough)
 }
 
-function initMap() {
-  if (typeof L === 'undefined' || !document.getElementById('map')) return
-  const map = L.map('map', {
-    center: [40.720, -73.990],
-    zoom: 12,
-    dragging: false,
-    touchZoom: false,
-    scrollWheelZoom: false,
-    doubleClickZoom: false,
-    zoomControl: false,
-    attributionControl: false,
-  })
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    opacity: 0.5,
-  }).addTo(map)
-}
-
 async function init() {
-  initMap()
+  initNeighborhoodMap()
   console.log('%c NYC never sleeps. Neither does this data. ', 'background:#070810;color:#a29bfe;font-family:monospace;padding:4px 8px')
 
   loadClipIndex()
@@ -51,6 +35,7 @@ async function init() {
   renderTimeline()
 
   resizeWaveform()
+  requestAnimationFrame(resizeWaveform)  // re-measure after layout settles
   window.addEventListener('resize', resizeWaveform)
 
   document.getElementById('vol-slider')?.addEventListener('input', e => {
@@ -79,21 +64,14 @@ async function init() {
 
 // plays a sound and updates the UI playing state + color
 function playSound(type, db, borough) {
-  const color = SOUND_COLORS[type] || ''
+  const color = SOUND_COLORS[type] || state.persona?.color || ''
   setPlayingColor(color)
+  setWaveformActive(type !== 'flatline', color)
   document.querySelectorAll('.sound-row').forEach(r => {
     const isThis = r.dataset.sound === type
     r.classList.toggle('playing', isThis)
     if (isThis && color) r.style.setProperty('--accent-color', color)
   })
-  const nameEl = document.getElementById('now-playing-name')
-  const subEl = document.getElementById('now-playing-sub')
-  const dotEl = document.getElementById('player-sound-dot')
-  const fillEl = document.getElementById('player-progress-fill')
-  if (nameEl) nameEl.textContent = type === 'flatline' ? 'No signal' : type.charAt(0).toUpperCase() + type.slice(1)
-  if (subEl && state.persona) subEl.textContent = `${state.persona.role} · ${state.persona.schedule[state.hour]?.loc || ''}`
-  if (dotEl) dotEl.style.background = color || 'var(--muted)'
-  if (fillEl) fillEl.style.setProperty('--playing-color', color)
   playSoundType(type, db, borough)
 }
 
@@ -142,6 +120,11 @@ function selectPersona(id) {
   void leftPanel.offsetWidth
   leftPanel.classList.add('panel-flash')
 
+  state.storyLog = []
+  resetNeighborhoodMap()
+  setWaveformActive(false)
+  animateDbMeter(0)
+
   state.hour = 0
   updateHour(0)
   renderTimeline(state.persona, state.hourlyStats)
@@ -159,15 +142,29 @@ function updateHour(h) {
 
   document.getElementById('journey-hour-text').textContent = `${displayH}:00 ${suffix}`
   document.getElementById('journey-location-text').textContent = data.loc
-  document.getElementById('journey-desc-text').textContent = data.desc
   document.getElementById('journey-info').style.setProperty('--persona-color', state.persona.color)
+
+  const bar = document.getElementById('clock-time-bar')
+  if (bar) {
+    bar.style.color = state.persona.color
+    bar.textContent = `${displayH}:00 ${suffix}  ·  ${data.loc}`
+  }
+
+  // accumulate story entries as user scrubs through the day
+  const alreadyLogged = state.storyLog.some(e => e.h === h)
+  if (data.desc && !alreadyLogged) {
+    state.storyLog.push({ h, displayH, suffix, desc: data.desc })
+    renderStory(state.storyLog)
+  }
+
+  updateNeighborhoodMap(state.persona, h)
 
   renderSoundsList(sounds, db, noData)
   animateDbMeter(db)
   updateTimeline(h)
 
   drawClock(state.persona, h, state.hourlyStats)
-  drawWaveform(analyserNode, state.persona.color)
+  drawWaveform(analyserNode)
 
   if (noData) {
     playSound('flatline', db, data.borough)
@@ -183,7 +180,9 @@ function toggleAutoPlay() {
     state.isAutoPlaying = false
     clearInterval(state.autoPlayInterval)
     btn.classList.remove('active')
-    btn.textContent = '▶'
+    btn.textContent = '▶ Play the Day'
+    setWaveformActive(false)
+    animateDbMeter(0)
     return
   }
 
@@ -202,7 +201,9 @@ function toggleAutoPlay() {
       state.isAutoPlaying = false
       clearInterval(state.autoPlayInterval)
       btn.classList.remove('active')
-      btn.textContent = '▶'
+      btn.textContent = '▶ Play the Day'
+      setWaveformActive(false)
+      animateDbMeter(0)
     }
   }, 3000)
 }
