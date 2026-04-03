@@ -8,6 +8,11 @@ const DEFAULT_DB_BOUNDS = { low: 58, high: 84 }
 let cachedBoundsSource = null
 let cachedBounds = DEFAULT_DB_BOUNDS
 
+function cssVar(name, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
 // when present, these classes always take priority for dominant sound
 export const DOMINANT_PRIORITY = ['voice', 'music', 'dog']
 
@@ -196,7 +201,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     ring.setAttribute('cx', 0)
     ring.setAttribute('cy', 0)
     ring.setAttribute('fill', 'none')
-    ring.setAttribute('stroke', '#d8d7d2')
+    ring.setAttribute('stroke', cssVar('--clock-ring', '#d8d7d2'))
     ring.setAttribute('stroke-width', '0.5')
     svg.appendChild(ring)
   }
@@ -207,7 +212,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
   amLabel.setAttribute('text-anchor', 'middle')
   amLabel.setAttribute('class', 'hour-label')
   amLabel.setAttribute('font-size', '14')
-  amLabel.setAttribute('fill', '#aaa')
+  amLabel.setAttribute('fill', cssVar('--clock-label', '#aaa'))
   amLabel.textContent = 'AM'
   svg.appendChild(amLabel)
 
@@ -217,7 +222,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
   pmLabel.setAttribute('text-anchor', 'middle')
   pmLabel.setAttribute('class', 'hour-label')
   pmLabel.setAttribute('font-size', '14')
-  pmLabel.setAttribute('fill', '#aaa')
+  pmLabel.setAttribute('fill', cssVar('--clock-label', '#aaa'))
   pmLabel.textContent = 'PM'
   svg.appendChild(pmLabel)
 
@@ -256,7 +261,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
       const glowSound = pickDominantSound(sounds, prevalence)
       path.setAttribute('filter', `url(#glow-${glowSound})`)
     }
-    path.setAttribute('stroke', '#f7f6f2')
+    path.setAttribute('stroke', cssVar('--clock-stroke', '#f7f6f2'))
     path.setAttribute('stroke-width', '1')
     path.style.cursor = 'pointer'
     path.style.transition = 'opacity 0.2s'
@@ -300,7 +305,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
   const centerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
   centerCircle.setAttribute('r', R_INNER - 2)
-  centerCircle.setAttribute('fill', '#f7f6f2')
+  centerCircle.setAttribute('fill', cssVar('--clock-center', '#f7f6f2'))
   svg.appendChild(centerCircle)
 
   if (persona) {
@@ -321,7 +326,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     roleEl.setAttribute('text-anchor', 'middle')
     roleEl.setAttribute('font-family', 'DM Mono, monospace')
     roleEl.setAttribute('font-size', '14')
-    roleEl.setAttribute('fill', '#888884')
+    roleEl.setAttribute('fill', cssVar('--clock-role', '#888884'))
     roleEl.textContent = persona.role
     svg.appendChild(roleEl)
 
@@ -331,7 +336,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     boroughEl.setAttribute('text-anchor', 'middle')
     boroughEl.setAttribute('font-family', 'DM Mono, monospace')
     boroughEl.setAttribute('font-size', '12')
-    boroughEl.setAttribute('fill', '#aaa')
+    boroughEl.setAttribute('fill', cssVar('--clock-subtext', '#aaa'))
     boroughEl.textContent = (persona.home || '').toUpperCase()
     svg.appendChild(boroughEl)
   } else {
@@ -342,7 +347,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     hint.setAttribute('dominant-baseline', 'middle')
     hint.setAttribute('font-family', 'DM Mono, monospace')
     hint.setAttribute('font-size', '14')
-    hint.setAttribute('fill', '#aaa')
+    hint.setAttribute('fill', cssVar('--clock-subtext', '#aaa'))
     hint.textContent = 'SELECT A PERSONA'
     svg.appendChild(hint)
   }
@@ -357,7 +362,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     needle.setAttribute('y1', n1.y)
     needle.setAttribute('x2', n2.x)
     needle.setAttribute('y2', n2.y)
-    needle.setAttribute('stroke', 'white')
+    needle.setAttribute('stroke', cssVar('--clock-needle', '#ffffff'))
     needle.setAttribute('stroke-width', '1.5')
     svg.appendChild(needle)
   }

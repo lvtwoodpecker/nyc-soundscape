@@ -5,7 +5,10 @@ import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbM
 import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, pauseAudio, resumeAudio, isAudioPaused } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
-import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap } from './neighborhoodmap.js'
+import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme } from './neighborhoodmap.js'
+
+const THEME_KEY = 'nyc-soundscape-theme'
+let themeTransitionLock = false
 
 window.updateHourGlobal = updateHour
 window.selectPersonaGlobal = selectPersona
@@ -17,6 +20,72 @@ window.playSoundGlobal = (type, db, borough) => {
 
 function getPausedDbColor() {
   return state.lastSoundColor || '#888884'
+}
+
+function getTheme() {
+  return document.documentElement.dataset.theme || 'light'
+}
+
+function setTheme(theme) {
+  document.documentElement.dataset.theme = theme
+  try {
+    localStorage.setItem(THEME_KEY, theme)
+  } catch (e) {}
+  const btn = document.getElementById('theme-toggle')
+  if (btn) {
+    const isDark = theme === 'dark'
+    btn.setAttribute('aria-pressed', String(isDark))
+    btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode'
+  }
+}
+
+function pulseThemeButton() {
+  const btn = document.getElementById('theme-toggle')
+  if (!btn) return
+  btn.classList.remove('is-toggling')
+  void btn.offsetWidth
+  btn.classList.add('is-toggling')
+  window.setTimeout(() => btn.classList.remove('is-toggling'), 500)
+}
+
+function getThemeTransitionOverlay() {
+  return document.getElementById('theme-transition-overlay')
+}
+
+function toggleTheme() {
+  if (themeTransitionLock) return
+  themeTransitionLock = true
+  const nextTheme = getTheme() === 'dark' ? 'light' : 'dark'
+  const overlay = getThemeTransitionOverlay()
+  const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#f7f6f2'
+
+  if (overlay) {
+    overlay.style.background = currentBg
+    overlay.classList.add('is-active')
+  }
+
+  window.setTimeout(() => {
+    setTheme(nextTheme)
+    pulseThemeButton()
+    refreshThemeVisuals()
+  }, 170)
+
+  window.setTimeout(() => {
+    if (overlay) overlay.classList.remove('is-active')
+    themeTransitionLock = false
+  }, 360)
+}
+
+function refreshThemeVisuals() {
+  refreshNeighborhoodMapTheme()
+  drawClock(state.persona, state.hour, state.hourlyStats)
+  if (state.persona) {
+    updateNeighborhoodMap(state.persona, state.hour)
+  }
+  drawWaveform(analyserNode)
+  if (state.isSoundPaused) {
+    setPausedDbState()
+  }
 }
 
 function setPausedDbState() {
@@ -82,6 +151,10 @@ async function init() {
     toggleSoundPause().catch(err => console.warn('pause toggle failed', err))
   })
 
+  document.getElementById('theme-toggle')?.addEventListener('click', () => {
+    toggleTheme()
+  })
+
   document.getElementById('journey-desc-text')?.addEventListener('click', (e) => {
     const target = e.target.closest('[data-hour]')
     if (!target) return
@@ -101,6 +174,7 @@ async function init() {
   })
 
   updatePauseButton()
+  setTheme(getTheme())
 
   document.addEventListener('keydown', e => {
     // ignore when typing in an input

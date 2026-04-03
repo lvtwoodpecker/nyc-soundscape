@@ -4,6 +4,11 @@ let animationId = null
 let waveformActive = false
 let currentColor = '#6b5fd4'
 
+function cssVar(name, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
 export function setWaveformActive(active, color) {
   waveformActive = active
   if (color) currentColor = color
@@ -25,7 +30,7 @@ export function drawWaveform(analyserNode) {
   const draw = () => {
     const w = canvas.offsetWidth
     const h = canvas.offsetHeight
-    ctx.fillStyle = '#ededea'
+    ctx.fillStyle = cssVar('--waveform-bg', '#ededea')
     ctx.fillRect(0, 0, w, h)
 
     if (waveformActive && analyserNode && analyserNode.context.state === 'running') {

@@ -4,6 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NYC Soundscape — A Day in the Life</title>
+  <script>
+    (function() {
+      const key = 'nyc-soundscape-theme'
+      let saved = null
+      try { saved = localStorage.getItem(key) } catch (e) {}
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      document.documentElement.dataset.theme = saved || (prefersDark ? 'dark' : 'light')
+    })()
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
@@ -12,7 +21,12 @@
 
 <header>
   <div class="header-editorial">
-    <div class="header-title">A Day in the Life of New York City</div>
+    <div class="header-title-row">
+      <div class="header-title">A Day in the Life of New York City</div>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false" title="Toggle dark mode">
+        <img class="liberty-icon" src="assets/statue-of-liberty-svgrepo-com.svg" alt="" aria-hidden="true">
+      </button>
+    </div>
     <div class="header-sub">NYC Soundscape &middot; 18k recordings</div>
   </div>
   <div class="header-controls">
@@ -24,6 +38,8 @@
     </label>
   </div>
 </header>
+
+<div class="theme-transition-overlay" id="theme-transition-overlay" aria-hidden="true"></div>
 
 <div class="app">
 

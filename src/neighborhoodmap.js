@@ -77,11 +77,17 @@ function hexPoints(cx, cy, r) {
   }).join(' ')
 }
 
+function cssVar(name, fallback) {
+  const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
+  return value || fallback
+}
+
 let svgEl = null
 let hexEls = []    // [{ poly, lat, lng, cx, cy }]
 let pathEl = null  // SVG polyline for persona trail
 let dotEl  = null  // persona dot
 let locLabelEl = null  // dynamic neighborhood name
+let landmarkEls = []
 
 export function initNeighborhoodMap() {
   const container = document.getElementById('map')
@@ -111,8 +117,8 @@ export function initNeighborhoodMap() {
 
       const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon')
       poly.setAttribute('points', hexPoints(cx, cy, R - 0.8))
-      poly.setAttribute('fill', '#d6d3cc')
-      poly.setAttribute('stroke', '#f5f4f0')
+      poly.setAttribute('fill', cssVar('--map-hex-fill', '#d6d3cc'))
+      poly.setAttribute('stroke', cssVar('--map-hex-stroke', '#f5f4f0'))
       poly.setAttribute('stroke-width', '1.2')
       poly.style.transition = 'fill 0.3s ease'
       svgEl.appendChild(poly)
@@ -121,6 +127,7 @@ export function initNeighborhoodMap() {
   }
 
   // landmark labels (always visible)
+  landmarkEls = []
   for (const lm of LANDMARKS) {
     const [lx, ly] = project(lm.clat, lm.clng)
     const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
@@ -129,10 +136,11 @@ export function initNeighborhoodMap() {
     text.setAttribute('text-anchor', 'middle')
     text.setAttribute('font-size', '7.5')
     text.setAttribute('font-family', 'DM Mono, monospace')
-    text.setAttribute('fill', '#b0ada6')
+    text.setAttribute('fill', cssVar('--map-label', '#b0ada6'))
     text.setAttribute('pointer-events', 'none')
     text.textContent = lm.name
     svgEl.appendChild(text)
+    landmarkEls.push(text)
   }
 
   // trail polyline (drawn below the dot)
@@ -147,8 +155,8 @@ export function initNeighborhoodMap() {
   // persona dot
   dotEl = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
   dotEl.setAttribute('r', '5')
-  dotEl.setAttribute('fill', '#ccc')
-  dotEl.setAttribute('stroke', '#fff')
+  dotEl.setAttribute('fill', cssVar('--map-dot-fill', '#ccc'))
+  dotEl.setAttribute('stroke', cssVar('--map-dot-stroke', '#fff'))
   dotEl.setAttribute('stroke-width', '1.5')
   dotEl.setAttribute('opacity', '0')
   svgEl.appendChild(dotEl)
@@ -159,7 +167,7 @@ export function initNeighborhoodMap() {
   locLabelEl.setAttribute('font-size', '8.5')
   locLabelEl.setAttribute('font-family', 'DM Mono, monospace')
   locLabelEl.setAttribute('font-weight', '500')
-  locLabelEl.setAttribute('fill', '#1a1a1e')
+  locLabelEl.setAttribute('fill', cssVar('--map-label-active', '#1a1a1e'))
   locLabelEl.setAttribute('opacity', '0')
   locLabelEl.setAttribute('pointer-events', 'none')
   locLabelEl.style.transition = 'opacity 0.2s'
@@ -177,12 +185,36 @@ function nearestHex(lat, lng) {
 
 export function resetNeighborhoodMap() {
   for (const h of hexEls) {
-    h.poly.setAttribute('fill', '#d6d3cc')
+    h.poly.setAttribute('fill', cssVar('--map-hex-fill', '#d6d3cc'))
     h.poly.removeAttribute('filter')
+  }
+  for (const text of landmarkEls) {
+    text.setAttribute('fill', cssVar('--map-label', '#b0ada6'))
+  }
+  if (locLabelEl) locLabelEl.setAttribute('fill', cssVar('--map-label-active', '#1a1a1e'))
+  if (dotEl) {
+    dotEl.setAttribute('fill', cssVar('--map-dot-fill', '#ccc'))
+    dotEl.setAttribute('stroke', cssVar('--map-dot-stroke', '#fff'))
   }
   if (pathEl) pathEl.setAttribute('points', '')
   if (dotEl)  dotEl.setAttribute('opacity', '0')
   if (locLabelEl) locLabelEl.setAttribute('opacity', '0')
+}
+
+export function refreshNeighborhoodMapTheme() {
+  if (!svgEl) return
+  for (const h of hexEls) {
+    h.poly.setAttribute('fill', cssVar('--map-hex-fill', '#d6d3cc'))
+    h.poly.setAttribute('stroke', cssVar('--map-hex-stroke', '#f5f4f0'))
+  }
+  for (const text of landmarkEls) {
+    text.setAttribute('fill', cssVar('--map-label', '#b0ada6'))
+  }
+  if (locLabelEl) locLabelEl.setAttribute('fill', cssVar('--map-label-active', '#1a1a1e'))
+  if (dotEl) {
+    dotEl.setAttribute('fill', cssVar('--map-dot-fill', '#ccc'))
+    dotEl.setAttribute('stroke', cssVar('--map-dot-stroke', '#fff'))
+  }
 }
 
 export function updateNeighborhoodMap(persona, hour) {
@@ -210,7 +242,7 @@ export function updateNeighborhoodMap(persona, hour) {
       h.poly.setAttribute('fill', persona.color + '40')
       h.poly.removeAttribute('filter')
     } else {
-      h.poly.setAttribute('fill', '#d6d3cc')
+      h.poly.setAttribute('fill', cssVar('--map-hex-fill', '#d6d3cc'))
       h.poly.removeAttribute('filter')
     }
   }
