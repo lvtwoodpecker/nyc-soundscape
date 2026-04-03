@@ -1,8 +1,8 @@
 import { state } from './state.js'
 import { PERSONAS, SOUND_COLORS } from './personas.js'
-import { drawClock } from './clock.js'
+import { drawClock, pickDominantSound } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, pauseAudio, resumeAudio, isAudioPaused } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap } from './neighborhoodmap.js'
@@ -13,6 +13,42 @@ window.selectPersonaGlobal = selectPersona
 // wrapper so clicking a sound row also updates playing state + color
 window.playSoundGlobal = (type, db, borough) => {
   playSound(type, db, borough)
+}
+
+function getPausedDbColor() {
+  return state.lastSoundColor || '#888884'
+}
+
+function setPausedDbState() {
+  animateDbMeter(0, { forceColor: getPausedDbColor() })
+}
+
+function updatePauseButton() {
+  const btn = document.getElementById('pause-sound-btn')
+  if (!btn) return
+  if (state.isSoundPaused) {
+    btn.textContent = '▶ Resume Sound'
+    btn.classList.add('active')
+  } else {
+    btn.textContent = '⏸ Pause Sound'
+    btn.classList.remove('active')
+  }
+}
+
+async function toggleSoundPause() {
+  if (isAudioPaused() || state.isSoundPaused) {
+    await resumeAudio()
+    state.isSoundPaused = false
+    updatePauseButton()
+    updateHour(state.hour)
+    return
+  }
+
+  await pauseAudio()
+  state.isSoundPaused = true
+  updatePauseButton()
+  setWaveformActive(false, state.lastSoundColor || undefined)
+  setPausedDbState()
 }
 
 async function init() {
@@ -42,6 +78,12 @@ async function init() {
     setMasterVolume(parseFloat(e.target.value))
   })
 
+  document.getElementById('pause-sound-btn')?.addEventListener('click', () => {
+    toggleSoundPause().catch(err => console.warn('pause toggle failed', err))
+  })
+
+  updatePauseButton()
+
   document.addEventListener('keydown', e => {
     // ignore when typing in an input
     if (e.target.tagName === 'INPUT') return
@@ -65,6 +107,7 @@ async function init() {
 // plays a sound and updates the UI playing state + color
 function playSound(type, db, borough) {
   const color = SOUND_COLORS[type] || state.persona?.color || ''
+  state.lastSoundColor = color
   setPlayingColor(color)
   setWaveformActive(type !== 'flatline', color)
   document.querySelectorAll('.sound-row').forEach(r => {
@@ -74,9 +117,6 @@ function playSound(type, db, borough) {
   })
   playSoundType(type, db, borough)
 }
-
-// how sonically interesting each type is — weights the audio pick toward unusual sounds
-const SOUND_INTEREST = { saw: 4, machinery: 3, dog: 2.5, music: 2, alert: 1.5, impact: 1.2, voice: 0.6, engine: 0.4 }
 
 // derive top sounds + db from actual SONYC data for this borough+hour
 function getSoundsForHour(borough, hour) {
@@ -93,12 +133,9 @@ function getSoundsForHour(borough, hour) {
   return { sounds, db: hourData.db, noData: false, prevalence: hourData.prevalence }
 }
 
-// pick the most interesting sound to play — weighted by prevalence × interest score
-function pickFeatureSound(sounds, prevalence) {
-  if (!sounds.length) return null
-  return sounds.slice().sort((a, b) =>
-    (prevalence[b] || 0) * (SOUND_INTEREST[b] || 1) - (prevalence[a] || 0) * (SOUND_INTEREST[a] || 1)
-  )[0]
+// pick dominant sound: priority classes first, else highest prevalence
+function pickFeatureSound(sounds) {
+  return pickDominantSound(sounds)
 }
 
 function selectPersona(id) {
@@ -146,8 +183,10 @@ function updateHour(h) {
 
   const bar = document.getElementById('clock-time-bar')
   if (bar) {
-    bar.style.color = state.persona.color
-    bar.textContent = `${displayH}:00 ${suffix}  ·  ${data.loc}`
+    bar.innerHTML = `
+      <div class="clock-time-main" style="color:${state.persona.color}">${displayH}:00 ${suffix}</div>
+      <div class="clock-time-sub">${data.loc}</div>
+    `
   }
 
   // accumulate story entries as user scrubs through the day
@@ -160,16 +199,25 @@ function updateHour(h) {
   updateNeighborhoodMap(state.persona, h)
 
   renderSoundsList(sounds, db, noData)
-  animateDbMeter(db)
+  if (state.isSoundPaused) {
+    setPausedDbState()
+  } else {
+    animateDbMeter(db)
+  }
   updateTimeline(h)
 
   drawClock(state.persona, h, state.hourlyStats)
   drawWaveform(analyserNode)
 
+  if (state.isSoundPaused) {
+    setWaveformActive(false, state.lastSoundColor || undefined)
+    return
+  }
+
   if (noData) {
     playSound('flatline', db, data.borough)
   } else {
-    const feature = pickFeatureSound(sounds, prevalence)
+    const feature = pickFeatureSound(sounds)
     if (feature) playSound(feature, db, data.borough)
   }
 }

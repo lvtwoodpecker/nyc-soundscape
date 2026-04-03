@@ -64,6 +64,25 @@ export function setMasterVolume(val) {
   if (masterVolumeNode) masterVolumeNode.gain.value = val
 }
 
+export async function pauseAudio() {
+  if (!audioCtx) return
+  if (audioCtx.state === 'running') {
+    await audioCtx.suspend()
+  }
+}
+
+export async function resumeAudio() {
+  const ctx = getAudioCtx()
+  if (!ctx) return
+  if (ctx.state === 'suspended') {
+    await ctx.resume()
+  }
+}
+
+export function isAudioPaused() {
+  return !!audioCtx && audioCtx.state === 'suspended'
+}
+
 export function stopAllSounds() {
   currentSoundNodes.forEach(node => {
     try { node.stop(0) } catch (e) {}

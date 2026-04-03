@@ -4,14 +4,18 @@ const R_OUTER = 220
 const R_INNER = 100
 const R_LABEL = 238
 
-// higher = more visually interesting, low-weighted sounds won't dominate the color
-export const INTEREST = { saw: 4, machinery: 3, dog: 2.5, music: 2, alert: 1.5, impact: 1.2, voice: 0.6, engine: 0.4 }
+// when present, these classes always take priority for dominant sound
+export const DOMINANT_PRIORITY = ['voice', 'music', 'dog']
+
+export function pickDominantSound(sounds) {
+  if (!sounds || sounds.length === 0) return null
+  const priority = DOMINANT_PRIORITY.find(s => sounds.includes(s))
+  return priority || sounds[0]
+}
 
 function featureColor(sounds, prevalence) {
   if (!sounds || sounds.length === 0) return '#e4e3de'
-  const top = sounds.slice().sort((a, b) =>
-    (prevalence[b] || 0) * (INTEREST[b] || 1) - (prevalence[a] || 0) * (INTEREST[a] || 1)
-  )[0]
+  const top = pickDominantSound(sounds)
   return SOUND_COLORS[top] || '#e4e3de'
 }
 
@@ -177,9 +181,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     path.setAttribute('fill', sounds.length > 0 ? color : '#e4e3de')
     path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3')
     if (isSelected && sounds.length > 0) {
-      const glowSound = sounds.slice().sort((a, b) =>
-        (prevalence[b] || 0) * (INTEREST[b] || 1) - (prevalence[a] || 0) * (INTEREST[a] || 1)
-      )[0]
+      const glowSound = pickDominantSound(sounds)
       path.setAttribute('filter', `url(#glow-${glowSound})`)
     }
     path.setAttribute('stroke', '#f7f6f2')

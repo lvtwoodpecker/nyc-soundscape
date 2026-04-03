@@ -62,29 +62,32 @@ export function setPlayingColor(color) {
 
 let dbRafId = null
 
-export function animateDbMeter(targetDb) {
+export function animateDbMeter(targetDb, options = {}) {
   const valueEl = document.getElementById('db-value')
   if (!valueEl) return
 
   if (dbRafId) cancelAnimationFrame(dbRafId)
 
-  // tint the dB number toward the playing sound's color at higher levels
-  const playingColor = getComputedStyle(document.documentElement).getPropertyValue('--playing-color').trim()
-  const dBFrac = Math.min(1, Math.max(0, (targetDb - 50) / 40))
-  valueEl.style.color = (playingColor && dBFrac > 0.35) ? playingColor : ''
+  const forcedColor = options.forceColor || ''
+  if (forcedColor) {
+    valueEl.style.color = forcedColor
+  } else {
+    // tint the dB number toward the playing sound's color at higher levels
+    const playingColor = getComputedStyle(document.documentElement).getPropertyValue('--playing-color').trim()
+    const dBFrac = Math.min(1, Math.max(0, (targetDb - 50) / 40))
+    valueEl.style.color = (playingColor && dBFrac > 0.35) ? playingColor : ''
+  }
+
+  let currentValue = parseFloat(valueEl.textContent)
+  if (isNaN(currentValue)) currentValue = targetDb
 
   const updateFrame = () => {
-    const current = parseFloat(valueEl.textContent)
-    if (isNaN(current)) {
+    currentValue += (targetDb - currentValue) * 0.16
+    if (Math.abs(currentValue - targetDb) < 0.5) {
       valueEl.textContent = targetDb
       return
     }
-    const next = current + (targetDb - current) * 0.1
-    if (Math.abs(next - targetDb) < 0.5) {
-      valueEl.textContent = targetDb
-      return
-    }
-    valueEl.textContent = Math.round(next)
+    valueEl.textContent = Math.round(currentValue)
     dbRafId = requestAnimationFrame(updateFrame)
   }
   updateFrame()

@@ -1,5 +1,5 @@
 import { SOUND_COLORS } from './personas.js'
-import { INTEREST } from './clock.js'
+import { pickDominantSound } from './clock.js'
 
 export function renderTimeline(persona, hourlyStats) {
   const el = document.getElementById('timeline-strip')
@@ -16,11 +16,14 @@ export function renderTimeline(persona, hourlyStats) {
     if (hourlyStats) {
       const hData = hourlyStats.by_borough?.[String(data.borough)]?.[String(h)]
       if (hData) {
-        const top = Object.entries(hData.prevalence)
+        const sounds = Object.entries(hData.prevalence)
           .filter(([, v]) => v >= 0.05)
-          .sort((a, b) => b[1] * (INTEREST[b[0]] || 1) - a[1] * (INTEREST[a[0]] || 1))[0]
+          .sort((a, b) => b[1] - a[1])
+          .map(([k]) => k)
+          .slice(0, 4)
+        const top = pickDominantSound(sounds)
         if (top) {
-          color = SOUND_COLORS[top[0]] || '#e4e3de'
+          color = SOUND_COLORS[top] || '#e4e3de'
           opacity = 0.85
         }
       }
