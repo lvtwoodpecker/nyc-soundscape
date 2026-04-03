@@ -57,6 +57,8 @@ All 18,510 clips were captioned using **Gemini 2.5 Flash-Lite** (see `analysis/c
 
 The visualization is built with Vite + vanilla JS (11 ES modules). Sound prevalence and dB estimates are derived from the SONYC annotation data at runtime — no values are hardcoded.
 
+Static files that should ship as-is, like the Statue of Liberty toggle SVG, live under `public/assets/` so they deploy cleanly on GitHub Pages.
+
 ---
 
 ## AI usage disclosure

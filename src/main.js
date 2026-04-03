@@ -8,6 +8,9 @@ import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme } from './neighborhoodmap.js'
 
 const THEME_KEY = 'nyc-soundscape-theme'
+const INTRO_KEY = 'nyc-soundscape-intro-seen'
+const INTRO_DEBUG_PARAM = 'intro'
+const INTRO_RESET_PARAM = 'reset-intro'
 let themeTransitionLock = false
 
 window.updateHourGlobal = updateHour
@@ -50,6 +53,72 @@ function pulseThemeButton() {
 
 function getThemeTransitionOverlay() {
   return document.getElementById('theme-transition-overlay')
+}
+
+function getIntroModal() {
+  return document.getElementById('intro-modal')
+}
+
+function setIntroSeen() {
+  try {
+    localStorage.setItem(INTRO_KEY, '1')
+  } catch (e) {}
+}
+
+function hasSeenIntro() {
+  try {
+    return localStorage.getItem(INTRO_KEY) === '1'
+  } catch (e) {
+    return false
+  }
+}
+
+function getIntroDebugMode() {
+  const params = new URLSearchParams(window.location.search)
+  return {
+    force: params.get(INTRO_DEBUG_PARAM) === '1',
+    reset: params.get(INTRO_RESET_PARAM) === '1',
+  }
+}
+
+function resetIntroSeen() {
+  try {
+    localStorage.removeItem(INTRO_KEY)
+  } catch (e) {}
+}
+
+function openIntroModal() {
+  const modal = getIntroModal()
+  if (!modal) return
+  modal.hidden = false
+  modal.classList.add('is-open')
+  document.body.classList.add('modal-open')
+  window.setTimeout(() => {
+    document.getElementById('intro-start-btn')?.focus()
+  }, 0)
+}
+
+function closeIntroModal() {
+  const modal = getIntroModal()
+  if (!modal) return
+  modal.classList.remove('is-open')
+  modal.hidden = true
+  document.body.classList.remove('modal-open')
+  setIntroSeen()
+}
+
+function showIntroIfNeeded() {
+  const debugMode = getIntroDebugMode()
+  if (debugMode.reset) resetIntroSeen()
+  if (!debugMode.force && hasSeenIntro()) return
+  window.setTimeout(() => {
+    openIntroModal()
+  }, 240)
+}
+
+function isIntroOpen() {
+  const modal = getIntroModal()
+  return !!modal && !modal.hidden
 }
 
 function toggleTheme() {
@@ -155,6 +224,26 @@ async function init() {
     toggleTheme()
   })
 
+  document.getElementById('about-btn')?.addEventListener('click', () => {
+    openIntroModal()
+  })
+
+  document.getElementById('intro-start-btn')?.addEventListener('click', () => {
+    closeIntroModal()
+  })
+
+  document.getElementById('intro-close-btn')?.addEventListener('click', () => {
+    closeIntroModal()
+  })
+
+  document.getElementById('intro-backdrop-btn')?.addEventListener('click', () => {
+    closeIntroModal()
+  })
+
+  document.getElementById('intro-modal')?.addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeIntroModal()
+  })
+
   document.getElementById('journey-desc-text')?.addEventListener('click', (e) => {
     const target = e.target.closest('[data-hour]')
     if (!target) return
@@ -177,8 +266,15 @@ async function init() {
   setTheme(getTheme())
 
   document.addEventListener('keydown', e => {
+    if (isIntroOpen() && e.key === 'Escape') {
+      e.preventDefault()
+      closeIntroModal()
+      return
+    }
+
     // ignore when typing in an input
     if (e.target.tagName === 'INPUT') return
+    if (isIntroOpen()) return
     if (e.key === ' ') {
       e.preventDefault()
       toggleAutoPlay()
@@ -194,6 +290,7 @@ async function init() {
   })
 
   updateHour(0)
+  showIntroIfNeeded()
 }
 
 // plays a sound and updates the UI playing state + color

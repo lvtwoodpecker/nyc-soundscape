@@ -82,6 +82,18 @@ function cssVar(name, fallback) {
   return value || fallback
 }
 
+function applyMapLabelStyle(textEl, fillVar, strokeVar) {
+  textEl.setAttribute('font-size', '9.5')
+  textEl.setAttribute('font-family', 'DM Mono, monospace')
+  textEl.setAttribute('font-weight', '700')
+  textEl.setAttribute('letter-spacing', '0.01em')
+  textEl.setAttribute('fill', cssVar(fillVar, '#1a1a1e'))
+  textEl.setAttribute('stroke', cssVar(strokeVar, 'rgba(255,255,255,0.9)'))
+  textEl.setAttribute('stroke-width', '2.4')
+  textEl.setAttribute('paint-order', 'stroke fill')
+  textEl.setAttribute('stroke-linejoin', 'round')
+}
+
 let svgEl = null
 let hexEls = []    // [{ poly, lat, lng, cx, cy }]
 let pathEl = null  // SVG polyline for persona trail
@@ -134,9 +146,8 @@ export function initNeighborhoodMap() {
     text.setAttribute('x', lx)
     text.setAttribute('y', ly)
     text.setAttribute('text-anchor', 'middle')
-    text.setAttribute('font-size', '7.5')
-    text.setAttribute('font-family', 'DM Mono, monospace')
-    text.setAttribute('fill', cssVar('--map-label', '#b0ada6'))
+    text.setAttribute('dominant-baseline', 'middle')
+    applyMapLabelStyle(text, '--map-label', '--map-label-stroke')
     text.setAttribute('pointer-events', 'none')
     text.textContent = lm.name
     svgEl.appendChild(text)
@@ -164,10 +175,8 @@ export function initNeighborhoodMap() {
   // dynamic neighborhood label — follows the dot
   locLabelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text')
   locLabelEl.setAttribute('text-anchor', 'middle')
-  locLabelEl.setAttribute('font-size', '8.5')
-  locLabelEl.setAttribute('font-family', 'DM Mono, monospace')
-  locLabelEl.setAttribute('font-weight', '500')
-  locLabelEl.setAttribute('fill', cssVar('--map-label-active', '#1a1a1e'))
+  locLabelEl.setAttribute('dominant-baseline', 'middle')
+  applyMapLabelStyle(locLabelEl, '--map-label-active', '--map-label-active-stroke')
   locLabelEl.setAttribute('opacity', '0')
   locLabelEl.setAttribute('pointer-events', 'none')
   locLabelEl.style.transition = 'opacity 0.2s'
@@ -189,9 +198,9 @@ export function resetNeighborhoodMap() {
     h.poly.removeAttribute('filter')
   }
   for (const text of landmarkEls) {
-    text.setAttribute('fill', cssVar('--map-label', '#b0ada6'))
+    applyMapLabelStyle(text, '--map-label', '--map-label-stroke')
   }
-  if (locLabelEl) locLabelEl.setAttribute('fill', cssVar('--map-label-active', '#1a1a1e'))
+  if (locLabelEl) applyMapLabelStyle(locLabelEl, '--map-label-active', '--map-label-active-stroke')
   if (dotEl) {
     dotEl.setAttribute('fill', cssVar('--map-dot-fill', '#ccc'))
     dotEl.setAttribute('stroke', cssVar('--map-dot-stroke', '#fff'))
@@ -208,9 +217,9 @@ export function refreshNeighborhoodMapTheme() {
     h.poly.setAttribute('stroke', cssVar('--map-hex-stroke', '#f5f4f0'))
   }
   for (const text of landmarkEls) {
-    text.setAttribute('fill', cssVar('--map-label', '#b0ada6'))
+    applyMapLabelStyle(text, '--map-label', '--map-label-stroke')
   }
-  if (locLabelEl) locLabelEl.setAttribute('fill', cssVar('--map-label-active', '#1a1a1e'))
+  if (locLabelEl) applyMapLabelStyle(locLabelEl, '--map-label-active', '--map-label-active-stroke')
   if (dotEl) {
     dotEl.setAttribute('fill', cssVar('--map-dot-fill', '#ccc'))
     dotEl.setAttribute('stroke', cssVar('--map-dot-stroke', '#fff'))
