@@ -1,4 +1,4 @@
-import { SOUND_COLORS } from './personas.js'
+import { SOUND_COLORS, getSoundColor } from './personas.js'
 
 const R_OUTER = 220
 const R_INNER = 100
@@ -7,6 +7,9 @@ const DEFAULT_DB_BOUNDS = { low: 58, high: 84 }
 
 let cachedBoundsSource = null
 let cachedBounds = DEFAULT_DB_BOUNDS
+
+// tracks the last full draw so updateClockHour can do a cheap diff
+let clockDrawnHour = -1
 
 function cssVar(name, fallback) {
   const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim()
@@ -132,7 +135,7 @@ export function pickVisualSound(sounds, prevalence = {}, persona = null, hour = 
 function featureColor(sounds, prevalence, persona, hour) {
   if (!sounds || sounds.length === 0) return '#e4e3de'
   const top = pickVisualSound(sounds, prevalence, persona, hour)
-  return SOUND_COLORS[top] || '#e4e3de'
+  return getSoundColor(top) || '#e4e3de'
 }
 
 export function hourToAngle(h) {
@@ -189,7 +192,7 @@ export function showTooltip(e, h, persona, hourlyStats) {
   }
 
   const soundChips = sounds.map(s =>
-    `<span class="sound-chip" style="color:${SOUND_COLORS[s]||'#666'}">${s}</span>`
+    `<span class="sound-chip" style="color:${getSoundColor(s)||'#666'}">${s}</span>`
   ).join('')
   document.getElementById('tt-sounds').innerHTML = soundChips || '<span style="color:var(--muted);font-size:0.9rem">No data this hour</span>'
   document.getElementById('tt-desc').textContent = h === 0
@@ -277,14 +280,14 @@ export function drawClock(persona, selectedHour, hourlyStats) {
   const dbBounds = getGlobalDbBounds(hourlyStats)
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-  for (const [k, c] of Object.entries(SOUND_COLORS)) {
+  for (const k of Object.keys(SOUND_COLORS)) {
     const f = document.createElementNS('http://www.w3.org/2000/svg', 'filter')
     f.setAttribute('id', `glow-${k}`)
     const fe = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow')
     fe.setAttribute('dx', '0')
     fe.setAttribute('dy', '0')
     fe.setAttribute('stdDeviation', '6')
-    fe.setAttribute('flood-color', c)
+    fe.setAttribute('flood-color', getSoundColor(k))
     fe.setAttribute('flood-opacity', '0.4')
     f.appendChild(fe)
     defs.appendChild(f)
@@ -351,14 +354,15 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     const segR = R_INNER + dbFactor * (R_OUTER - R_INNER)
     const outerR = sounds.length > 0 ? Math.max(R_INNER + 4, segR) : R_INNER + 2
 
+    const glowSound = (sounds.length > 0 && isSelected) ? pickDominantSound(sounds, prevalence, persona) : null
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
     path.setAttribute('d', describeArc(h, R_INNER, outerR))
     path.setAttribute('fill', sounds.length > 0 ? color : '#e4e3de')
     path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3')
-    if (isSelected && sounds.length > 0) {
-      const glowSound = pickDominantSound(sounds, prevalence, persona)
-      path.setAttribute('filter', `url(#glow-${glowSound})`)
-    }
+    path.setAttribute('data-hour', h)
+    path.setAttribute('data-has-data', sounds.length > 0 ? '1' : '0')
+    path.setAttribute('data-glow', sounds.length > 0 ? (pickDominantSound(sounds, prevalence, persona) || '') : '')
+    if (glowSound) path.setAttribute('filter', `url(#glow-${glowSound})`)
     path.setAttribute('stroke', cssVar('--clock-stroke', '#f7f6f2'))
     path.setAttribute('stroke-width', '1')
     path.style.cursor = 'pointer'
@@ -377,7 +381,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
         dot.setAttribute('cx', Math.cos(dotAngle) * dotR)
         dot.setAttribute('cy', Math.sin(dotAngle) * dotR)
         dot.setAttribute('r', '3')
-        dot.setAttribute('fill', SOUND_COLORS[s] || '#666')
+        dot.setAttribute('fill', getSoundColor(s) || '#666')
         dot.setAttribute('opacity', '0.8')
         dot.style.pointerEvents = 'none'
         svg.appendChild(dot)
@@ -433,7 +437,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     boroughEl.setAttribute('y', 20)
     boroughEl.setAttribute('text-anchor', 'middle')
     boroughEl.setAttribute('font-family', 'DM Mono, monospace')
-    boroughEl.setAttribute('font-size', '12')
+    boroughEl.setAttribute('font-size', '14')
     boroughEl.setAttribute('fill', cssVar('--clock-subtext', '#aaa'))
     boroughEl.textContent = (persona.home || '').toUpperCase()
     svg.appendChild(boroughEl)
@@ -464,4 +468,41 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     needle.setAttribute('stroke-width', '1.5')
     svg.appendChild(needle)
   }
+
+  clockDrawnHour = selectedHour
+}
+
+// cheap update: only moves the needle + swaps selection highlight, no SVG rebuild
+export function updateClockHour(selectedHour) {
+  const svg = document.getElementById('clock-svg')
+  if (!svg || clockDrawnHour < 0) return
+
+  // deselect previous
+  const prev = svg.querySelector(`path[data-hour="${clockDrawnHour}"]`)
+  if (prev) {
+    prev.setAttribute('opacity', prev.dataset.hasData === '1' ? '0.65' : '0.3')
+    prev.removeAttribute('filter')
+  }
+
+  // select new
+  const next = svg.querySelector(`path[data-hour="${selectedHour}"]`)
+  if (next) {
+    next.setAttribute('opacity', '1')
+    const g = next.dataset.glow
+    if (g) next.setAttribute('filter', `url(#glow-${g})`)
+  }
+
+  // move needle
+  const needle = document.getElementById('clock-needle-line')
+  if (needle) {
+    const needleAngle = hourToAngle(selectedHour) + (hourToAngle(selectedHour + 1) - hourToAngle(selectedHour)) / 2
+    const n1 = polarToXY(needleAngle, R_INNER - 6)
+    const n2 = polarToXY(needleAngle, R_OUTER + 14)
+    needle.setAttribute('x1', n1.x)
+    needle.setAttribute('y1', n1.y)
+    needle.setAttribute('x2', n2.x)
+    needle.setAttribute('y2', n2.y)
+  }
+
+  clockDrawnHour = selectedHour
 }

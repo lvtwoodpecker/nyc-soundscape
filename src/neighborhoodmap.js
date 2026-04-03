@@ -101,6 +101,10 @@ let dotEl  = null  // persona dot
 let locLabelEl = null  // dynamic neighborhood name
 let landmarkEls = []
 
+// diff tracking — only update hexes that actually changed state
+let prevCurrentHex = null
+let prevVisitedSet = new Set()
+
 export function initNeighborhoodMap() {
   const container = document.getElementById('map')
   if (!container) return
@@ -208,10 +212,15 @@ export function resetNeighborhoodMap() {
   if (pathEl) pathEl.setAttribute('points', '')
   if (dotEl)  dotEl.setAttribute('opacity', '0')
   if (locLabelEl) locLabelEl.setAttribute('opacity', '0')
+  prevCurrentHex = null
+  prevVisitedSet = new Set()
 }
 
 export function refreshNeighborhoodMapTheme() {
   if (!svgEl) return
+  // reset diff state so next updateNeighborhoodMap repaints correctly
+  prevCurrentHex = null
+  prevVisitedSet = new Set()
   for (const h of hexEls) {
     h.poly.setAttribute('fill', cssVar('--map-hex-fill', '#d6d3cc'))
     h.poly.setAttribute('stroke', cssVar('--map-hex-stroke', '#f5f4f0'))
@@ -226,8 +235,10 @@ export function refreshNeighborhoodMapTheme() {
   }
 }
 
-export function updateNeighborhoodMap(persona, hour) {
+export function updateNeighborhoodMap(persona, hour, accentColor = '') {
   if (!svgEl || !hexEls.length) return
+
+  const accent = persona.color
 
   const visitedSet = new Set()
   const pathPoints = []
@@ -244,31 +255,42 @@ export function updateNeighborhoodMap(persona, hour) {
   const currentHex = nearestHex(currentSched.lat, currentSched.lng)
 
   for (const h of hexEls) {
-    if (h === currentHex) {
-      h.poly.setAttribute('fill', persona.color)
-      h.poly.setAttribute('filter', `drop-shadow(0 0 4px ${persona.color}88)`)
-    } else if (visitedSet.has(h)) {
-      h.poly.setAttribute('fill', persona.color + '40')
+    const wasCurrentHex = h === prevCurrentHex
+    const isCurrentHex  = h === currentHex
+    const wasVisited    = prevVisitedSet.has(h)
+    const isVisited     = visitedSet.has(h)
+
+    if (isCurrentHex && !wasCurrentHex) {
+      h.poly.setAttribute('fill', accent)
+      h.poly.setAttribute('filter', `drop-shadow(0 0 4px ${accent}88)`)
+    } else if (wasCurrentHex && !isCurrentHex) {
+      h.poly.setAttribute('fill', isVisited ? accent + '40' : cssVar('--map-hex-fill', '#d6d3cc'))
       h.poly.removeAttribute('filter')
-    } else {
+    } else if (isVisited && !wasVisited) {
+      h.poly.setAttribute('fill', accent + '40')
+      h.poly.removeAttribute('filter')
+    } else if (!isVisited && wasVisited && !isCurrentHex) {
       h.poly.setAttribute('fill', cssVar('--map-hex-fill', '#d6d3cc'))
       h.poly.removeAttribute('filter')
     }
   }
 
+  prevCurrentHex = currentHex
+  prevVisitedSet = visitedSet
+
   // trail
   if (pathEl) {
     pathEl.setAttribute('points', pathPoints.join(' '))
-    pathEl.setAttribute('stroke', persona.color)
+    pathEl.setAttribute('stroke', accent)
   }
 
   // dot at current hex center
   if (dotEl && currentHex) {
     dotEl.setAttribute('cx', currentHex.cx.toFixed(1))
     dotEl.setAttribute('cy', currentHex.cy.toFixed(1))
-    dotEl.setAttribute('fill', persona.color)
+    dotEl.setAttribute('fill', accent)
     dotEl.setAttribute('opacity', '1')
-    dotEl.setAttribute('filter', `drop-shadow(0 0 3px ${persona.color})`)
+    dotEl.setAttribute('filter', `drop-shadow(0 0 3px ${accent})`)
   }
 
   // dynamic label: short loc name above the dot

@@ -2,6 +2,32 @@ export let audioCtx = null
 export let analyserNode = null
 let masterVolumeNode = null
 let currentSoundNodes = []
+let playbackState = false
+let playbackStopTimer = null
+const playbackListeners = new Set()
+
+function emitPlaybackState(isPlaying) {
+  playbackState = isPlaying
+  playbackListeners.forEach(cb => {
+    try { cb(isPlaying) } catch (e) {}
+  })
+}
+
+function schedulePlaybackStop(ms) {
+  if (playbackStopTimer) clearTimeout(playbackStopTimer)
+  playbackStopTimer = setTimeout(() => {
+    emitPlaybackState(false)
+  }, ms)
+}
+
+export function onPlaybackStateChange(callback) {
+  if (typeof callback !== 'function') return () => {}
+  playbackListeners.add(callback)
+  callback(playbackState)
+  return () => {
+    playbackListeners.delete(callback)
+  }
+}
 
 // coarse class -> fine-grained clip classes in clip-index.json (SONYC names)
 const COARSE_TO_FINE = {
@@ -13,7 +39,6 @@ const COARSE_TO_FINE = {
   music:     ['stationary-music', 'mobile-music', 'ice-cream-truck'],
   voice:     ['person-or-small-group-talking', 'person-or-small-group-shouting', 'large-crowd', 'amplified-speech'],
   dog:       ['dog-barking-whining'],
-  busking:   ['stationary-music', 'mobile-music'],
 }
 
 let clipPool = {}       // coarse type -> { all: [url], 1: [url], 3: [url], 4: [url] }
@@ -83,11 +108,13 @@ export function isAudioPaused() {
   return !!audioCtx && audioCtx.state === 'suspended'
 }
 
-export function stopAllSounds() {
+export function stopAllSounds(emitIdle = true) {
   currentSoundNodes.forEach(node => {
     try { node.stop(0) } catch (e) {}
   })
   currentSoundNodes = []
+  if (playbackStopTimer) clearTimeout(playbackStopTimer)
+  if (emitIdle) emitPlaybackState(false)
 }
 
 async function playClip(url, db) {
@@ -100,7 +127,7 @@ async function playClip(url, db) {
     bufferCache.set(url, buffer)
   }
 
-  stopAllSounds()
+  stopAllSounds(false)
 
   const source = ctx.createBufferSource()
   source.buffer = buffer
@@ -116,6 +143,8 @@ async function playClip(url, db) {
   masterGain.connect(analyserNode)
   source.start()
   currentSoundNodes.push(source)
+  emitPlaybackState(true)
+  schedulePlaybackStop(Math.max(500, Math.round((buffer.duration || 10) * 1000)))
 }
 
 export function playSoundType(type, db, borough) {
@@ -123,7 +152,7 @@ export function playSoundType(type, db, borough) {
   if (!ctx) return
 
   if (type === 'flatline') {
-    stopAllSounds()
+    stopAllSounds(false)
     const osc = ctx.createOscillator()
     const g = ctx.createGain()
     osc.frequency.value = 100
@@ -133,6 +162,8 @@ export function playSoundType(type, db, borough) {
     osc.start()
     osc.stop(ctx.currentTime + 4)
     currentSoundNodes.push(osc)
+    emitPlaybackState(true)
+    schedulePlaybackStop(4100)
     return
   }
 
@@ -152,7 +183,9 @@ export function playSoundType(type, db, borough) {
 
 function playSynth(type, db) {
   const ctx = getAudioCtx()
-  stopAllSounds()
+  stopAllSounds(false)
+  emitPlaybackState(true)
+  schedulePlaybackStop(4100)
 
   const masterGain = ctx.createGain()
   masterGain.connect(analyserNode)
@@ -306,26 +339,6 @@ function playSynth(type, db) {
         osc.start(now + b * 0.3)
         osc.stop(now + b * 0.3 + 0.022)
         currentSoundNodes.push(osc, env)
-      }
-      break
-    }
-    case 'busking': {
-      const voicing = [164, 196, 247, 330, 392]
-      for (let strum = 0; strum < 3; strum++) {
-        voicing.forEach((f, i) => {
-          const osc = ctx.createOscillator()
-          osc.type = 'triangle'
-          osc.frequency.value = f
-          const env = ctx.createGain()
-          env.gain.setValueAtTime(0, now + strum * 1 + i * 0.05)
-          env.gain.linearRampToValueAtTime(0.12, now + strum * 1 + i * 0.05 + 0.05)
-          env.gain.exponentialRampToValueAtTime(0.01, now + strum * 1 + i * 0.05 + 0.6)
-          osc.connect(env)
-          env.connect(masterGain)
-          osc.start(now + strum * 1 + i * 0.05)
-          osc.stop(now + strum * 1 + i * 0.05 + 0.6)
-          currentSoundNodes.push(osc, env)
-        })
       }
       break
     }

@@ -1,16 +1,13 @@
 import { state } from './state.js'
-import { PERSONAS, SOUND_COLORS } from './personas.js'
-import { drawClock, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
+import { PERSONAS, getSoundColor } from './personas.js'
+import { drawClock, updateClockHour, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, pauseAudio, resumeAudio, isAudioPaused } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, pauseAudio, resumeAudio, isAudioPaused, onPlaybackStateChange } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme } from './neighborhoodmap.js'
 
 const THEME_KEY = 'nyc-soundscape-theme'
-const INTRO_KEY = 'nyc-soundscape-intro-seen'
-const INTRO_DEBUG_PARAM = 'intro'
-const INTRO_RESET_PARAM = 'reset-intro'
 let themeTransitionLock = false
 
 window.updateHourGlobal = updateHour
@@ -23,6 +20,34 @@ window.playSoundGlobal = (type, db, borough) => {
 
 function getPausedDbColor() {
   return state.lastSoundColor || '#888884'
+}
+
+function syncAccentColor(color) {
+  const next = color || state.persona?.color || ''
+  state.lastSoundColor = next
+  setPlayingColor(next)
+  return next
+}
+
+function syncCurrentHourVisualAccent(color, db) {
+  if (!state.persona) return
+
+  const accent = syncAccentColor(color)
+
+  const currentArc = document.querySelector(`#clock-svg path[data-hour="${state.hour}"]`)
+  if (currentArc && accent) currentArc.setAttribute('fill', accent)
+
+  const currentTitle = document.querySelector('#clock-time-bar .clock-time-main')
+  if (currentTitle && accent) currentTitle.style.color = accent
+
+  const currentCell = document.querySelector(`#timeline-strip .timeline-hour-cell[data-hour="${state.hour}"]`)
+  if (currentCell && accent) {
+    currentCell.style.background = accent
+    currentCell.style.opacity = '0.95'
+  }
+
+  updateNeighborhoodMap(state.persona, state.hour)
+  animateDbMeter(db, { forceColor: accent })
 }
 
 function getTheme() {
@@ -55,70 +80,8 @@ function getThemeTransitionOverlay() {
   return document.getElementById('theme-transition-overlay')
 }
 
-function getIntroModal() {
-  return document.getElementById('intro-modal')
-}
-
-function setIntroSeen() {
-  try {
-    localStorage.setItem(INTRO_KEY, '1')
-  } catch (e) {}
-}
-
-function hasSeenIntro() {
-  try {
-    return localStorage.getItem(INTRO_KEY) === '1'
-  } catch (e) {
-    return false
-  }
-}
-
-function getIntroDebugMode() {
-  const params = new URLSearchParams(window.location.search)
-  return {
-    force: params.get(INTRO_DEBUG_PARAM) === '1',
-    reset: params.get(INTRO_RESET_PARAM) === '1',
-  }
-}
-
-function resetIntroSeen() {
-  try {
-    localStorage.removeItem(INTRO_KEY)
-  } catch (e) {}
-}
-
-function openIntroModal() {
-  const modal = getIntroModal()
-  if (!modal) return
-  modal.hidden = false
-  modal.classList.add('is-open')
-  document.body.classList.add('modal-open')
-  window.setTimeout(() => {
-    document.getElementById('intro-start-btn')?.focus()
-  }, 0)
-}
-
-function closeIntroModal() {
-  const modal = getIntroModal()
-  if (!modal) return
-  modal.classList.remove('is-open')
-  modal.hidden = true
-  document.body.classList.remove('modal-open')
-  setIntroSeen()
-}
-
-function showIntroIfNeeded() {
-  const debugMode = getIntroDebugMode()
-  if (debugMode.reset) resetIntroSeen()
-  if (!debugMode.force && hasSeenIntro()) return
-  window.setTimeout(() => {
-    openIntroModal()
-  }, 240)
-}
-
-function isIntroOpen() {
-  const modal = getIntroModal()
-  return !!modal && !modal.hidden
+function toggleOnboarding() {
+  document.getElementById('onboarding-state')?.classList.toggle('hidden')
 }
 
 function toggleTheme() {
@@ -150,11 +113,20 @@ function refreshThemeVisuals() {
   drawClock(state.persona, state.hour, state.hourlyStats)
   if (state.persona) {
     updateNeighborhoodMap(state.persona, state.hour)
+    renderSoundsList(...getSoundsForHourArgs())
   }
+  renderLegend()
   drawWaveform(analyserNode)
   if (state.isSoundPaused) {
     setPausedDbState()
   }
+}
+
+function getSoundsForHourArgs() {
+  if (!state.persona) return [[], 0, false]
+  const data = state.persona.schedule[state.hour]
+  const { sounds, db, noData } = getSoundsForHour(state.persona, data.borough, state.hour)
+  return [sounds, db, noData]
 }
 
 function setPausedDbState() {
@@ -197,6 +169,12 @@ async function init() {
   getAudioCtx()
   state.analyserNode = analyserNode
 
+  onPlaybackStateChange((isPlaying) => {
+    if (isPlaying || state.isSoundPaused) return
+    animateDbMeter(0, { forceColor: state.lastSoundColor || '#888884' })
+    setWaveformActive(false, state.lastSoundColor || undefined)
+  })
+
   try {
     const res = await fetch('data/processed/hourly-stats.json')
     state.hourlyStats = await res.json()
@@ -225,23 +203,7 @@ async function init() {
   })
 
   document.getElementById('about-btn')?.addEventListener('click', () => {
-    openIntroModal()
-  })
-
-  document.getElementById('intro-start-btn')?.addEventListener('click', () => {
-    closeIntroModal()
-  })
-
-  document.getElementById('intro-close-btn')?.addEventListener('click', () => {
-    closeIntroModal()
-  })
-
-  document.getElementById('intro-backdrop-btn')?.addEventListener('click', () => {
-    closeIntroModal()
-  })
-
-  document.getElementById('intro-modal')?.addEventListener('click', (e) => {
-    if (e.target === e.currentTarget) closeIntroModal()
+    toggleOnboarding()
   })
 
   document.getElementById('journey-desc-text')?.addEventListener('click', (e) => {
@@ -266,15 +228,8 @@ async function init() {
   setTheme(getTheme())
 
   document.addEventListener('keydown', e => {
-    if (isIntroOpen() && e.key === 'Escape') {
-      e.preventDefault()
-      closeIntroModal()
-      return
-    }
-
     // ignore when typing in an input
     if (e.target.tagName === 'INPUT') return
-    if (isIntroOpen()) return
     if (e.key === ' ') {
       e.preventDefault()
       toggleAutoPlay()
@@ -290,14 +245,12 @@ async function init() {
   })
 
   updateHour(0)
-  showIntroIfNeeded()
 }
 
 // plays a sound and updates the UI playing state + color
 function playSound(type, db, borough) {
-  const color = SOUND_COLORS[type] || state.persona?.color || ''
-  state.lastSoundColor = color
-  setPlayingColor(color)
+  const color = getSoundColor(type) || state.persona?.color || ''
+  syncCurrentHourVisualAccent(color, db)
   setWaveformActive(type !== 'flatline', color)
   document.querySelectorAll('.sound-row').forEach(r => {
     const isThis = r.dataset.sound === type
@@ -338,6 +291,10 @@ function selectPersona(id) {
   const statusEl = document.getElementById('status-persona')
   if (statusEl) statusEl.textContent = `${state.persona.name} · ${state.persona.role} · ${state.persona.home}`
 
+  document.getElementById('play-btn').disabled = false
+  document.getElementById('pause-sound-btn').disabled = false
+  document.getElementById('onboarding-state')?.classList.add('hidden')
+
   // reset dB so it counts up from 0 on select
   document.getElementById('db-value').textContent = '0'
 
@@ -354,6 +311,7 @@ function selectPersona(id) {
   animateDbMeter(0)
 
   state.hour = 0
+  drawClock(state.persona, 0, state.hourlyStats)
   updateHour(0)
   renderTimeline(state.persona, state.hourlyStats)
 }
@@ -364,6 +322,12 @@ function updateHour(h) {
   state.hour = h
   const data = state.persona.schedule[h]
   const { sounds, db, noData, prevalence } = getSoundsForHour(state.persona, data.borough, h)
+  const override = state.persona.soundOverrides?.[h]
+  const feature = noData ? null : (override || pickFeatureSound(sounds, prevalence, state.persona))
+  const featureColor = feature ? getSoundColor(feature) : state.persona.color
+  const displaySounds = feature
+    ? [feature, ...sounds.filter(s => s !== feature)].slice(0, 4)
+    : sounds
 
   const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
   const suffix = h < 12 ? 'AM' : 'PM'
@@ -375,7 +339,7 @@ function updateHour(h) {
   const bar = document.getElementById('clock-time-bar')
   if (bar) {
     bar.innerHTML = `
-      <div class="clock-time-main" style="color:${state.persona.color}">${displayH}:00 ${suffix}</div>
+      <div class="clock-time-main" style="color:${featureColor}">${displayH}:00 ${suffix}</div>
       <div class="clock-time-sub">${data.loc}</div>
     `
   }
@@ -387,17 +351,15 @@ function updateHour(h) {
     renderStory(state.storyLog)
   }
 
-  updateNeighborhoodMap(state.persona, h)
+  syncCurrentHourVisualAccent(featureColor, db)
 
-  renderSoundsList(sounds, db, noData)
+  renderSoundsList(displaySounds, db, noData)
   if (state.isSoundPaused) {
     setPausedDbState()
-  } else {
-    animateDbMeter(db)
   }
   updateTimeline(h)
 
-  drawClock(state.persona, h, state.hourlyStats)
+  updateClockHour(h)
   drawWaveform(analyserNode)
 
   if (state.isSoundPaused) {
@@ -408,7 +370,6 @@ function updateHour(h) {
   if (noData) {
     playSound('flatline', db, data.borough)
   } else {
-    const feature = pickFeatureSound(sounds, prevalence, state.persona)
     if (feature) playSound(feature, db, data.borough)
   }
 }

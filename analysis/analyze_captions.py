@@ -1,11 +1,14 @@
 """
-Score and rank Gemini captions to select the best clips per fine-grained class.
+Score and rank captions to select the best clips per fine-grained class.
 
-Scoring:
+Scoring (preferred): Ollama labels from label_captions.py
+  - dominant/confidence score from LLM evaluation of each caption
+  - gt bonus, specificity
+
+Scoring (fallback, if labeled_captions.jsonl not available):
   - keyword match: does the caption describe the right sound?
   - prominence: is that sound dominant/loud/close vs. background?
   - specificity: fewer labeled classes = cleaner, less cluttered recording
-  - gt bonus: ground-truth annotation is more reliable than crowd label
 
 Output: analysis/outputs/curated_manifest.json
   [{ "fine_class", "filename", "archive", "borough", "hour",
@@ -22,8 +25,9 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
-CAPTIONS_PATH = Path('analysis/outputs/captions.jsonl')
-OUTPUT_PATH   = Path('analysis/outputs/curated_manifest.json')
+CAPTIONS_PATH  = Path('analysis/outputs/captions.jsonl')
+LABELED_PATH   = Path('analysis/outputs/labeled_captions.jsonl')
+OUTPUT_PATH    = Path('analysis/outputs/curated_manifest.json')
 
 # how many clips to keep per class in the output manifest
 TOP_N = 20
@@ -71,6 +75,34 @@ KEYWORDS = {
 ALL_CLASSES = list(KEYWORDS.keys())
 
 
+def load_labeled_captions():
+    """load ollama-labeled captions if available. returns {filename: labels_dict} or None."""
+    if not LABELED_PATH.exists():
+        return None
+    labeled = {}
+    with open(LABELED_PATH) as f:
+        for line in f:
+            e = json.loads(line.strip())
+            labeled[e['filename']] = e.get('labels', {})
+    print(f'loaded {len(labeled)} ollama-labeled entries from {LABELED_PATH}')
+    return labeled
+
+
+def score_entry_labeled(entry, fine_class, labels_map):
+    """score using ollama labels — dominant clips float to the top."""
+    label = labels_map.get(entry['filename'], {}).get(fine_class, {})
+    dominant   = label.get('dominant', False)
+    confidence = float(label.get('confidence', 0.5))
+
+    n_classes   = max(len(entry.get('classes', [])), 1)
+    specificity = 1.0 / n_classes
+    gt_bonus    = 2.0 if entry.get('gt') else 0.0
+
+    # dominant clips get full confidence score, background clips get 10% of it
+    dominance_score = confidence if dominant else confidence * 0.1
+    return round(dominance_score * 3.0 + specificity + gt_bonus, 3)
+
+
 def score_entry(entry, fine_class):
     caption = entry['caption'].lower()
     kws = KEYWORDS[fine_class]
@@ -88,7 +120,6 @@ def score_entry(entry, fine_class):
     n_classes = max(len(entry.get('classes', [])), 1)
     specificity = 1.0 / n_classes
 
-    # gt is required for primary pool, but add bonus for secondary pool mixing
     gt_bonus = 2.0 if entry.get('gt') else 0.0
 
     return round(kw_score * 2.0 + prox_score * 0.5 + specificity + gt_bonus, 3)
@@ -110,10 +141,11 @@ def kw_score_only(entry, fine_class):
     return sum(len(kw.split()) for kw in KEYWORDS[fine_class] if kw in caption)
 
 
-def select_clips(entries):
+def select_clips(entries, labels_map=None):
+    using_labels = labels_map is not None
+
     # index by class — only gt entries have class labels
     gt_by_class = defaultdict(list)
-
     for e in entries:
         if not e.get('gt'):
             continue
@@ -127,24 +159,39 @@ def select_clips(entries):
     for cls in ALL_CLASSES:
         pool = list(gt_by_class[cls])
 
-        scored = [
-            {**e, '_score': score_entry(e, cls), '_kw': kw_score_only(e, cls)}
-            for e in pool
-        ]
-
-        # prefer clips where caption actually mentions the sound
-        kw_matched = [e for e in scored if e['_kw'] > 0]
-        kw_matched.sort(key=lambda x: -x['_score'])
-
-        # fall back to all scored entries if not enough keyword matches
-        if len(kw_matched) < 3 and len(scored) > len(kw_matched):
-            remainder = [e for e in scored if e['_kw'] == 0]
-            remainder.sort(key=lambda x: -x['_score'])
-            top = (kw_matched + remainder)[:TOP_N]
-            warn = f'⚠ only {len(kw_matched)} kw-matched'
+        if using_labels:
+            # check how many of this pool actually have ollama labels
+            labeled_pool = [e for e in pool if e['filename'] in labels_map]
+            use_labels = len(labeled_pool) >= 3
         else:
-            top = kw_matched[:TOP_N]
-            warn = ''
+            use_labels = False
+
+        if use_labels:
+            scored = [
+                {**e, '_score': score_entry_labeled(e, cls, labels_map), '_kw': 1}
+                for e in labeled_pool
+            ]
+            scored.sort(key=lambda x: -x['_score'])
+            # only keep clips where ollama said dominant=True
+            dominant = [e for e in scored if labels_map.get(e['filename'], {}).get(cls, {}).get('dominant', False)]
+            top = dominant[:TOP_N] if len(dominant) >= 3 else scored[:TOP_N]
+            warn = f'ollama ({len(labeled_pool)} labeled, {len(dominant)} dominant)'
+        else:
+            scored = [
+                {**e, '_score': score_entry(e, cls), '_kw': kw_score_only(e, cls)}
+                for e in pool
+            ]
+            kw_matched = [e for e in scored if e['_kw'] > 0]
+            kw_matched.sort(key=lambda x: -x['_score'])
+
+            if len(kw_matched) < 3 and len(scored) > len(kw_matched):
+                remainder = [e for e in scored if e['_kw'] == 0]
+                remainder.sort(key=lambda x: -x['_score'])
+                top = (kw_matched + remainder)[:TOP_N]
+                warn = f'⚠ keyword fallback ({len(kw_matched)} matched)'
+            else:
+                top = kw_matched[:TOP_N]
+                warn = 'keyword'
 
         results[cls] = [
             {
@@ -156,24 +203,23 @@ def select_clips(entries):
                 'classes':    e['classes'],
                 'gt':         e.get('gt', False),
                 'score':      e['_score'],
-                'kw_matched': e['_kw'] > 0,
+                'kw_matched': bool(e['_kw']),
                 'caption':    e['caption'],
             }
             for e in top
         ]
 
         top_score = top[0]['_score'] if top else 0
-        n_kw = len(kw_matched)
-        summary_rows.append((cls, len(pool), n_kw, len(top), top_score, warn))
+        summary_rows.append((cls, len(pool), len(top), top_score, warn))
 
     return results, summary_rows
 
 
 def print_summary(rows):
-    print(f'\n{"class":<35} {"gt pool":>8} {"kw match":>9} {"selected":>9} {"top score":>10}  note')
+    print(f'\n{"class":<35} {"gt pool":>8} {"selected":>9} {"top score":>10}  note')
     print('-' * 82)
-    for cls, n_pool, n_kw, n_sel, top_score, warn in sorted(rows, key=lambda x: x[1]):
-        print(f'{cls:<35} {n_pool:>8} {n_kw:>9} {n_sel:>9} {top_score:>10.2f}  {warn}')
+    for cls, n_pool, n_sel, top_score, warn in sorted(rows, key=lambda x: x[1]):
+        print(f'{cls:<35} {n_pool:>8} {n_sel:>9} {top_score:>10.2f}  {warn}')
 
 
 def print_sample(results):
@@ -197,7 +243,14 @@ def main():
     entries = load_captions()
     print(f'  {len(entries)} captions loaded')
 
-    results, summary_rows = select_clips(entries)
+    labels_map = load_labeled_captions()
+    if labels_map:
+        print(f'  using ollama labels for scoring')
+    else:
+        print(f'  {LABELED_PATH} not found — falling back to keyword scoring')
+        print(f'  run label_captions.py first for better results')
+
+    results, summary_rows = select_clips(entries, labels_map)
 
     print_summary(summary_rows)
     print_sample(results)

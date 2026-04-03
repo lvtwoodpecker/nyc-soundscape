@@ -10,7 +10,7 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 - [x] Data pipeline (`analysis/process_annotations.py`) → `public/data/processed/*.json`
 - [x] Vite + ES modules refactor (11 modules, ~48KB minified)
 - [x] GitHub Pages deploy (CI/CD via GitHub Actions on push to main)
-- [x] 8 personas with full 24h schedules, real SONYC borough/hour data
+- [x] 5 personas with full 24h schedules, real SONYC borough/hour data (Manhattan-only)
 - [x] Radial 24h clock (SVG, dB-scaled segments, sound colors, tooltip)
 - [x] Web Audio synthesis (9 sound types + flatline for no-data hours)
 - [x] dB meter, waveform canvas, timeline scrubber, auto-play
@@ -58,19 +58,13 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 
 ---
 
-## Phase 2 — Neighborhood Map (done: WSP; TODO: Brooklyn/Tandon)
+## Phase 2 — Neighborhood Map (Manhattan-only)
 
-**Current:** WSP-area SVG hex tile map live in `src/neighborhoodmap.js`. ~9 named neighborhood tiles, pure SVG no dependencies.
+**Current:** WSP-area SVG hex tile map live in `src/neighborhoodmap.js`. Covers Battery Park to UES/UWS. All 5 personas stay within Manhattan bounds — no Brooklyn extension needed.
 
-**TODO — Add Brooklyn/Tandon map for Carlos (and future personas):**
-- [ ] Add Tandon-area tiles to `TILES` in `src/neighborhoodmap.js`:
-  - `{ id: 'downtown_bk', name: 'Downtown\nBrooklyn', clat: 40.692, clng: -73.988, px: ?, py: ? }`
-  - `{ id: 'metroteched', name: 'MetroTech', clat: 40.694, clng: -73.987, px: ?, py: ? }`
-  - `{ id: 'sunset_park', name: 'Sunset\nPark', clat: 40.646, clng: -74.010, px: ?, py: ? }`
-- [ ] Extend SVG `VIEWBOX` height to accommodate Brooklyn tiles below Manhattan
-- [ ] Extend projection bounds (lat min) to cover Brooklyn (~40.62)
-- [ ] Update `OFF_MAP_THRESHOLD` or remove it for personas that should show Brooklyn tiles
-- [ ] Carlos's `schedule` hours will then auto-map to Brooklyn tiles via `nearestTile()`
+**TODO:**
+- [ ] Verify all 5 persona lat/lng coordinates render within map bounds
+- [ ] Add tile labels for TriBeCa and Hell's Kitchen if not already present (Carlos + Nadia home bases)
 
 ---
 
@@ -91,9 +85,9 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 
 ## Phase 4 — Polish
 
-- [ ] Refine persona hour descriptions for key sound hooks (Keisha/dogs, Carlos/construction, etc.)
+- [x] Refine persona hour descriptions (Manhattan-only, data-grounded, poetic prose)
 - [ ] Mobile-responsive layout (at minimum, don't break on small screens)
-- [ ] Test all 8 personas × 24 hours end to end
+- [ ] Test all 5 personas × 24 hours end to end
 - [ ] Verify audio clip playback across Chrome / Firefox / Safari
 - [ ] Submit via https://nyu.qualtrics.com/jfe/form/SV_7Nv5S3ocb2BTOnA
 

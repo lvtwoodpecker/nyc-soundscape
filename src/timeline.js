@@ -1,4 +1,4 @@
-import { SOUND_COLORS } from './personas.js'
+import { getSoundColor } from './personas.js'
 import { pickVisualSound, MIN_SOUND_PREVALENCE } from './clock.js'
 
 export function renderTimeline(persona, hourlyStats) {
@@ -21,18 +21,20 @@ export function renderTimeline(persona, hourlyStats) {
           .map(([k]) => k)
         const top = pickVisualSound(sounds, hData.prevalence, persona, h)
         if (top) {
-          color = SOUND_COLORS[top] || '#e4e3de'
+          color = getSoundColor(top) || '#e4e3de'
           opacity = 0.85
         }
       }
     }
-    return `<div class="timeline-hour-cell" data-hour="${h}" style="background:${color};opacity:${opacity}"></div>`
+    const hLabel = h === 0 ? '12AM' : h < 12 ? `${h}AM` : h === 12 ? '12PM' : `${h - 12}PM`
+    return `<div class="timeline-hour-cell" data-hour="${h}" style="background:${color};opacity:${opacity}" aria-label="${hLabel}" role="button" tabindex="0"></div>`
   }).join('')
 
   document.querySelectorAll('.timeline-hour-cell').forEach(cell => {
-    cell.addEventListener('click', () => {
-      const h = parseInt(cell.dataset.hour)
-      window.updateHourGlobal?.(h)
+    const h = parseInt(cell.dataset.hour)
+    cell.addEventListener('click', () => window.updateHourGlobal?.(h))
+    cell.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.updateHourGlobal?.(h) }
     })
   })
 }
