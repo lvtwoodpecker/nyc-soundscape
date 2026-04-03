@@ -1,5 +1,5 @@
 import { SOUND_COLORS } from './personas.js'
-import { pickDominantSound } from './clock.js'
+import { pickVisualSound, MIN_SOUND_PREVALENCE } from './clock.js'
 
 export function renderTimeline(persona, hourlyStats) {
   const el = document.getElementById('timeline-strip')
@@ -17,11 +17,9 @@ export function renderTimeline(persona, hourlyStats) {
       const hData = hourlyStats.by_borough?.[String(data.borough)]?.[String(h)]
       if (hData) {
         const sounds = Object.entries(hData.prevalence)
-          .filter(([, v]) => v >= 0.05)
-          .sort((a, b) => b[1] - a[1])
+          .filter(([, v]) => v >= MIN_SOUND_PREVALENCE)
           .map(([k]) => k)
-          .slice(0, 4)
-        const top = pickDominantSound(sounds, hData.prevalence)
+        const top = pickVisualSound(sounds, hData.prevalence, persona, h)
         if (top) {
           color = SOUND_COLORS[top] || '#e4e3de'
           opacity = 0.85

@@ -1,6 +1,6 @@
 import { state } from './state.js'
 import { PERSONAS, SOUND_COLORS } from './personas.js'
-import { drawClock, pickDominantSound } from './clock.js'
+import { drawClock, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
 import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, pauseAudio, resumeAudio, isAudioPaused } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
@@ -308,23 +308,25 @@ function playSound(type, db, borough) {
 }
 
 // derive top sounds + db from actual SONYC data for this borough+hour
-function getSoundsForHour(borough, hour) {
+function getSoundsForHour(persona, borough, hour) {
   if (!state.hourlyStats) return { sounds: [], db: 75, noData: false, prevalence: {} }
   const boroughData = state.hourlyStats.by_borough[String(borough)]
   if (!boroughData) return { sounds: [], db: 75, noData: true, prevalence: {} }
   const hourData = boroughData[String(hour)]
   if (!hourData) return { sounds: [], db: 35, noData: true, prevalence: {} }
-  const sounds = Object.entries(hourData.prevalence)
-    .filter(([, v]) => v >= 0.05)
-    .sort((a, b) => b[1] - a[1])
-    .map(([k]) => k)
-    .slice(0, 4)
+  const sounds = rankSounds(
+    Object.entries(hourData.prevalence)
+      .filter(([, v]) => v >= MIN_SOUND_PREVALENCE)
+      .map(([k]) => k),
+    hourData.prevalence,
+    persona
+  ).slice(0, 4)
   return { sounds, db: hourData.db, noData: false, prevalence: hourData.prevalence }
 }
 
 // pick dominant sound: thresholds first, then priority, then prevalence fallback
-function pickFeatureSound(sounds, prevalence) {
-  return pickDominantSound(sounds, prevalence)
+function pickFeatureSound(sounds, prevalence, persona) {
+  return pickVisualSound(sounds, prevalence, persona, state.hour)
 }
 
 function selectPersona(id) {
@@ -361,7 +363,7 @@ function updateHour(h) {
 
   state.hour = h
   const data = state.persona.schedule[h]
-  const { sounds, db, noData, prevalence } = getSoundsForHour(data.borough, h)
+  const { sounds, db, noData, prevalence } = getSoundsForHour(state.persona, data.borough, h)
 
   const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
   const suffix = h < 12 ? 'AM' : 'PM'
@@ -406,7 +408,7 @@ function updateHour(h) {
   if (noData) {
     playSound('flatline', db, data.borough)
   } else {
-    const feature = pickFeatureSound(sounds, prevalence)
+    const feature = pickFeatureSound(sounds, prevalence, state.persona)
     if (feature) playSound(feature, db, data.borough)
   }
 }

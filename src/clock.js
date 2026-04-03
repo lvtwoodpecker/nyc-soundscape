@@ -13,7 +13,7 @@ function cssVar(name, fallback) {
   return value || fallback
 }
 
-// when present, these classes always take priority for dominant sound
+// when present, these classes still get a small lift for generic scenes
 export const DOMINANT_PRIORITY = ['voice', 'music', 'dog']
 
 export const SOUND_THRESHOLDS = {
@@ -27,18 +27,111 @@ export const SOUND_THRESHOLDS = {
   dog: 0.08,
 }
 
-export function pickDominantSound(sounds, prevalence = {}) {
-  if (!sounds || sounds.length === 0) return null
-  const eligible = sounds.filter(s => (prevalence[s] || 0) >= (SOUND_THRESHOLDS[s] ?? 0))
-  const pool = eligible.length > 0 ? eligible : sounds
-  const priority = DOMINANT_PRIORITY.find(s => pool.includes(s))
-  if (priority) return priority
-  return pool.slice().sort((a, b) => (prevalence[b] || 0) - (prevalence[a] || 0))[0] || pool[0]
+export const MIN_SOUND_PREVALENCE = 0.005
+
+const DEFAULT_SOUND_CURVE = {
+  gamma: 1.05,
+  focusBoosts: [0.07, 0.05, 0.03, 0.015],
+  thresholdPenalty: 0.03,
+  priorityBoost: 0.02,
 }
 
-function featureColor(sounds, prevalence) {
+function getSoundCurve(persona) {
+  const curve = persona?.soundCurve || {}
+  return {
+    gamma: Number.isFinite(curve.gamma) ? curve.gamma : DEFAULT_SOUND_CURVE.gamma,
+    focusBoosts: Array.isArray(curve.focusBoosts) ? curve.focusBoosts : DEFAULT_SOUND_CURVE.focusBoosts,
+    thresholdPenalty: Number.isFinite(curve.thresholdPenalty) ? curve.thresholdPenalty : DEFAULT_SOUND_CURVE.thresholdPenalty,
+    priorityBoost: Number.isFinite(curve.priorityBoost) ? curve.priorityBoost : DEFAULT_SOUND_CURVE.priorityBoost,
+  }
+}
+
+function scoreSound(sound, prevalence, persona = null) {
+  const focus = persona?.soundFocus || []
+  const weights = persona?.soundWeights || {}
+  const curve = getSoundCurve(persona)
+
+  const base = prevalence[sound] || 0
+  let score = Math.pow(Math.max(base, 0), curve.gamma) + base * 0.28
+  const threshold = SOUND_THRESHOLDS[sound] ?? 0
+  if (base < threshold) score -= curve.thresholdPenalty
+
+  const focusIndex = focus.indexOf(sound)
+  if (focusIndex >= 0) {
+    const focusBoost = curve.focusBoosts[focusIndex] ?? 0.03
+    score += focusBoost * (0.35 + base)
+  }
+
+  const priorityIndex = DOMINANT_PRIORITY.indexOf(sound)
+  if (priorityIndex >= 0) {
+    score += Math.max(0.015, curve.priorityBoost - priorityIndex * 0.015)
+  }
+
+  const weight = weights[sound] ?? 1
+  // keep persona character without letting one class monopolize every hour
+  score *= 1 + (weight - 1) * 0.35
+  return score
+}
+
+export function rankSounds(sounds, prevalence = {}, persona = null) {
+  if (!sounds || sounds.length === 0) return []
+  const pool = sounds.filter(s => (prevalence[s] || 0) >= MIN_SOUND_PREVALENCE)
+  const candidates = pool.length > 0 ? pool : [...sounds]
+  return [...candidates].sort((a, b) => {
+    const scoreDiff = scoreSound(b, prevalence, persona) - scoreSound(a, prevalence, persona)
+    if (Math.abs(scoreDiff) > 1e-9) return scoreDiff
+    return (prevalence[b] || 0) - (prevalence[a] || 0)
+  })
+}
+
+export function pickDominantSound(sounds, prevalence = {}, persona = null) {
+  return rankSounds(sounds, prevalence, persona)[0] || null
+}
+
+function hashString(str) {
+  let h = 0
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h) + str.charCodeAt(i)
+    h |= 0
+  }
+  return Math.abs(h)
+}
+
+function seededFloat(persona, hour, salt = 'seed') {
+  const seed = `${persona?.id || 'none'}:${hour}:${salt}`
+  return (hashString(seed) % 10000) / 10000
+}
+
+export function pickVisualSound(sounds, prevalence = {}, persona = null, hour = 0) {
+  const ranked = rankSounds(sounds, prevalence, persona)
+  if (ranked.length === 0) return null
+  if (ranked.length === 1) return ranked[0]
+
+  const pool = ranked.slice(0, Math.min(5, ranked.length))
+  const weighted = pool.map((sound, idx) => {
+    const base = Math.max(prevalence[sound] || 0.005, 0.005)
+    const rankPenalty = 1 - idx * 0.12
+    const focusIndex = (persona?.soundFocus || []).indexOf(sound)
+    const focusLift = focusIndex >= 0 ? 1 + Math.max(0.03, 0.11 - focusIndex * 0.02) : 1
+    // flatten differences so secondary classes show up more often
+    const expressive = Math.pow(base * rankPenalty * focusLift, 0.62)
+    return { sound, w: Math.max(0.001, expressive) }
+  })
+
+  const total = weighted.reduce((acc, x) => acc + x.w, 0)
+  if (!Number.isFinite(total) || total <= 0) return pool[0]
+
+  let t = seededFloat(persona, hour, 'visual') * total
+  for (const item of weighted) {
+    t -= item.w
+    if (t <= 0) return item.sound
+  }
+  return weighted[weighted.length - 1].sound
+}
+
+function featureColor(sounds, prevalence, persona, hour) {
   if (!sounds || sounds.length === 0) return '#e4e3de'
-  const top = pickDominantSound(sounds, prevalence)
+  const top = pickVisualSound(sounds, prevalence, persona, hour)
   return SOUND_COLORS[top] || '#e4e3de'
 }
 
@@ -84,11 +177,14 @@ export function showTooltip(e, h, persona, hourlyStats) {
     const bData = hourlyStats.by_borough[String(data.borough)]
     const hData = bData?.[String(h)]
     if (hData) {
-      sounds = Object.entries(hData.prevalence)
-        .filter(([, v]) => v >= 0.05)
-        .sort((a, b) => b[1] - a[1])
-        .map(([k]) => k)
-        .slice(0, 4)
+      const ranked = rankSounds(
+        Object.entries(hData.prevalence)
+          .filter(([, v]) => v >= MIN_SOUND_PREVALENCE)
+          .map(([k]) => k),
+        hData.prevalence,
+        persona
+      )
+      sounds = ranked.slice(0, 4)
     }
   }
 
@@ -237,17 +333,19 @@ export function drawClock(persona, selectedHour, hourlyStats) {
         const hData = bData?.[String(h)]
         if (hData) {
           prevalence = hData.prevalence
-          sounds = Object.entries(prevalence)
-            .filter(([, v]) => v >= 0.05)
-            .sort((a, b) => b[1] - a[1])
-            .map(([k]) => k)
-            .slice(0, 4)
+          sounds = rankSounds(
+            Object.entries(prevalence)
+              .filter(([, v]) => v >= MIN_SOUND_PREVALENCE)
+              .map(([k]) => k),
+            prevalence,
+            persona
+          ).slice(0, 4)
           db = hData.db
         }
       }
     }
 
-    const color = featureColor(sounds, prevalence)
+    const color = featureColor(sounds, prevalence, persona, h)
     const isSelected = h === selectedHour
     const dbFactor = sounds.length > 0 ? dbToFactor(db, dbBounds) : 0
     const segR = R_INNER + dbFactor * (R_OUTER - R_INNER)
@@ -258,7 +356,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     path.setAttribute('fill', sounds.length > 0 ? color : '#e4e3de')
     path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3')
     if (isSelected && sounds.length > 0) {
-      const glowSound = pickDominantSound(sounds, prevalence)
+      const glowSound = pickDominantSound(sounds, prevalence, persona)
       path.setAttribute('filter', `url(#glow-${glowSound})`)
     }
     path.setAttribute('stroke', cssVar('--clock-stroke', '#f7f6f2'))
