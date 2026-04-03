@@ -3,19 +3,37 @@ import { SOUND_COLORS } from './personas.js'
 const R_OUTER = 220
 const R_INNER = 100
 const R_LABEL = 238
+const DEFAULT_DB_BOUNDS = { low: 58, high: 84 }
+
+let cachedBoundsSource = null
+let cachedBounds = DEFAULT_DB_BOUNDS
 
 // when present, these classes always take priority for dominant sound
 export const DOMINANT_PRIORITY = ['voice', 'music', 'dog']
 
-export function pickDominantSound(sounds) {
+export const SOUND_THRESHOLDS = {
+  engine: 0.15,
+  machinery: 0.10,
+  impact: 0.08,
+  saw: 0.08,
+  alert: 0.12,
+  music: 0.08,
+  voice: 0.18,
+  dog: 0.08,
+}
+
+export function pickDominantSound(sounds, prevalence = {}) {
   if (!sounds || sounds.length === 0) return null
-  const priority = DOMINANT_PRIORITY.find(s => sounds.includes(s))
-  return priority || sounds[0]
+  const eligible = sounds.filter(s => (prevalence[s] || 0) >= (SOUND_THRESHOLDS[s] ?? 0))
+  const pool = eligible.length > 0 ? eligible : sounds
+  const priority = DOMINANT_PRIORITY.find(s => pool.includes(s))
+  if (priority) return priority
+  return pool.slice().sort((a, b) => (prevalence[b] || 0) - (prevalence[a] || 0))[0] || pool[0]
 }
 
 function featureColor(sounds, prevalence) {
   if (!sounds || sounds.length === 0) return '#e4e3de'
-  const top = pickDominantSound(sounds)
+  const top = pickDominantSound(sounds, prevalence)
   return SOUND_COLORS[top] || '#e4e3de'
 }
 
@@ -94,6 +112,59 @@ export function hideTooltip() {
   document.getElementById('hour-tooltip').classList.remove('visible')
 }
 
+function percentile(sorted, p) {
+  if (!sorted.length) return 0
+  const idx = (sorted.length - 1) * p
+  const lo = Math.floor(idx)
+  const hi = Math.ceil(idx)
+  if (lo === hi) return sorted[lo]
+  const t = idx - lo
+  return sorted[lo] * (1 - t) + sorted[hi] * t
+}
+
+function getGlobalDbBounds(hourlyStats) {
+  if (!hourlyStats?.by_borough) return DEFAULT_DB_BOUNDS
+  if (cachedBoundsSource === hourlyStats) return cachedBounds
+
+  const dbValues = []
+  const byBorough = hourlyStats.by_borough
+  for (const hours of Object.values(byBorough)) {
+    for (const hData of Object.values(hours || {})) {
+      const db = hData?.db
+      if (Number.isFinite(db) && db > 0) dbValues.push(db)
+    }
+  }
+
+  if (dbValues.length < 10) {
+    cachedBoundsSource = hourlyStats
+    cachedBounds = DEFAULT_DB_BOUNDS
+    return cachedBounds
+  }
+
+  dbValues.sort((a, b) => a - b)
+  let low = percentile(dbValues, 0.1)
+  let high = percentile(dbValues, 0.9)
+
+  if (!Number.isFinite(low) || !Number.isFinite(high) || high - low < 1) {
+    low = dbValues[0]
+    high = dbValues[dbValues.length - 1]
+  }
+  if (high - low < 1) high = low + 1
+
+  cachedBoundsSource = hourlyStats
+  cachedBounds = { low, high }
+  return cachedBounds
+}
+
+function dbToFactor(db, bounds) {
+  if (!Number.isFinite(db) || db <= 0) return 0
+  const norm = (db - bounds.low) / (bounds.high - bounds.low)
+  const clamped = Math.max(0, Math.min(1, norm))
+  const curved = Math.pow(clamped, 0.78)
+  // keep active hours visibly present and use more of the radial space
+  return 0.22 + 0.78 * curved
+}
+
 // attach once — svg.innerHTML = '' doesn't remove listeners on the svg itself
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('clock-svg')?.addEventListener('mouseleave', () => hideTooltip())
@@ -102,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 export function drawClock(persona, selectedHour, hourlyStats) {
   const svg = document.getElementById('clock-svg')
   svg.innerHTML = ''
+  const dbBounds = getGlobalDbBounds(hourlyStats)
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
   for (const [k, c] of Object.entries(SOUND_COLORS)) {
@@ -172,16 +244,16 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
     const color = featureColor(sounds, prevalence)
     const isSelected = h === selectedHour
-    // cube the factor so small dB differences (3am vs 9am) become visually obvious
-    const dbFactor = db > 0 ? Math.pow((db - 35) / 65, 3) : 0
-    const segR = R_INNER + dbFactor * (R_OUTER - R_INNER) * 0.95
+    const dbFactor = sounds.length > 0 ? dbToFactor(db, dbBounds) : 0
+    const segR = R_INNER + dbFactor * (R_OUTER - R_INNER)
+    const outerR = sounds.length > 0 ? Math.max(R_INNER + 4, segR) : R_INNER + 2
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-    path.setAttribute('d', describeArc(h, R_INNER, Math.max(R_INNER + 4, segR)))
+    path.setAttribute('d', describeArc(h, R_INNER, outerR))
     path.setAttribute('fill', sounds.length > 0 ? color : '#e4e3de')
     path.setAttribute('opacity', isSelected ? '1' : sounds.length > 0 ? '0.65' : '0.3')
     if (isSelected && sounds.length > 0) {
-      const glowSound = pickDominantSound(sounds)
+      const glowSound = pickDominantSound(sounds, prevalence)
       path.setAttribute('filter', `url(#glow-${glowSound})`)
     }
     path.setAttribute('stroke', '#f7f6f2')

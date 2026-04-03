@@ -21,7 +21,7 @@ export function renderTimeline(persona, hourlyStats) {
           .sort((a, b) => b[1] - a[1])
           .map(([k]) => k)
           .slice(0, 4)
-        const top = pickDominantSound(sounds)
+        const top = pickDominantSound(sounds, hData.prevalence)
         if (top) {
           color = SOUND_COLORS[top] || '#e4e3de'
           opacity = 0.85

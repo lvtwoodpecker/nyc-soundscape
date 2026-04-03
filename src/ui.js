@@ -51,8 +51,11 @@ export function renderSoundsList(sounds, db, noData) {
 export function renderStory(log) {
   const el = document.getElementById('journey-desc-text')
   if (!el) return
-  el.innerHTML = [...log].reverse().map(({ displayH, suffix, desc }) =>
-    `<div class="story-entry"><span class="story-time">${displayH}:00 ${suffix}</span>${desc}</div>`
+  el.innerHTML = [...log].reverse().map(({ h, displayH, suffix, desc }) =>
+    `<button type="button" class="story-entry" data-hour="${h}" aria-label="Seek to ${displayH}:00 ${suffix}">
+      <span class="story-time">${displayH}:00 ${suffix}</span>
+      <span class="story-desc">${desc}</span>
+    </button>`
   ).join('')
 }
 

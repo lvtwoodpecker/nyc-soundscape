@@ -82,6 +82,24 @@ async function init() {
     toggleSoundPause().catch(err => console.warn('pause toggle failed', err))
   })
 
+  document.getElementById('journey-desc-text')?.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-hour]')
+    if (!target) return
+    const hour = Number.parseInt(target.dataset.hour, 10)
+    if (Number.isNaN(hour) || !state.persona) return
+    updateHour(hour)
+  })
+
+  document.getElementById('journey-desc-text')?.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return
+    const target = e.target.closest('[data-hour]')
+    if (!target) return
+    e.preventDefault()
+    const hour = Number.parseInt(target.dataset.hour, 10)
+    if (Number.isNaN(hour) || !state.persona) return
+    updateHour(hour)
+  })
+
   updatePauseButton()
 
   document.addEventListener('keydown', e => {
@@ -133,9 +151,9 @@ function getSoundsForHour(borough, hour) {
   return { sounds, db: hourData.db, noData: false, prevalence: hourData.prevalence }
 }
 
-// pick dominant sound: priority classes first, else highest prevalence
-function pickFeatureSound(sounds) {
-  return pickDominantSound(sounds)
+// pick dominant sound: thresholds first, then priority, then prevalence fallback
+function pickFeatureSound(sounds, prevalence) {
+  return pickDominantSound(sounds, prevalence)
 }
 
 function selectPersona(id) {
@@ -217,7 +235,7 @@ function updateHour(h) {
   if (noData) {
     playSound('flatline', db, data.borough)
   } else {
-    const feature = pickFeatureSound(sounds)
+    const feature = pickFeatureSound(sounds, prevalence)
     if (feature) playSound(feature, db, data.borough)
   }
 }
