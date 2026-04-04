@@ -4,13 +4,17 @@
 
 [Live demo →](https://lvtwoodpecker.github.io/nyc-soundscape/)
 
+[GitHub repo →](https://github.com/lvtwoodpecker/nyc-soundscape)
+
+Submission package (shareable folder): https://drive.google.com/drive/folders/1lnmnwuiYaC_C2KrvRNGcqszDM6YPAmmU?usp=sharing
+
 ---
 
 ## What it is
 
-A radial 24-hour clock that maps the sonic texture of a New York City day, grounded in real acoustic sensor data. Eight NYU-connected New Yorkers travel through the city hour by hour — each stop plays a real audio clip from that neighborhood, drawn from the SONYC urban sensor network.
+A radial 24-hour clock that maps the sonic texture of a New York City day, grounded in real acoustic sensor data. Five NYU-connected New Yorkers travel through the city hour by hour, each stop plays a real audio clip from that neighborhood, drawn from the SONYC urban sensor network.
 
-Select a persona, step through their day, and hear what the city actually sounds like at 3am in Bed-Stuy or 9am at Washington Square Park.
+Select a persona, step through their day, and hear what the city actually sounds like.
 
 ---
 
@@ -18,22 +22,19 @@ Select a persona, step through their day, and hear what the city actually sounds
 
 - Pick a persona from the left panel
 - Click any segment on the clock, or drag the timeline scrubber to jump to a specific hour
-- Hit **AUTO-PLAY DAY** to move through all 24 hours automatically
+- Hit **PLAY** to move through all 24 hours automatically
 - Hover over clock segments to see the sound breakdown for that hour
 
 ---
 
-## The 8 Personas
+## The 5 Personas
 
 | Name | Role | Home | Campus |
 |------|------|------|--------|
-| Maya | CS Undergrad | Elmhurst, Queens | NYU Tandon |
 | Marcus | Music Tech Professor | Upper East Side | Washington Square |
-| Keisha | Dog Walker / Student | West Village | Washington Square |
+| Nadia | Rideshare Driver | Hell's Kitchen | Washington Square |
 | Eddie | Construction Crew | TriBeCa | NYU Tandon |
 | Miura | Jazz Vocalist | East Village | Washington Square |
-| Dr. Lin | CUSP Researcher | Carroll Gardens, Brooklyn | NYU Tandon |
-| Jordan | Night Security Guard | Bushwick, Brooklyn | NYU Tandon |
 | Rosa | Food Cart Vendor | Lower East Side | Washington Square |
 
 ---
@@ -47,6 +48,23 @@ Select a persona, step through their day, and hear what the city actually sounds
 
 ~18,500 10-second recordings from 60+ acoustic sensors across Manhattan, Brooklyn, and Queens. Each clip is annotated for 23 fine-grained sound classes across 8 coarse groups by Zooniverse volunteers and SONYC ground-truth reviewers.
 
+Data dictionary for processed files: `dist/data/DATA_DICTIONARY.md` (also in `public/data/DATA_DICTIONARY.md`).
+
+---
+
+## How to view / replay
+
+**Recommended (no install):** download the submission package and run a local static server from the `dist/` folder:
+
+`cd dist && python3 -m http.server 8080`
+
+Then open http://localhost:8080
+
+**Dev (optional):**
+
+`npm install`
+`npm run dev`
+
 ---
 
 ## How it was made
@@ -59,9 +77,38 @@ The visualization is built with Vite + vanilla JS (11 ES modules). Sound prevale
 
 ---
 
+## Other sources + tools
+
+**Data + hosting:**
+
+- Cloudflare R2 (hosts curated audio clips)
+- GitHub Pages (live demo hosting)
+
+**Software/tools used:**
+
+- Vite + vanilla JS (frontend)
+- Web Audio API (playback + synthesis fallbacks)
+- Python (data processing + caption analysis scripts)
+- ffmpeg loudness normalization (−16 LUFS)
+- Google Fonts (Crimson Pro, DM Mono)
+
+---
+
 ## AI usage disclosure
 
-This project was built with assistance from **Claude** (Anthropic) for code, architecture, and persona design. Audio clips were described using **Gemini 2.5 Flash-Lite** (Google); the captioning prompt is documented in `analysis/caption_clips.py` per contest disclosure requirements.
+Audio clips were described using **Gemini 2.5 Flash-Lite** (Google); the captioning prompt is documented in `analysis/caption_clips.py`.
+
+**Claude (Anthropic) assisted with:**
+
+- Frontend engineering support: UI bugfixing and interaction work (audio transport state sync, transcript ordering/snap behavior, dark mode/theme polish)
+- Implementation iteration: small refactors and cleanups across JS/CSS/HTML
+- Editorial iteration: tightening persona names/roles and hour-by-hour story phrasing for clarity
+
+**I (human) did:**
+
+- Project direction and design decisions, including what the visualization should communicate
+- Final selection of personas, narrative beats, and the “day in the life” structure
+- Data pipeline design (what to aggregate, what to keep, what to ship to the browser)
 
 ---
 
