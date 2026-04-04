@@ -28,10 +28,10 @@ Select a persona, step through their day, and hear what the city actually sounds
 | Name | Role | Home | Campus |
 |------|------|------|--------|
 | Maya | CS Undergrad | Elmhurst, Queens | NYU Tandon |
-| Prof. Marcus | Urban Studies Faculty | Upper East Side | Washington Square |
+| Marcus | Music Tech Professor | Upper East Side | Washington Square |
 | Keisha | Dog Walker / Student | West Village | Washington Square |
-| Carlos | Facilities Crew | Sunset Park, Brooklyn | NYU Tandon |
-| Amara | Music MFA · Busker | Bed-Stuy, Brooklyn | Washington Square |
+| Eddie | Construction Crew | TriBeCa | NYU Tandon |
+| Miura | Jazz Vocalist | East Village | Washington Square |
 | Dr. Lin | CUSP Researcher | Carroll Gardens, Brooklyn | NYU Tandon |
 | Jordan | Night Security Guard | Bushwick, Brooklyn | NYU Tandon |
 | Rosa | Food Cart Vendor | Lower East Side | Washington Square |
@@ -56,8 +56,6 @@ The raw `annotations.csv` (62,022 rows) was processed by `analysis/process_annot
 All 18,510 clips were captioned using **Gemini 2.5 Flash-Lite** (see `analysis/caption_clips.py` for the prompt), then scored by `analysis/analyze_captions.py` to select the most audible, representative examples per sound class. Selected clips were extracted from the Zenodo archives, loudness-normalized to −16 LUFS with ffmpeg, and uploaded to Cloudflare R2.
 
 The visualization is built with Vite + vanilla JS (11 ES modules). Sound prevalence and dB estimates are derived from the SONYC annotation data at runtime — no values are hardcoded.
-
-Static files that should ship as-is, like the Statue of Liberty toggle SVG, live under `public/assets/` so they deploy cleanly on GitHub Pages.
 
 ---
 

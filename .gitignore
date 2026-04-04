@@ -23,6 +23,10 @@ dist/
 # Claude Code
 .claude/
 
+# local docs
+PERSONA_CHANGES.md
+CLAUDE.md
+
 # stray extraction folders
 audio-*/
 .wrangler/

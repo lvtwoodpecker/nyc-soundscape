@@ -43,7 +43,7 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 
 ### Map
 - [ ] Verify all 5 persona lat/lng coordinates render within map bounds
-- [ ] Consider adding TriBeCa and Hell's Kitchen labels (Carlos + Nadia home bases)
+- [ ] Consider adding TriBeCa and Hell's Kitchen labels (Eddie + Nadia home bases)
 
 ### Polish
 - [ ] Test all 5 personas × 24 hours end to end
