@@ -74,7 +74,7 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 
 ---
 
-## Phase 3 — Documentation (Contest-Required)
+## Phase 3 — Documentation
 
 - [ ] Write `README.md`:
   - Live URL + screenshot
