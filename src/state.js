@@ -9,4 +9,5 @@ export const state = {
   storyLog: [],
   lastSoundColor: '',
   manualSoundSelection: null, // { type, db, borough, hour } for resume on spacebar
+  allStories: {}, // { 0: { h, displayH, suffix, desc }, ... 23: { ... } }
 }

@@ -311,7 +311,14 @@ async function init() {
     if (!target) return
     const hour = Number.parseInt(target.dataset.hour, 10)
     if (Number.isNaN(hour) || !state.persona) return
-    jumpToHourManual(hour).catch(err => console.warn('manual jump failed', err))
+    jumpToHourManual(hour)
+      .then(() => {
+        // snap transcript view so the new current hour is immediately visible
+        const overlay = document.getElementById('story-overlay')
+        if (overlay) overlay.scrollTop = 0
+        document.querySelector('#story-overlay .story-history')?.scrollTo({ top: 0 })
+      })
+      .catch(err => console.warn('manual jump failed', err))
   })
 
   document.getElementById('journey-desc-text')?.addEventListener('keydown', (e) => {
@@ -321,7 +328,13 @@ async function init() {
     e.preventDefault()
     const hour = Number.parseInt(target.dataset.hour, 10)
     if (Number.isNaN(hour) || !state.persona) return
-    jumpToHourManual(hour).catch(err => console.warn('manual jump failed', err))
+    jumpToHourManual(hour)
+      .then(() => {
+        const overlay = document.getElementById('story-overlay')
+        if (overlay) overlay.scrollTop = 0
+        document.querySelector('#story-overlay .story-history')?.scrollTo({ top: 0 })
+      })
+      .catch(err => console.warn('manual jump failed', err))
   })
 
   updateDayTransportUI()
@@ -439,6 +452,15 @@ function selectPersona(id) {
   leftPanel.classList.add('panel-flash')
 
   state.storyLog = []
+  // Pre-compute all 24 hours' stories for carousel-like behavior
+  state.allStories = {}
+  for (let h = 0; h < 24; h++) {
+    const data = state.persona.schedule[h]
+    const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
+    const suffix = h < 12 ? 'AM' : 'PM'
+    state.allStories[h] = { h, displayH, suffix, desc: data.desc }
+  }
+  
   resetNeighborhoodMap()
   setWaveformActive(false)
   animateDbMeter(0)
@@ -487,12 +509,8 @@ function updateHour(h, options = {}) {
   const timeSub = document.getElementById('clock-time-sub')
   if (timeSub) timeSub.textContent = data.loc
 
-  // accumulate story entries as user scrubs through the day
-  const alreadyLogged = state.storyLog.some(e => e.h === h)
-  if (data.desc && !alreadyLogged) {
-    state.storyLog.push({ h, displayH, suffix, desc: data.desc })
-    renderStory(state.storyLog)
-  }
+  // render story carousel snapped to current hour
+  renderStory(h, state.allStories)
 
   syncCurrentHourVisualAccent(featureColor, db)
 

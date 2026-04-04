@@ -57,15 +57,49 @@ export function renderSoundsList(sounds, db, noData) {
   })
 }
 
-export function renderStory(log) {
+export function renderStory(currentHour, allStories) {
   const el = document.getElementById('journey-desc-text')
   if (!el) return
-  el.innerHTML = [...log].reverse().map(({ h, displayH, suffix, desc }) =>
-    `<button type="button" class="story-entry" data-hour="${h}" aria-label="Seek to ${displayH}:00 ${suffix}">
-      <span class="story-time">${displayH}:00 ${suffix}</span>
-      <span class="story-desc">${desc}</span>
-    </button>`
-  ).join('')
+  
+  if (!allStories || Object.keys(allStories).length === 0) {
+    el.innerHTML = ''
+    return
+  }
+  
+  const current = allStories[currentHour]
+  if (!current) {
+    el.innerHTML = ''
+    return
+  }
+
+  // Build circular wrap-around list of the other 23 hours.
+  // First item is the previous hour, last item is the next hour.
+  const otherHours = []
+  for (let i = 1; i < 24; i++) {
+    const h = (currentHour + 24 - i) % 24
+    const entry = allStories[h]
+    if (entry) otherHours.push([String(h), entry])
+  }
+  
+  const currentHTML = `
+    <div class="story-current">
+      <div class="story-current-time">${current.displayH}:00 ${current.suffix}</div>
+      <div class="story-current-desc">${current.desc}</div>
+    </div>
+  `
+  
+  const pastHTML = otherHours.length > 0 ? `
+    <div class="story-history">
+      ${otherHours.map(([h, { displayH, suffix, desc }]) =>
+        `<button type="button" class="story-entry" data-hour="${h}" aria-label="Seek to ${displayH}:00 ${suffix}">
+          <span class="story-time">${displayH}:00 ${suffix}</span>
+          <span class="story-desc">${desc}</span>
+        </button>`
+      ).join('')}
+    </div>
+  ` : ''
+  
+  el.innerHTML = currentHTML + pastHTML
 }
 
 export function setPlayingColor(color) {

@@ -882,6 +882,52 @@ body.about-modal-open {
   color: var(--text);
 }
 
+.story-current {
+  padding: 12px 12px 12px 16px;
+  margin-bottom: 14px;
+  border-left: 4px solid var(--playing-color, var(--accent-color, var(--theme-accent)));
+  animation: storyFadeIn 0.3s ease-out;
+  position: relative;
+}
+
+.story-current-time {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--playing-color, var(--accent-color, var(--theme-accent)));
+  margin-bottom: 6px;
+  opacity: 0.9;
+}
+
+.story-current-desc {
+  font-family: 'Crimson Pro', serif;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.story-history {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: calc(100% - 100px);
+  padding-right: 4px;
+}
+
+@keyframes storyFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .spec-wrapper {
   position: relative;
   width: 100%;
