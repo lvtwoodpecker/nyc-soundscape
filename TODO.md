@@ -8,11 +8,12 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 ## Done
 
 - [x] Data pipeline (`analysis/process_annotations.py`) → `public/data/processed/*.json`
-- [x] Vite + ES modules refactor (11 modules, ~48KB minified)
+- [x] Vite + ES modules refactor (10 modules)
 - [x] GitHub Pages deploy (CI/CD via GitHub Actions on push to main)
-- [x] 5 personas with full 24h schedules, real SONYC borough/hour data (Manhattan-only)
+- [x] 5 personas with full 24h schedules, Manhattan-only, real SONYC data
 - [x] Radial 24h clock (SVG, dB-scaled segments, sound colors, tooltip)
-- [x] Web Audio synthesis (9 sound types + flatline for no-data hours)
+- [x] Cheap `updateClockHour()` partial update (only touches 2 paths + needle per hour)
+- [x] Web Audio synthesis (9 sound types + flatline)
 - [x] dB meter, waveform canvas, timeline scrubber, auto-play
 - [x] SONYC audio archives downloaded to `audio/` (gitignored)
 - [x] Cloudflare R2 bucket created: `soundscape-nyc`
@@ -20,81 +21,40 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 - [x] CLAP embeddings across all 18,500 clips → `analysis/outputs/embeddings.npy`
 - [x] Gemini 2.5 Flash-Lite captions for all 18,510 clips → `analysis/outputs/captions.jsonl`
 - [x] `analysis/analyze_captions.py` — scores/ranks captions per fine class → `analysis/outputs/curated_manifest.json`
-  - Key finding: SONYC gt-labels mean "sound was present" not "sound is audible/dominant"
-  - 7 sparse classes (car-alarm, ice-cream-truck, large-crowd, hoe-ram, pile-driver, amplified-speech, large-rotating-saw) have no keyword-matched clips → synthesis fallback for those
+- [x] `analysis/extract_clips.py` — extracts WAVs, converts to MP3 (loudnorm -16 LUFS), saves to `audio/curated/`
+- [x] Manhattan SVG hex grid map (`src/neighborhoodmap.js`) with persona trail + diff tracking
+- [x] Light/dark theme system (CSS custom properties, localStorage persist, overlay fade)
+- [x] Sound colors theme-aware via `getSoundColor()` reading live CSS vars
+- [x] Inline onboarding in left panel (replaces modal)
+- [x] Responsive layout breakpoints (900px, 600px)
+- [x] README.md written
+- [x] DATA_DICTIONARY.md written
+- [x] Persona hour descriptions rewritten (poetic, no raw stat citations)
 
 ---
 
-## Phase 1 — Real Audio (Priority)
+## Remaining
 
-**Goal:** Replace Web Audio synthesis with real SONYC clips. This is the centerpiece of the experience.
+### Audio — R2 upload
+- [ ] Upload curated clips to R2 bucket via `scripts/upload_to_r2.sh`
+- [ ] Populate `public/data/processed/clip-index.json` with public MP3 URLs
+- [ ] Test real clip playback in `src/audio.js` (replace synthesis with R2 + synthesis fallback)
+- [ ] Verify 7 sparse-class synthesis fallbacks still work: `car-alarm`, `ice-cream-truck`, `large-crowd`, `hoe-ram`, `pile-driver`, `amplified-speech`, `large-rotating-saw`
 
-**Target:** up to 10 clips per class for the 16 classes with audible examples; synthesis fallback for the 7 sparse/inaudible classes.
-
-### Steps
-- [x] Write `analysis/extract_clips.py` — reads curated_manifest.json, extracts WAVs from archives, converts to MP3 (loudnorm -16 LUFS, 128kbps), saves to `audio/curated/<fine_class>/`
-- [ ] Upload to R2 bucket `soundscape-nyc` via wrangler CLI
-- [ ] Populate `public/data/processed/clip-index.json`:
-  ```json
-  {
-    "small-sounding-engine": [
-      "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/small-sounding-engine-01.mp3",
-      ...
-    ],
-    "jackhammer": [...],
-    ...
-  }
-  ```
-- [ ] Update `src/audio.js`:
-  - Load `clip-index.json` at startup
-  - `playSound(fineClass, db)` → pick random clip from matching array → `AudioContext.decodeAudioData` → play
-  - Fallback to synthesis if no clip found (keeps noData flatline working for sparse classes)
-- [ ] Update `src/personas.js` schedules: use fine-grained class names in `sounds[]` arrays where possible
-- [ ] Test: each persona's full 24h journey plays real clips
-
-### Future
-- Wire Gemini captions into UI: when a clip plays, show its caption text as a "what you're hearing" tooltip or card
-- Add borough-specific clips (same class, different sensor locations)
-
----
-
-## Phase 2 — Neighborhood Map (Manhattan-only)
-
-**Current:** WSP-area SVG hex tile map live in `src/neighborhoodmap.js`. Covers Battery Park to UES/UWS. All 5 personas stay within Manhattan bounds — no Brooklyn extension needed.
-
-**TODO:**
+### Map
 - [ ] Verify all 5 persona lat/lng coordinates render within map bounds
-- [ ] Add tile labels for TriBeCa and Hell's Kitchen if not already present (Carlos + Nadia home bases)
+- [ ] Consider adding TriBeCa and Hell's Kitchen labels (Carlos + Nadia home bases)
 
----
-
-## Phase 3 — Documentation
-
-- [ ] Write `README.md`:
-  - Live URL + screenshot
-  - Project description + persona concept
-  - SONYC-UST citation (DOI: 10.5281/zenodo.3966543, CC BY 4.0)
-  - Process description (pipeline → visualization)
-  - AI usage disclosure (Claude assisted — required by contest rules)
-- [ ] Write `public/data/DATA_DICTIONARY.md`:
-  - `hourly-stats.json` field descriptions
-  - `sensors.json` field descriptions
-  - Mapping to original `annotations.csv` columns
-
----
-
-## Phase 4 — Polish
-
-- [x] Refine persona hour descriptions (Manhattan-only, data-grounded, poetic prose)
-- [ ] Mobile-responsive layout (at minimum, don't break on small screens)
+### Polish
 - [ ] Test all 5 personas × 24 hours end to end
-- [ ] Verify audio clip playback across Chrome / Firefox / Safari
+- [ ] Verify audio playback across Chrome / Firefox / Safari
 - [ ] Submit via https://nyu.qualtrics.com/jfe/form/SV_7Nv5S3ocb2BTOnA
 
 ---
 
 ## Nice to Have (Post-Submission)
 
+- [ ] Wire Gemini captions into UI: show caption text when a clip plays
+- [ ] Proximity data (near/far) on sound chips
 - [ ] Borough comparison panel
-- [ ] Proximity data (near/far) shown on sound chips
 - [ ] Export persona's day as shareable image
