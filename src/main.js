@@ -2,7 +2,7 @@ import { state } from './state.js'
 import { PERSONAS, getSoundColor } from './personas.js'
 import { drawClock, updateClockHour, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange, isAudioPlaying } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme } from './neighborhoodmap.js'
@@ -38,6 +38,7 @@ function updateDayTransportUI() {
   if (btn) {
     btn.disabled = !hasPersona
     btn.textContent = isPlaying ? '⏸ Pause' : '▶ Play'
+    btn.setAttribute('aria-pressed', String(isPlaying))
   }
 
   if (autoplayWrap) autoplayWrap.hidden = !hasPersona
@@ -72,14 +73,21 @@ function scheduleNextDayStep() {
 async function startDayPlayback() {
   if (!state.persona) return
   state.dayPlaybackState = 'playing'
-  updateHour(state.hour)
+  // If resuming with a manually selected sound from this hour, replay that instead of defaults
+  if (state.manualSoundSelection && state.manualSoundSelection.hour === state.hour) {
+    const { type, db, borough } = state.manualSoundSelection
+    playSound(type, db, borough)
+  } else {
+    updateHour(state.hour)
+  }
   updateDayTransportUI()
   if (state.autoplayEnabled) scheduleNextDayStep()
 }
 
 async function toggleDayPlayback() {
   if (!state.persona) return
-  if (state.dayPlaybackState === 'playing') {
+  // Pause if autoplay is running OR if any audio is actually playing (e.g., manual sound click)
+  if (state.dayPlaybackState === 'playing' || isAudioPlaying()) {
     pauseDayPlayback({ keepHour: true })
     return
   }
@@ -109,6 +117,8 @@ function manualSoundOverride(type, db, borough) {
   const entry = state.persona.schedule[state.hour]
   const resolvedBorough = borough ?? entry?.borough
   const resolvedDb = Number.isFinite(db) ? db : getSoundsForHour(state.persona, entry?.borough, state.hour).db
+  // Remember this selection so spacebar resume replays it, not the default
+  state.manualSoundSelection = { type, db: resolvedDb, borough: resolvedBorough, hour: state.hour }
   playSound(type, resolvedDb, resolvedBorough)
   if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) scheduleNextDayStep()
 }
@@ -239,7 +249,14 @@ async function init() {
   state.analyserNode = analyserNode
 
   onPlaybackStateChange((isPlaying) => {
-    if (isPlaying) return
+    const btn = document.getElementById('day-transport-btn')
+    if (isPlaying) {
+      // Audio started playing (e.g., from clicking sound in bottom right)
+      if (btn) btn.textContent = '⏸ Pause'
+      return
+    }
+    // Audio stopped
+    if (btn) btn.textContent = state.dayPlaybackState === 'playing' ? '⏸ Pause' : '▶ Play'
     if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) return
     animateDbMeter(0, { forceColor: state.lastSoundColor || '#888884' })
     setWaveformActive(false, state.lastSoundColor || undefined)
@@ -312,6 +329,8 @@ async function init() {
 
   document.addEventListener('keydown', e => {
     if (e.key !== ' ') return
+    // let persona cards handle their own space (selection)
+    if (document.activeElement?.classList.contains('persona-card')) return
     e.preventDefault()
     e.stopPropagation()
     if (e.repeat) return
@@ -321,6 +340,7 @@ async function init() {
 
   document.addEventListener('keyup', e => {
     if (e.key !== ' ') return
+    if (document.activeElement?.classList.contains('persona-card')) return
     e.preventDefault()
     e.stopPropagation()
   }, true)
@@ -402,6 +422,9 @@ function selectPersona(id) {
 
   pauseDayPlayback({ keepHour: false })
 
+  // Clear any manually selected sound from previous persona
+  state.manualSoundSelection = null
+
   document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'))
   document.getElementById(`persona-${id}`).classList.add('active')
 
@@ -420,9 +443,10 @@ function selectPersona(id) {
   setWaveformActive(false)
   animateDbMeter(0)
 
-  state.hour = 0
-  drawClock(state.persona, 0, state.hourlyStats)
-  updateHour(0, { playAudio: false })
+  const startHour = 8
+  state.hour = startHour
+  drawClock(state.persona, startHour, state.hourlyStats)
+  updateHour(startHour, { playAudio: false })
   renderTimeline(state.persona, state.hourlyStats)
   updateDayTransportUI()
 
@@ -432,6 +456,11 @@ function selectPersona(id) {
 function updateHour(h, options = {}) {
   if (!state.persona) return
   const shouldPlayAudio = options.playAudio !== false && state.dayPlaybackState === 'playing'
+
+  // Clear manual sound selection when changing hours
+  if (h !== state.hour) {
+    state.manualSoundSelection = null
+  }
 
   state.hour = h
   const data = state.persona.schedule[h]

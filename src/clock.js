@@ -368,9 +368,20 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     path.style.cursor = 'pointer'
     path.style.transition = 'opacity 0.2s'
 
+    const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
+    const suffix = h < 12 ? 'AM' : 'PM'
+    path.setAttribute('tabindex', '0')
+    path.setAttribute('role', 'button')
+    path.setAttribute('aria-label', `Jump to ${displayH}:00 ${suffix}`)
     path.addEventListener('mouseenter', (e) => showTooltip(e, h, persona, hourlyStats))
     path.addEventListener('mousemove', (e) => moveTooltip(e))
     path.addEventListener('click', () => window.updateHourGlobal?.(h))
+    path.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        window.updateHourGlobal?.(h)
+      }
+    })
     svg.appendChild(path)
 
     if (sounds.length > 1) {

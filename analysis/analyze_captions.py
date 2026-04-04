@@ -147,10 +147,26 @@ def kw_score_only(entry, fine_class):
     return sum(len(kw.split()) for kw in KEYWORDS[fine_class] if kw in caption)
 
 
+def load_nongt_labeled_entries():
+    """load non-gt entries from labeled_captions.jsonl — they have class labels from ollama."""
+    if not LABELED_PATH.exists():
+        return defaultdict(list)
+    nongt_by_class = defaultdict(list)
+    with open(LABELED_PATH) as f:
+        for line in f:
+            e = json.loads(line.strip())
+            if e.get('gt'):
+                continue
+            for cls in e.get('classes', []):
+                if cls in KEYWORDS:
+                    nongt_by_class[cls].append(e)
+    return nongt_by_class
+
+
 def select_clips(entries, labels_map=None):
     using_labels = labels_map is not None
 
-    # index by class — only gt entries have class labels
+    # index by class — only gt entries have class labels in captions.jsonl
     gt_by_class = defaultdict(list)
     for e in entries:
         if not e.get('gt'):
@@ -159,11 +175,17 @@ def select_clips(entries, labels_map=None):
             if cls in KEYWORDS:
                 gt_by_class[cls].append(e)
 
+    # non-gt entries are only available via labeled_captions.jsonl (have ollama-assigned classes)
+    nongt_by_class = load_nongt_labeled_entries() if using_labels else defaultdict(list)
+
     results = {}
     summary_rows = []
 
     for cls in ALL_CLASSES:
         pool = list(gt_by_class[cls])
+        # supplement sparse gt pools with labeled non-gt entries
+        if using_labels and len(pool) < SPARSE_THRESHOLD:
+            pool = pool + nongt_by_class[cls]
 
         if using_labels:
             # check how many of this pool actually have ollama labels

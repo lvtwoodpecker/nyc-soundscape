@@ -134,6 +134,10 @@ export function isAudioPaused() {
   return !!audioCtx && audioCtx.state === 'suspended'
 }
 
+export function isAudioPlaying() {
+  return playbackState
+}
+
 export function stopAllSounds(emitIdle = true) {
   clipRequestToken += 1
   currentSoundNodes.forEach(node => {
