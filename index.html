@@ -31,8 +31,6 @@
   </div>
   <div class="header-controls">
     <button class="header-about-btn" id="about-btn" type="button">About</button>
-    <button class="header-play-btn" id="play-btn" disabled>▶ Play the Day</button>
-    <button class="header-play-btn" id="pause-sound-btn" disabled>⏸ Pause Sound</button>
     <label class="header-volume" for="vol-slider">
       <span class="vol-label">Volume</span>
       <input id="vol-slider" type="range" min="0" max="1" step="0.01" value="0.7" aria-label="Master volume">
@@ -42,14 +40,33 @@
 
 <div class="theme-transition-overlay" id="theme-transition-overlay" aria-hidden="true"></div>
 
+<div class="about-modal" id="about-modal" role="dialog" aria-modal="true" aria-labelledby="about-modal-title" aria-hidden="true" hidden>
+  <div class="about-modal-card">
+    <button class="about-modal-close" id="about-modal-close" type="button" aria-label="Close about dialog">Close</button>
+    <h2 id="about-modal-title">About NYC Soundscape</h2>
+    <p>
+      This project maps one full day of city sounds through the lens of different New Yorkers.
+      Each hour ties a place to the sounds that shape it, then lets you hear a small slice of that moment.
+    </p>
+    <p>
+      The radial clock shows how the city’s sound shifts over 24 hours.
+      The timeline and map let you feel the rhythm of each neighborhood.
+    </p>
+    <ul>
+      <li>Data source: SONYC Urban Sound Tagging dataset (NYU, 18k+ recordings)</li>
+      <li>Methods used: Machine learning for sound classification, spatial analysis for neighborhood mapping</li>
+      <li>Built by Cedric Lam :D </li>
+    </ul>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- LEFT: PERSONAS -->
   <div class="panel-left">
     <div class="panel-label">Select a New Yorker</div>
-    <span id="status-persona" class="persona-status-bar"></span>
     <div id="onboarding-state" class="onboarding-state">
-      <p>A sound map of an average day in New York City. Pick a character, then move through the clock to hear what they hear.</p>
+      <p>A sound map of an average day in New York City. Pick a character, then move through the clock to hear what they hear. Fully navigable with keyboard.</p>
     </div>
     <div id="persona-list"></div>
     <div class="legend-section">
@@ -60,7 +77,18 @@
 
   <!-- CENTER: CLOCK + TIMELINE -->
   <div class="clock-panel">
-    <div class="clock-time-bar" id="clock-time-bar"></div>
+    <div class="clock-time-bar" id="clock-time-bar">
+      <div class="clock-time-main" id="clock-time-main">--:--</div>
+      <div class="clock-time-sub" id="clock-time-sub">Select a New Yorker</div>
+      <div class="day-transport day-transport-inline">
+        <button class="day-transport-btn" id="day-transport-btn" type="button" disabled>▶ Play</button>
+        <label class="autoplay-toggle-wrap" id="autoplay-toggle-wrap" for="autoplay-toggle" hidden>
+          <span class="autoplay-toggle-label" id="autoplay-toggle-label">Autoplay</span>
+          <input id="autoplay-toggle" class="autoplay-toggle-input" type="checkbox" disabled aria-label="Toggle autoplay">
+          <span class="autoplay-toggle-track" aria-hidden="true"></span>
+        </label>
+      </div>
+    </div>
     <svg id="clock-svg" viewBox="-260 -260 520 520"></svg>
     <div class="hour-tooltip" id="hour-tooltip">
       <div class="hour-tooltip-title" id="tt-title"></div>

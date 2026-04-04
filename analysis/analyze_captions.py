@@ -89,8 +89,9 @@ def load_labeled_captions():
 
 
 def score_entry_labeled(entry, fine_class, labels_map):
-    """score using ollama labels — dominant clips float to the top."""
-    label = labels_map.get(entry['filename'], {}).get(fine_class, {})
+    """score using ollama labels — present+dominant clips float to the top."""
+    label      = labels_map.get(entry['filename'], {}).get(fine_class, {})
+    present    = label.get('present', False)
     dominant   = label.get('dominant', False)
     confidence = float(label.get('confidence', 0.5))
 
@@ -98,8 +99,13 @@ def score_entry_labeled(entry, fine_class, labels_map):
     specificity = 1.0 / n_classes
     gt_bonus    = 2.0 if entry.get('gt') else 0.0
 
-    # dominant clips get full confidence score, background clips get 10% of it
-    dominance_score = confidence if dominant else confidence * 0.1
+    if not present:
+        dominance_score = 0.0
+    elif dominant:
+        dominance_score = confidence
+    else:
+        dominance_score = confidence * 0.15  # background but confirmed present
+
     return round(dominance_score * 3.0 + specificity + gt_bonus, 3)
 
 
@@ -172,10 +178,16 @@ def select_clips(entries, labels_map=None):
                 for e in labeled_pool
             ]
             scored.sort(key=lambda x: -x['_score'])
-            # only keep clips where ollama said dominant=True
+            # prefer dominant, fall back to any present, then all scored
             dominant = [e for e in scored if labels_map.get(e['filename'], {}).get(cls, {}).get('dominant', False)]
-            top = dominant[:TOP_N] if len(dominant) >= 3 else scored[:TOP_N]
-            warn = f'ollama ({len(labeled_pool)} labeled, {len(dominant)} dominant)'
+            present  = [e for e in scored if labels_map.get(e['filename'], {}).get(cls, {}).get('present', False)]
+            if len(dominant) >= 3:
+                top = dominant[:TOP_N]
+            elif len(present) >= 3:
+                top = present[:TOP_N]
+            else:
+                top = scored[:TOP_N]
+            warn = f'ollama ({len(labeled_pool)} labeled, {len(dominant)} dominant, {len(present)} present)'
         else:
             scored = [
                 {**e, '_score': score_entry(e, cls), '_kw': kw_score_only(e, cls)}

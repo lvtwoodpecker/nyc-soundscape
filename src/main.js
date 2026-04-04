@@ -2,24 +2,115 @@ import { state } from './state.js'
 import { PERSONAS, getSoundColor } from './personas.js'
 import { drawClock, updateClockHour, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, pauseAudio, resumeAudio, isAudioPaused, onPlaybackStateChange } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme } from './neighborhoodmap.js'
 
 const THEME_KEY = 'nyc-soundscape-theme'
 let themeTransitionLock = false
+const DAY_STEP_MS = 5000
 
-window.updateHourGlobal = updateHour
+window.updateHourGlobal = (h) => {
+  jumpToHourManual(h).catch(err => console.warn('manual jump failed', err))
+}
 window.selectPersonaGlobal = selectPersona
 
 // wrapper so clicking a sound row also updates playing state + color
 window.playSoundGlobal = (type, db, borough) => {
-  playSound(type, db, borough)
+  manualSoundOverride(type, db, borough)
 }
 
-function getPausedDbColor() {
-  return state.lastSoundColor || '#888884'
+function clearDayPlaybackTimer() {
+  if (state.dayPlaybackTimer) {
+    clearTimeout(state.dayPlaybackTimer)
+    state.dayPlaybackTimer = null
+  }
+}
+
+function updateDayTransportUI() {
+  const btn = document.getElementById('day-transport-btn')
+  const autoplayToggle = document.getElementById('autoplay-toggle')
+  const autoplayWrap = document.getElementById('autoplay-toggle-wrap')
+  const hasPersona = !!state.persona
+  const isPlaying = state.dayPlaybackState === 'playing'
+
+  if (btn) {
+    btn.disabled = !hasPersona
+    btn.textContent = isPlaying ? '⏸ Pause' : '▶ Play'
+  }
+
+  if (autoplayWrap) autoplayWrap.hidden = !hasPersona
+
+  if (autoplayToggle) {
+    autoplayToggle.disabled = !hasPersona
+    autoplayToggle.checked = state.autoplayEnabled
+  }
+}
+
+function pauseDayPlayback({ keepHour = true } = {}) {
+  clearDayPlaybackTimer()
+  state.dayPlaybackState = 'paused'
+  if (!keepHour) state.hour = 0
+  stopAllSounds(true)
+  setWaveformActive(false, state.lastSoundColor || undefined)
+  animateDbMeter(0, { forceColor: state.lastSoundColor || '#888884' })
+  updateDayTransportUI()
+}
+
+function scheduleNextDayStep() {
+  clearDayPlaybackTimer()
+  state.dayPlaybackTimer = setTimeout(() => {
+    if (state.dayPlaybackState !== 'playing' || !state.persona || !state.autoplayEnabled) return
+
+    const nextHour = (state.hour + 1) % 24
+    updateHour(nextHour)
+    scheduleNextDayStep()
+  }, DAY_STEP_MS)
+}
+
+async function startDayPlayback() {
+  if (!state.persona) return
+  state.dayPlaybackState = 'playing'
+  updateHour(state.hour)
+  updateDayTransportUI()
+  if (state.autoplayEnabled) scheduleNextDayStep()
+}
+
+async function toggleDayPlayback() {
+  if (!state.persona) return
+  if (state.dayPlaybackState === 'playing') {
+    pauseDayPlayback({ keepHour: true })
+    return
+  }
+  await startDayPlayback()
+}
+
+async function setDayAutoplayEnabled(enabled) {
+  if (!state.persona) return
+  state.autoplayEnabled = Boolean(enabled)
+  if (!state.autoplayEnabled) {
+    clearDayPlaybackTimer()
+  } else if (state.dayPlaybackState === 'playing') {
+    scheduleNextDayStep()
+  }
+  updateDayTransportUI()
+}
+
+async function jumpToHourManual(hour) {
+  if (!state.persona) return
+  const shouldPlayAudio = state.dayPlaybackState === 'playing'
+  updateHour(hour, { playAudio: shouldPlayAudio })
+  if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) scheduleNextDayStep()
+}
+
+function manualSoundOverride(type, db, borough) {
+  if (!state.persona) return
+  const entry = state.persona.schedule[state.hour]
+  const resolvedBorough = borough ?? entry?.borough
+  const resolvedDb = Number.isFinite(db) ? db : getSoundsForHour(state.persona, entry?.borough, state.hour).db
+  playSound(type, resolvedDb, resolvedBorough)
+  if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) scheduleNextDayStep()
 }
 
 function syncAccentColor(color) {
@@ -80,8 +171,21 @@ function getThemeTransitionOverlay() {
   return document.getElementById('theme-transition-overlay')
 }
 
-function toggleOnboarding() {
-  document.getElementById('onboarding-state')?.classList.toggle('hidden')
+function openAboutModal() {
+  const modal = document.getElementById('about-modal')
+  if (!modal) return
+  modal.hidden = false
+  modal.setAttribute('aria-hidden', 'false')
+  document.body.classList.add('about-modal-open')
+  document.getElementById('about-modal-close')?.focus()
+}
+
+function closeAboutModal() {
+  const modal = document.getElementById('about-modal')
+  if (!modal) return
+  modal.hidden = true
+  modal.setAttribute('aria-hidden', 'true')
+  document.body.classList.remove('about-modal-open')
 }
 
 function toggleTheme() {
@@ -117,9 +221,6 @@ function refreshThemeVisuals() {
   }
   renderLegend()
   drawWaveform(analyserNode)
-  if (state.isSoundPaused) {
-    setPausedDbState()
-  }
 }
 
 function getSoundsForHourArgs() {
@@ -127,38 +228,6 @@ function getSoundsForHourArgs() {
   const data = state.persona.schedule[state.hour]
   const { sounds, db, noData } = getSoundsForHour(state.persona, data.borough, state.hour)
   return [sounds, db, noData]
-}
-
-function setPausedDbState() {
-  animateDbMeter(0, { forceColor: getPausedDbColor() })
-}
-
-function updatePauseButton() {
-  const btn = document.getElementById('pause-sound-btn')
-  if (!btn) return
-  if (state.isSoundPaused) {
-    btn.textContent = '▶ Resume Sound'
-    btn.classList.add('active')
-  } else {
-    btn.textContent = '⏸ Pause Sound'
-    btn.classList.remove('active')
-  }
-}
-
-async function toggleSoundPause() {
-  if (isAudioPaused() || state.isSoundPaused) {
-    await resumeAudio()
-    state.isSoundPaused = false
-    updatePauseButton()
-    updateHour(state.hour)
-    return
-  }
-
-  await pauseAudio()
-  state.isSoundPaused = true
-  updatePauseButton()
-  setWaveformActive(false, state.lastSoundColor || undefined)
-  setPausedDbState()
 }
 
 async function init() {
@@ -170,7 +239,8 @@ async function init() {
   state.analyserNode = analyserNode
 
   onPlaybackStateChange((isPlaying) => {
-    if (isPlaying || state.isSoundPaused) return
+    if (isPlaying) return
+    if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) return
     animateDbMeter(0, { forceColor: state.lastSoundColor || '#888884' })
     setWaveformActive(false, state.lastSoundColor || undefined)
   })
@@ -194,8 +264,13 @@ async function init() {
     setMasterVolume(parseFloat(e.target.value))
   })
 
-  document.getElementById('pause-sound-btn')?.addEventListener('click', () => {
-    toggleSoundPause().catch(err => console.warn('pause toggle failed', err))
+  document.getElementById('day-transport-btn')?.addEventListener('click', () => {
+    toggleDayPlayback().catch(err => console.warn('day transport failed', err))
+  })
+
+  document.getElementById('autoplay-toggle')?.addEventListener('change', (e) => {
+    const enabled = Boolean(e.target?.checked)
+    setDayAutoplayEnabled(enabled).catch(err => console.warn('autoplay toggle failed', err))
   })
 
   document.getElementById('theme-toggle')?.addEventListener('click', () => {
@@ -203,7 +278,15 @@ async function init() {
   })
 
   document.getElementById('about-btn')?.addEventListener('click', () => {
-    toggleOnboarding()
+    openAboutModal()
+  })
+
+  document.getElementById('about-modal-close')?.addEventListener('click', () => {
+    closeAboutModal()
+  })
+
+  document.getElementById('about-modal')?.addEventListener('click', (e) => {
+    if (e.target?.id === 'about-modal') closeAboutModal()
   })
 
   document.getElementById('journey-desc-text')?.addEventListener('click', (e) => {
@@ -211,36 +294,60 @@ async function init() {
     if (!target) return
     const hour = Number.parseInt(target.dataset.hour, 10)
     if (Number.isNaN(hour) || !state.persona) return
-    updateHour(hour)
+    jumpToHourManual(hour).catch(err => console.warn('manual jump failed', err))
   })
 
   document.getElementById('journey-desc-text')?.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return
+    if (e.key !== 'Enter') return
     const target = e.target.closest('[data-hour]')
     if (!target) return
     e.preventDefault()
     const hour = Number.parseInt(target.dataset.hour, 10)
     if (Number.isNaN(hour) || !state.persona) return
-    updateHour(hour)
+    jumpToHourManual(hour).catch(err => console.warn('manual jump failed', err))
   })
 
-  updatePauseButton()
+  updateDayTransportUI()
   setTheme(getTheme())
 
   document.addEventListener('keydown', e => {
-    // ignore when typing in an input
-    if (e.target.tagName === 'INPUT') return
-    if (e.key === ' ') {
+    if (e.key !== ' ') return
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.repeat) return
+    if (!state.persona) return
+    toggleDayPlayback().catch(err => console.warn('day transport failed', err))
+  }, true)
+
+  document.addEventListener('keyup', e => {
+    if (e.key !== ' ') return
+    e.preventDefault()
+    e.stopPropagation()
+  }, true)
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeAboutModal()
+      return
+    }
+
+    const target = e.target
+    const isAutoplayInput = target instanceof HTMLElement && target.id === 'autoplay-toggle'
+    const isFormField = target instanceof HTMLElement && (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT' ||
+      target.isContentEditable
+    )
+
+    if (e.key === 'ArrowRight' && state.persona) {
+      if (isFormField && !isAutoplayInput) return
       e.preventDefault()
-      toggleAutoPlay()
-    } else if (e.key === 'ArrowRight' && state.persona) {
-      e.preventDefault()
-      if (state.isAutoPlaying) return
-      updateHour((state.hour + 1) % 24)
+      jumpToHourManual((state.hour + 1) % 24).catch(err => console.warn('manual jump failed', err))
     } else if (e.key === 'ArrowLeft' && state.persona) {
+      if (isFormField && !isAutoplayInput) return
       e.preventDefault()
-      if (state.isAutoPlaying) return
-      updateHour((state.hour + 23) % 24)
+      jumpToHourManual((state.hour + 23) % 24).catch(err => console.warn('manual jump failed', err))
     }
   })
 
@@ -250,6 +357,8 @@ async function init() {
 // plays a sound and updates the UI playing state + color
 function playSound(type, db, borough) {
   const color = getSoundColor(type) || state.persona?.color || ''
+  const clipKey = `${state.persona?.id || 'none'}:${state.hour}:${borough || 'x'}:${type}`
+  const fullLength = !state.autoplayEnabled
   syncCurrentHourVisualAccent(color, db)
   setWaveformActive(type !== 'flatline', color)
   document.querySelectorAll('.sound-row').forEach(r => {
@@ -257,7 +366,7 @@ function playSound(type, db, borough) {
     r.classList.toggle('playing', isThis)
     if (isThis && color) r.style.setProperty('--accent-color', color)
   })
-  playSoundType(type, db, borough)
+  playSoundType(type, db, borough, clipKey, { fullLength })
 }
 
 // derive top sounds + db from actual SONYC data for this borough+hour
@@ -283,17 +392,18 @@ function pickFeatureSound(sounds, prevalence, persona) {
 }
 
 function selectPersona(id) {
+  if (state.persona?.id === id) {
+    toggleDayPlayback().catch(err => console.warn('day transport failed', err))
+    return
+  }
+
   state.persona = PERSONAS.find(p => p.id === id)
   if (!state.persona) return
 
+  pauseDayPlayback({ keepHour: false })
+
   document.querySelectorAll('.persona-card').forEach(c => c.classList.remove('active'))
   document.getElementById(`persona-${id}`).classList.add('active')
-  const statusEl = document.getElementById('status-persona')
-  if (statusEl) statusEl.textContent = `${state.persona.name} · ${state.persona.role} · ${state.persona.home}`
-
-  document.getElementById('play-btn').disabled = false
-  document.getElementById('pause-sound-btn').disabled = false
-  document.getElementById('onboarding-state')?.classList.add('hidden')
 
   // reset dB so it counts up from 0 on select
   document.getElementById('db-value').textContent = '0'
@@ -312,12 +422,16 @@ function selectPersona(id) {
 
   state.hour = 0
   drawClock(state.persona, 0, state.hourlyStats)
-  updateHour(0)
+  updateHour(0, { playAudio: false })
   renderTimeline(state.persona, state.hourlyStats)
+  updateDayTransportUI()
+
+  startDayPlayback().catch(err => console.warn('autoplay start failed', err))
 }
 
-function updateHour(h) {
+function updateHour(h, options = {}) {
   if (!state.persona) return
+  const shouldPlayAudio = options.playAudio !== false && state.dayPlaybackState === 'playing'
 
   state.hour = h
   const data = state.persona.schedule[h]
@@ -336,13 +450,13 @@ function updateHour(h) {
   document.getElementById('journey-location-text').textContent = data.loc
   document.getElementById('journey-info').style.setProperty('--persona-color', state.persona.color)
 
-  const bar = document.getElementById('clock-time-bar')
-  if (bar) {
-    bar.innerHTML = `
-      <div class="clock-time-main" style="color:${featureColor}">${displayH}:00 ${suffix}</div>
-      <div class="clock-time-sub">${data.loc}</div>
-    `
+  const timeMain = document.getElementById('clock-time-main')
+  if (timeMain) {
+    timeMain.textContent = `${displayH}:00 ${suffix}`
+    timeMain.style.color = featureColor
   }
+  const timeSub = document.getElementById('clock-time-sub')
+  if (timeSub) timeSub.textContent = data.loc
 
   // accumulate story entries as user scrubs through the day
   const alreadyLogged = state.storyLog.some(e => e.h === h)
@@ -354,60 +468,23 @@ function updateHour(h) {
   syncCurrentHourVisualAccent(featureColor, db)
 
   renderSoundsList(displaySounds, db, noData)
-  if (state.isSoundPaused) {
-    setPausedDbState()
-  }
   updateTimeline(h)
 
   updateClockHour(h)
   drawWaveform(analyserNode)
 
-  if (state.isSoundPaused) {
-    setWaveformActive(false, state.lastSoundColor || undefined)
-    return
-  }
-
-  if (noData) {
-    playSound('flatline', db, data.borough)
-  } else {
-    if (feature) playSound(feature, db, data.borough)
-  }
-}
-
-function toggleAutoPlay() {
-  const btn = document.getElementById('play-btn')
-  if (state.isAutoPlaying) {
-    state.isAutoPlaying = false
-    clearInterval(state.autoPlayInterval)
-    btn.classList.remove('active')
-    btn.textContent = '▶ Play the Day'
-    setWaveformActive(false)
-    animateDbMeter(0)
-    return
-  }
-
-  if (!state.persona) return
-
-  state.isAutoPlaying = true
-  btn.classList.add('active')
-  btn.textContent = '⏸'
-
-  updateHour(0)
-  let h = 0
-  state.autoPlayInterval = setInterval(() => {
-    h = (h + 1) % 24
-    updateHour(h)
-    if (h === 23) {
-      state.isAutoPlaying = false
-      clearInterval(state.autoPlayInterval)
-      btn.classList.remove('active')
-      btn.textContent = '▶ Play the Day'
-      setWaveformActive(false)
-      animateDbMeter(0)
+  if (shouldPlayAudio) {
+    if (noData) {
+      playSound('flatline', db, data.borough)
+    } else {
+      if (feature) playSound(feature, db, data.borough)
     }
-  }, 3000)
-}
+  } else {
+    animateDbMeter(0, { forceColor: state.lastSoundColor || featureColor })
+    setWaveformActive(false, state.lastSoundColor || featureColor)
+  }
 
-document.getElementById('play-btn')?.addEventListener('click', toggleAutoPlay)
+  updateDayTransportUI()
+}
 
 init()

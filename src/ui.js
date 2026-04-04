@@ -25,7 +25,12 @@ export function renderPersonas(onSelect) {
   document.querySelectorAll('.persona-card').forEach(card => {
     const id = card.id.replace('persona-', '')
     card.addEventListener('click', () => onSelect(id))
-    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id) } })
+    card.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        onSelect(id)
+      }
+    })
   })
 }
 

@@ -431,16 +431,6 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     roleEl.setAttribute('fill', cssVar('--clock-role', '#888884'))
     roleEl.textContent = persona.role
     svg.appendChild(roleEl)
-
-    const boroughEl = document.createElementNS('http://www.w3.org/2000/svg', 'text')
-    boroughEl.setAttribute('x', 0)
-    boroughEl.setAttribute('y', 20)
-    boroughEl.setAttribute('text-anchor', 'middle')
-    boroughEl.setAttribute('font-family', 'DM Mono, monospace')
-    boroughEl.setAttribute('font-size', '14')
-    boroughEl.setAttribute('fill', cssVar('--clock-subtext', '#aaa'))
-    boroughEl.textContent = (persona.home || '').toUpperCase()
-    svg.appendChild(boroughEl)
   } else {
     const hint = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     hint.setAttribute('x', 0)

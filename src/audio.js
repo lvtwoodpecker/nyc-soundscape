@@ -4,6 +4,7 @@ let masterVolumeNode = null
 let currentSoundNodes = []
 let playbackState = false
 let playbackStopTimer = null
+let clipRequestToken = 0
 const playbackListeners = new Set()
 
 function emitPlaybackState(isPlaying) {
@@ -43,6 +44,31 @@ const COARSE_TO_FINE = {
 
 let clipPool = {}       // coarse type -> { all: [url], 1: [url], 3: [url], 4: [url] }
 const bufferCache = new Map()
+const MIN_PLAY_SECONDS = 5
+const MAX_PLAY_SECONDS = 7
+
+function pickPlayDuration(maxAvailableSeconds = MAX_PLAY_SECONDS, key = '') {
+  const hash = key ? hashString(String(key)) : 0
+  const unit = key ? (hash / 0xffffffff) : 0.5
+  const target = MIN_PLAY_SECONDS + unit * (MAX_PLAY_SECONDS - MIN_PLAY_SECONDS)
+  return Math.max(0.8, Math.min(maxAvailableSeconds, target))
+}
+
+function hashString(value) {
+  let hash = 2166136261
+  for (let i = 0; i < value.length; i++) {
+    hash ^= value.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return hash >>> 0
+}
+
+function pickDeterministicUrl(urls, key) {
+  if (!urls?.length) return null
+  if (!key) return urls[0]
+  const idx = hashString(String(key)) % urls.length
+  return urls[idx]
+}
 
 export async function loadClipIndex() {
   try {
@@ -109,6 +135,7 @@ export function isAudioPaused() {
 }
 
 export function stopAllSounds(emitIdle = true) {
+  clipRequestToken += 1
   currentSoundNodes.forEach(node => {
     try { node.stop(0) } catch (e) {}
   })
@@ -117,7 +144,7 @@ export function stopAllSounds(emitIdle = true) {
   if (emitIdle) emitPlaybackState(false)
 }
 
-async function playClip(url, db) {
+async function playClip(url, db, durationKey = '', options = {}, requestToken = 0) {
   const ctx = getAudioCtx()
   let buffer = bufferCache.get(url)
   if (!buffer) {
@@ -127,43 +154,62 @@ async function playClip(url, db) {
     bufferCache.set(url, buffer)
   }
 
+  if (requestToken !== clipRequestToken) return
+
   stopAllSounds(false)
 
   const source = ctx.createBufferSource()
   source.buffer = buffer
 
   const gainValue = Math.max(0.3, Math.min(0.9, 0.6 + (db - 70) / 200))
+  const fullLength = Boolean(options.fullLength)
+  const playDuration = fullLength
+    ? Math.max(0.8, buffer.duration || MAX_PLAY_SECONDS)
+    : pickPlayDuration(buffer.duration || MAX_PLAY_SECONDS, durationKey)
+  const attack = 0.2
+  const release = 0.18
+  const endTime = ctx.currentTime + playDuration
+  const sustainEnd = Math.max(ctx.currentTime + attack, endTime - release)
+
   const masterGain = ctx.createGain()
   masterGain.gain.setValueAtTime(0, ctx.currentTime)
-  masterGain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.3)
-  masterGain.gain.linearRampToValueAtTime(gainValue * 0.85, ctx.currentTime + 9)
-  masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 10)
+  masterGain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + attack)
+  masterGain.gain.setValueAtTime(gainValue * 0.92, sustainEnd)
+  masterGain.gain.linearRampToValueAtTime(0, endTime)
 
   source.connect(masterGain)
   masterGain.connect(analyserNode)
   source.start()
+  source.stop(endTime)
   currentSoundNodes.push(source)
   emitPlaybackState(true)
-  schedulePlaybackStop(Math.max(500, Math.round((buffer.duration || 10) * 1000)))
+  schedulePlaybackStop(Math.max(500, Math.round(playDuration * 1000) + 60))
 }
 
-export function playSoundType(type, db, borough) {
+export function playSoundType(type, db, borough, clipKey = '', options = {}) {
   const ctx = getAudioCtx()
   if (!ctx) return
+  const requestToken = ++clipRequestToken
 
   if (type === 'flatline') {
+    if (requestToken !== clipRequestToken) return
     stopAllSounds(false)
+    const playDuration = pickPlayDuration(MAX_PLAY_SECONDS, clipKey || `${type}:${borough || 'x'}`)
+    const endTime = ctx.currentTime + playDuration
     const osc = ctx.createOscillator()
     const g = ctx.createGain()
     osc.frequency.value = 100
-    g.gain.value = 0.018
+    g.gain.setValueAtTime(0, ctx.currentTime)
+    g.gain.linearRampToValueAtTime(0.018, ctx.currentTime + 0.18)
+    g.gain.setValueAtTime(0.016, Math.max(ctx.currentTime + 0.18, endTime - 0.16))
+    g.gain.linearRampToValueAtTime(0, endTime)
     osc.connect(g)
     g.connect(masterVolumeNode || ctx.destination)
     osc.start()
-    osc.stop(ctx.currentTime + 4)
+    osc.stop(endTime)
     currentSoundNodes.push(osc)
     emitPlaybackState(true)
-    schedulePlaybackStop(4100)
+    schedulePlaybackStop(Math.max(500, Math.round(playDuration * 1000) + 60))
     return
   }
 
@@ -172,32 +218,39 @@ export function playSoundType(type, db, borough) {
   if (pool) {
     const urls = (borough && pool[borough]?.length) ? pool[borough] : pool.all
     if (urls?.length > 0) {
-      const url = urls[Math.floor(Math.random() * urls.length)]
-      playClip(url, db).catch(() => playSynth(type, db))
+      const url = pickDeterministicUrl(urls, clipKey)
+      if (!url) {
+        playSynth(type, db, clipKey)
+        return
+      }
+      playClip(url, db, clipKey, options, requestToken).catch(() => playSynth(type, db, clipKey))
       return
     }
   }
 
-  playSynth(type, db)
+  playSynth(type, db, clipKey)
 }
 
-function playSynth(type, db) {
+function playSynth(type, db, durationKey = '') {
   const ctx = getAudioCtx()
   stopAllSounds(false)
   emitPlaybackState(true)
-  schedulePlaybackStop(4100)
+  const playDuration = pickPlayDuration(MAX_PLAY_SECONDS, durationKey)
+  schedulePlaybackStop(Math.max(500, Math.round(playDuration * 1000) + 60))
 
   const masterGain = ctx.createGain()
   masterGain.connect(analyserNode)
 
   const gainValue = Math.max(0.05, Math.min(0.3, (db - 40) / 60))
+  const end = ctx.currentTime + playDuration
+  const release = 0.2
+  const sustainEnd = Math.max(ctx.currentTime + 0.3, end - release)
   masterGain.gain.setValueAtTime(0, ctx.currentTime)
   masterGain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.3)
-  masterGain.gain.linearRampToValueAtTime(gainValue * 0.8, ctx.currentTime + 3.5)
-  masterGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 4)
+  masterGain.gain.setValueAtTime(gainValue * 0.85, sustainEnd)
+  masterGain.gain.linearRampToValueAtTime(0, end)
 
   const now = ctx.currentTime
-  const end = now + 4
 
   switch (type) {
     case 'engine': {

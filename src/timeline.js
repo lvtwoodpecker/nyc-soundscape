@@ -34,7 +34,7 @@ export function renderTimeline(persona, hourlyStats) {
     const h = parseInt(cell.dataset.hour)
     cell.addEventListener('click', () => window.updateHourGlobal?.(h))
     cell.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.updateHourGlobal?.(h) }
+      if (e.key === 'Enter') { e.preventDefault(); window.updateHourGlobal?.(h) }
     })
   })
 }

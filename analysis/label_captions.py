@@ -27,25 +27,51 @@ OUTPUT_PATH   = Path('analysis/outputs/labeled_captions.jsonl')
 MODEL         = 'qwen3.5:2b'
 OLLAMA_URL    = 'http://localhost:11434/api/generate'
 
-# short, direct prompt — qwen3.5:2b handles this reliably
+# human-readable labels for the SONYC fine class names used in the prompt
+CLASS_LABELS = {
+    'small-sounding-engine':          'small engine (scooter, motorcycle, small car)',
+    'medium-sounding-engine':         'medium engine (car, sedan)',
+    'large-sounding-engine':          'large engine (bus, truck, heavy vehicle)',
+    'rock-drill':                     'rock drill or boring machine',
+    'jackhammer':                     'jackhammer or pneumatic hammer',
+    'hoe-ram':                        'hoe-ram or hydraulic demolition hammer',
+    'pile-driver':                    'pile driver',
+    'non-machinery-impact':           'non-machinery impact (bang, clang, thud, crash)',
+    'chainsaw':                       'chainsaw or power saw',
+    'small-medium-rotating-saw':      'rotating saw or angle grinder (metallic grinding/whirring)',
+    'large-rotating-saw':             'large industrial rotating saw',
+    'car-horn':                       'car horn or honking',
+    'car-alarm':                      'car alarm',
+    'siren':                          'emergency siren (ambulance, police, fire truck)',
+    'reverse-beeper':                 'reverse beeper (backing-up alarm beeps)',
+    'stationary-music':               'music playing from a fixed source (busker, speaker, venue)',
+    'mobile-music':                   'music from a moving source (car stereo, passing vehicle)',
+    'ice-cream-truck':                'ice cream truck jingle or chime',
+    'person-or-small-group-talking':  'person or small group talking or conversing',
+    'person-or-small-group-shouting': 'person or small group shouting or yelling',
+    'large-crowd':                    'large crowd noise or cheering',
+    'amplified-speech':               'amplified speech (megaphone, PA system, loudspeaker)',
+    'dog-barking-whining':            'dog barking or whining',
+}
+
 PROMPT = '''\
 Audio recording description:
 "{caption}"
 
-Sound class: {cls}
+Question: Does this description explicitly mention or clearly describe "{label}"?
+If the description is about a clearly different sound, answer not_present.
 
-Is "{cls}" a dominant foreground sound in this recording, or is it in the background / barely present?
-
-Reply with JSON only:
-{{"dominant": true or false, "prominence": "dominant" or "background" or "faint", "confidence": 0.0 to 1.0}}'''
+JSON only, no explanation:
+{{"present": true or false, "prominence": "dominant" or "background" or "faint" or "not_present", "confidence": 0.0 to 1.0}}'''
 
 
 def call_ollama(prompt, retries=2):
-    # /no_think disables qwen3's thinking mode — faster and avoids JSON parse failures
+    # think:false disables qwen3's chain-of-thought — ~1s/call instead of 20s+
     payload = json.dumps({
         'model': MODEL,
-        'prompt': prompt + '\n/no_think',
+        'prompt': prompt,
         'stream': False,
+        'think': False,
         'format': 'json',
     }).encode()
     for attempt in range(retries + 1):
@@ -69,24 +95,28 @@ def call_ollama(prompt, retries=2):
 def label_entry(entry):
     labels = {}
     for cls in entry.get('classes', []):
-        prompt = PROMPT.format(caption=entry['caption'], cls=cls)
+        label = CLASS_LABELS.get(cls, cls)
+        prompt = PROMPT.format(caption=entry['caption'], label=label)
         result = call_ollama(prompt)
         if result:
-            # normalize prominence in case model uses slightly different wording
-            prominence = result.get('prominence', 'unknown').lower()
+            prominence = result.get('prominence', 'not_present').lower()
             if 'dominant' in prominence or 'foreground' in prominence or 'primary' in prominence:
                 prominence = 'dominant'
             elif 'faint' in prominence or 'barely' in prominence or 'subtle' in prominence:
                 prominence = 'faint'
             elif 'background' in prominence:
                 prominence = 'background'
+            else:
+                prominence = 'not_present'
+            present = bool(result.get('present', False)) and prominence != 'not_present'
             labels[cls] = {
-                'dominant':   bool(result.get('dominant', False)),
+                'dominant':   present and prominence == 'dominant',
+                'present':    present,
                 'prominence': prominence,
                 'confidence': float(result.get('confidence', 0.5)),
             }
         else:
-            labels[cls] = {'dominant': False, 'prominence': 'unknown', 'confidence': 0.0}
+            labels[cls] = {'dominant': False, 'present': False, 'prominence': 'unknown', 'confidence': 0.0}
     return labels
 
 
