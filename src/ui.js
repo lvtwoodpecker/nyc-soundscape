@@ -15,7 +15,7 @@ export function renderLegend() {
 export function renderPersonas(onSelect) {
   const el = document.getElementById('persona-list')
   el.innerHTML = PERSONAS.map(p =>
-    `<div class="persona-card" id="persona-${p.id}" style="--accent:${p.color}" role="button" tabindex="0">
+    `<div class="persona-card" id="persona-${p.id}" style="--accent:${p.color}" role="button" tabindex="0" aria-pressed="false">
       <div class="persona-name">${p.name}</div>
       <div class="persona-meta">${p.role}</div>
       <span class="persona-borough" style="color:${p.color}">${p.home}</span>
@@ -26,7 +26,7 @@ export function renderPersonas(onSelect) {
     const id = card.id.replace('persona-', '')
     card.addEventListener('click', () => onSelect(id))
     card.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      if (e.key === ' ') {
         e.preventDefault()
         onSelect(id)
       }

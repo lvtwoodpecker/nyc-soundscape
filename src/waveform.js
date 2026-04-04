@@ -41,16 +41,17 @@ export function drawWaveform(analyserNode) {
       const barCount = Math.min(bufLen, 80)
       const barW = w / barCount
       const step = Math.floor(bufLen / barCount)
+      const bottomMargin = 2
 
       for (let i = 0; i < barCount; i++) {
         const val = freqData[i * step] / 255
-        const barH = val * h * 0.92
+        const barH = val * (h - bottomMargin) * 0.92
         const x = i * barW
-        const grad = ctx.createLinearGradient(0, h, 0, h - barH)
+        const grad = ctx.createLinearGradient(0, h - bottomMargin, 0, h - bottomMargin - barH)
         grad.addColorStop(0, currentColor + '40')
         grad.addColorStop(1, currentColor + 'cc')
         ctx.fillStyle = grad
-        ctx.fillRect(x + 0.5, h - barH, barW - 1, barH)
+        ctx.fillRect(x + 0.5, h - bottomMargin - barH, barW - 1, barH)
       }
     } else {
       // idle: flat line at center

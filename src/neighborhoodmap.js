@@ -112,6 +112,8 @@ export function initNeighborhoodMap() {
   svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
   svgEl.setAttribute('viewBox', `0 0 ${SVG_W} ${SVG_H}`)
   svgEl.setAttribute('preserveAspectRatio', 'xMidYMid meet')
+  svgEl.setAttribute('role', 'img')
+  svgEl.setAttribute('aria-label', 'Manhattan neighborhood map showing persona journey')
   svgEl.style.cssText = 'width:100%;height:100%;display:block;'
   container.innerHTML = ''
   container.style.cssText = 'width:100%;height:100%;overflow:hidden;'

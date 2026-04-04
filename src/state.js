@@ -8,8 +8,5 @@ export const state = {
   hourlyStats: null,
   storyLog: [],
   lastSoundColor: '',
-  isSoundPaused: false,
-  isAutoPlaying: false,
-  autoPlayInterval: null,
   manualSoundSelection: null, // { type, db, borough, hour } for resume on spacebar
 }

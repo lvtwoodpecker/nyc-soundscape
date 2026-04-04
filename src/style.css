@@ -53,8 +53,9 @@
 }
 
 :root[data-theme='dark'] {
-  --bg: #0b0c10;
-  --bg3: #11131a;
+  /* charcoal dark mode (matte, balanced brightness) */
+  --bg: #191b22;
+  --bg3: #1d202a;
 
   /* sound colors — muted for a matte dark mode */
   --c-engine:    #cf6868;
@@ -65,34 +66,34 @@
   --c-music:     #8a82b8;
   --c-voice:     #5f84b9;
   --c-dog:       #4e9788;
-  --text: #dddfe7;
-  --muted: #7f8597;
-  --border: #232633;
-  --text-dim: #959aab;
-  --surface: #101219;
-  --surface-2: #131622;
-  --surface-3: #171b28;
-  --surface-hover: rgba(255,255,255,0.028);
-  --surface-active: rgba(255,255,255,0.045);
-  --transcript-hover: rgba(255,255,255,0.045);
-  --theme-accent: #91a0b7;
-  --tile-filter: brightness(0.46) saturate(0.42) hue-rotate(190deg);
-  --clock-center: #101219;
-  --clock-ring: #2b3140;
-  --clock-stroke: #101219;
-  --clock-needle: #dddfe7;
-  --clock-label: #808698;
-  --clock-role: #9ba2b4;
-  --clock-subtext: #808698;
-  --waveform-bg: #101219;
-  --map-hex-fill: #212634;
-  --map-hex-stroke: #101219;
-  --map-label: #c1c6d3;
-  --map-label-stroke: rgba(16, 18, 25, 0.9);
-  --map-label-active: #f0f2f6;
-  --map-label-active-stroke: rgba(16, 18, 25, 0.95);
-  --map-dot-fill: #adb3c2;
-  --map-dot-stroke: #101219;
+  --text: #d8dce6;
+  --muted: #97a0b0;
+  --border: #31384a;
+  --text-dim: #aeb4c5;
+  --surface: #202530;
+  --surface-2: #242933;
+  --surface-3: #29303e;
+  --surface-hover: rgba(255,255,255,0.045);
+  --surface-active: rgba(255,255,255,0.065);
+  --transcript-hover: rgba(255,255,255,0.065);
+  --theme-accent: #a7afc4;
+  --tile-filter: brightness(0.70) saturate(0.28) hue-rotate(190deg);
+  --clock-center: #202530;
+  --clock-ring: #454d62;
+  --clock-stroke: #202530;
+  --clock-needle: #d8dce6;
+  --clock-label: #a0a7b9;
+  --clock-role: #bcc2d5;
+  --clock-subtext: #a0a7b9;
+  --waveform-bg: #202530;
+  --map-hex-fill: #363d4d;
+  --map-hex-stroke: #202530;
+  --map-label: #c6cadb;
+  --map-label-stroke: rgba(32, 37, 48, 0.9);
+  --map-label-active: #f0f2f7;
+  --map-label-active-stroke: rgba(32, 37, 48, 0.95);
+  --map-dot-fill: #bcc2d5;
+  --map-dot-stroke: #202530;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -885,6 +886,8 @@ body.about-modal-open {
   position: relative;
   width: 100%;
   height: 100%;
+  padding-bottom: 4px;
+  background: var(--waveform-bg);
 }
 .spec-wrapper canvas {
   width: 100%;
