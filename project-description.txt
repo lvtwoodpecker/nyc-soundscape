@@ -1,0 +1,3 @@
+Project Description:
+
+A radial 24-hour clock that maps the sonic texture of a New York City day, grounded in real acoustic sensor data. Five NYU-connected New Yorkers travel through the city hour by hour, each stop plays a real audio clip from that neighborhood, drawn from the SONYC urban sensor network.

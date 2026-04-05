@@ -1,6 +1,7 @@
 export const state = {
   persona: null,
   hour: 0,
+  startHour: 0,
   analyserNode: null,
   dayPlaybackState: 'paused',
   autoplayEnabled: true,

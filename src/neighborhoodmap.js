@@ -237,7 +237,7 @@ export function refreshNeighborhoodMapTheme() {
   }
 }
 
-export function updateNeighborhoodMap(persona, hour, accentColor = '') {
+export function updateNeighborhoodMap(persona, hour, startHour = 0) {
   if (!svgEl || !hexEls.length) return
 
   const accent = persona.color
@@ -245,11 +245,20 @@ export function updateNeighborhoodMap(persona, hour, accentColor = '') {
   const visitedSet = new Set()
   const pathPoints = []
 
-  for (let h = 0; h <= hour; h++) {
+  // build ordered list of hours to trace, handling day wrap
+  const trailHours = []
+  if (hour >= startHour) {
+    for (let h = startHour; h <= hour; h++) trailHours.push(h)
+  } else {
+    for (let h = startHour; h < 24; h++) trailHours.push(h)
+    for (let h = 0; h <= hour; h++) trailHours.push(h)
+  }
+
+  for (const h of trailHours) {
     const s = persona.schedule[h]
     const hex = nearestHex(s.lat, s.lng)
     if (!hex) continue
-    if (h < hour) visitedSet.add(hex)
+    if (h !== hour) visitedSet.add(hex)
     pathPoints.push(`${hex.cx.toFixed(1)},${hex.cy.toFixed(1)}`)
   }
 

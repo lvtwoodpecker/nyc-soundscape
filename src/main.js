@@ -147,7 +147,7 @@ function syncCurrentHourVisualAccent(color, db) {
     currentCell.style.opacity = '0.95'
   }
 
-  updateNeighborhoodMap(state.persona, state.hour)
+  updateNeighborhoodMap(state.persona, state.hour, state.startHour)
   animateDbMeter(db, { forceColor: accent })
 }
 
@@ -226,7 +226,7 @@ function refreshThemeVisuals() {
   refreshNeighborhoodMapTheme()
   drawClock(state.persona, state.hour, state.hourlyStats)
   if (state.persona) {
-    updateNeighborhoodMap(state.persona, state.hour)
+    updateNeighborhoodMap(state.persona, state.hour, state.startHour)
     renderSoundsList(...getSoundsForHourArgs())
   }
   renderLegend()
@@ -314,22 +314,6 @@ async function init() {
     jumpToHourManual(hour)
       .then(() => {
         // snap transcript view so the new current hour is immediately visible
-        const overlay = document.getElementById('story-overlay')
-        if (overlay) overlay.scrollTop = 0
-        document.querySelector('#story-overlay .story-history')?.scrollTo({ top: 0 })
-      })
-      .catch(err => console.warn('manual jump failed', err))
-  })
-
-  document.getElementById('journey-desc-text')?.addEventListener('keydown', (e) => {
-    if (e.key !== 'Enter') return
-    const target = e.target.closest('[data-hour]')
-    if (!target) return
-    e.preventDefault()
-    const hour = Number.parseInt(target.dataset.hour, 10)
-    if (Number.isNaN(hour) || !state.persona) return
-    jumpToHourManual(hour)
-      .then(() => {
         const overlay = document.getElementById('story-overlay')
         if (overlay) overlay.scrollTop = 0
         document.querySelector('#story-overlay .story-history')?.scrollTo({ top: 0 })
@@ -467,6 +451,7 @@ function selectPersona(id) {
 
   const startHour = 8
   state.hour = startHour
+  state.startHour = startHour
   drawClock(state.persona, startHour, state.hourlyStats)
   updateHour(startHour, { playAudio: false })
   renderTimeline(state.persona, state.hourlyStats)
