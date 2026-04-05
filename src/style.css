@@ -13,8 +13,9 @@
   --transcript-hover: rgba(120, 120, 120, 0.12);
   --theme-accent: #6b5fd4;
   --tile-filter: none;
-  --layout-cols: 300px minmax(500px, 41vw) minmax(400px, 1fr);
+  --layout-cols: 300px minmax(500px, 51vw) minmax(320px, 1fr);
   --layout-cols-compact: 270px minmax(460px, 46vw) minmax(320px, 1fr);
+  --desktop-scale: 0.8;
 
   --c-engine:    #d94f4f;
   --c-machinery: #c97c28;
@@ -609,6 +610,14 @@ body.about-modal-open {
   border-top: 1px solid var(--border);
   height: 160px;
   overflow: hidden;
+}
+
+@media (min-width: 1280px) {
+  body {
+    zoom: var(--desktop-scale);
+    width: calc(100vw / var(--desktop-scale));
+    height: calc(100vh / var(--desktop-scale));
+  }
 }
 
 .info-strip > .info-col:first-child {
