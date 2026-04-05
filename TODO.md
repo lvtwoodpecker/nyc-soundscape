@@ -36,25 +36,20 @@ Showcase: **April 9, 2026 @ 370 Jay, Room 1201**
 ## Remaining
 
 ### Audio — R2 upload
-- [ ] Upload curated clips to R2 bucket via `scripts/upload_to_r2.sh`
-- [ ] Populate `public/data/processed/clip-index.json` with public MP3 URLs
-- [ ] Test real clip playback in `src/audio.js` (replace synthesis with R2 + synthesis fallback)
-- [ ] Verify 7 sparse-class synthesis fallbacks still work: `car-alarm`, `ice-cream-truck`, `large-crowd`, `hoe-ram`, `pile-driver`, `amplified-speech`, `large-rotating-saw`
+- [x] Upload curated clips to R2 bucket via `scripts/upload_to_r2.sh`
+- [x] Populate `public/data/processed/clip-index.json` with public MP3 URLs
+- [x] Test real clip playback in `src/audio.js` (replace synthesis with R2 + synthesis fallback)
+- [x] Verify 7 sparse-class synthesis fallbacks still work: `car-alarm`, `ice-cream-truck`, `large-crowd`, `hoe-ram`, `pile-driver`, `amplified-speech`, `large-rotating-saw`
 
 ### Map
-- [ ] Verify all 5 persona lat/lng coordinates render within map bounds
-- [ ] Consider adding TriBeCa and Hell's Kitchen labels (Eddie + Nadia home bases)
+- [x] Verify all 5 persona lat/lng coordinates render within map bounds
 
 ### Polish
-- [ ] Test all 5 personas × 24 hours end to end
-- [ ] Verify audio playback across Chrome / Firefox / Safari
-- [ ] Submit via https://nyu.qualtrics.com/jfe/form/SV_7Nv5S3ocb2BTOnA
-
+- [x] Test all 5 personas × 24 hours end to end
+- [x] Verify audio playback across Chrome / Firefox / Safari
 ---
 
-## Nice to Have (Post-Submission)
-
+## Nice to Have
 - [ ] Wire Gemini captions into UI: show caption text when a clip plays
-- [ ] Proximity data (near/far) on sound chips
 - [ ] Borough comparison panel
 - [ ] Export persona's day as shareable image
