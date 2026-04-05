@@ -1,6 +1,4 @@
 # NYC Soundscape
-
-NYC Soundscape
 ---
 
 ## What it is
