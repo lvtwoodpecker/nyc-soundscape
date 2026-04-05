@@ -1,13 +1,6 @@
 # NYC Soundscape — A Day in the Life
 
-**NYU Re/presenting Data: Urban Data Visualization Contest 2026**
-
-[Live demo →](https://lvtwoodpecker.github.io/nyc-soundscape/)
-
-[GitHub repo →](https://github.com/lvtwoodpecker/nyc-soundscape)
-
-Submission package (shareable folder): https://drive.google.com/drive/folders/1lnmnwuiYaC_C2KrvRNGcqszDM6YPAmmU?usp=sharing
-
+NYC Soundscape
 ---
 
 ## What it is
@@ -91,24 +84,6 @@ The visualization is built with Vite + vanilla JS (11 ES modules). Sound prevale
 - Python (data processing + caption analysis scripts)
 - ffmpeg loudness normalization (−16 LUFS)
 - Google Fonts (Crimson Pro, DM Mono)
-
----
-
-## AI usage disclosure
-
-Audio clips were described using **Gemini 2.5 Flash-Lite** (Google); the captioning prompt is documented in `analysis/caption_clips.py`.
-
-**Claude (Anthropic) assisted with:**
-
-- Frontend engineering support: UI bugfixing and interaction work (audio transport state sync, transcript ordering/snap behavior, dark mode/theme polish)
-- Implementation iteration: small refactors and cleanups across JS/CSS/HTML
-- Editorial iteration: tightening persona names/roles and hour-by-hour story phrasing for clarity
-
-**I (human) did:**
-
-- Project direction and design decisions, including what the visualization should communicate
-- Final selection of personas, narrative beats, and the “day in the life” structure
-- Data pipeline design (what to aggregate, what to keep, what to ship to the browser)
 
 ---
 
