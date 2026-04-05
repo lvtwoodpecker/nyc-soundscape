@@ -1,4 +1,4 @@
-# NYC Soundscape — A Day in the Life
+# NYC Soundscape
 
 NYC Soundscape
 ---
