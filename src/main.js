@@ -376,6 +376,9 @@ function playSound(type, db, borough) {
   const color = getSoundColor(type) || state.persona?.color || ''
   const clipKey = `${state.persona?.id || 'none'}:${state.hour}:${borough || 'x'}:${type}`
   const fullLength = !state.autoplayEnabled
+  const currentEntry = state.persona?.schedule?.[state.hour]
+  const lat = Number.isFinite(currentEntry?.lat) ? currentEntry.lat : null
+  const lng = Number.isFinite(currentEntry?.lng) ? currentEntry.lng : null
   syncCurrentHourVisualAccent(color, db)
   setWaveformActive(type !== 'flatline', color)
   document.querySelectorAll('.sound-row').forEach(r => {
@@ -383,7 +386,7 @@ function playSound(type, db, borough) {
     r.classList.toggle('playing', isThis)
     if (isThis && color) r.style.setProperty('--accent-color', color)
   })
-  playSoundType(type, db, borough, clipKey, { fullLength })
+    playSoundType(type, db, borough, clipKey, { fullLength, hour: state.hour, lat, lng })
 }
 
 // derive top sounds + db from actual SONYC data for this borough+hour

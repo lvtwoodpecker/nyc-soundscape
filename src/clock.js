@@ -270,9 +270,11 @@ function dbToFactor(db, bounds) {
 }
 
 // attach once — svg.innerHTML = '' doesn't remove listeners on the svg itself
-document.addEventListener('DOMContentLoaded', () => {
-  document.getElementById('clock-svg')?.addEventListener('mouseleave', () => hideTooltip())
-})
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('clock-svg')?.addEventListener('mouseleave', () => hideTooltip())
+  })
+}
 
 export function drawClock(persona, selectedHour, hourlyStats) {
   const svg = document.getElementById('clock-svg')

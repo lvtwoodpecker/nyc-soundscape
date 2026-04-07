@@ -42,10 +42,11 @@ const COARSE_TO_FINE = {
   dog:       ['dog-barking-whining'],
 }
 
-let clipPool = {}       // coarse type -> { all: [url], 1: [url], 3: [url], 4: [url] }
+let clipPool = {}       // coarse type -> { all: [clip], 1: [clip], 3: [clip], 4: [clip], byHour: { 0: { all: [clip], 1:[clip]... } } }
 const bufferCache = new Map()
 const MIN_PLAY_SECONDS = 5
 const MAX_PLAY_SECONDS = 7
+const MAX_NEAREST_CANDIDATES = 5
 
 function pickPlayDuration(maxAvailableSeconds = MAX_PLAY_SECONDS, key = '') {
   const hash = key ? hashString(String(key)) : 0
@@ -63,11 +64,20 @@ function hashString(value) {
   return hash >>> 0
 }
 
-function pickDeterministicUrl(urls, key) {
-  if (!urls?.length) return null
-  if (!key) return urls[0]
-  const idx = hashString(String(key)) % urls.length
-  return urls[idx]
+function pickDeterministic(items, key) {
+  if (!items?.length) return null
+  if (!key) return items[0]
+  const idx = hashString(String(key)) % items.length
+  return items[idx]
+}
+
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => d * Math.PI / 180
+  const R = 6371000
+  const dLat = toRad(lat2 - lat1)
+  const dLng = toRad(lng2 - lng1)
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
 }
 
 export async function loadClipIndex() {
@@ -75,16 +85,36 @@ export async function loadClipIndex() {
     const res = await fetch('data/processed/clip-index.json')
     const index = await res.json()
     for (const [coarse, fineClasses] of Object.entries(COARSE_TO_FINE)) {
-      const pool = { all: [] }
+      const pool = { all: [], byHour: {} }
       for (const f of fineClasses) {
         for (const clip of (index[f] || [])) {
-          const url = clip.url || clip
-          const b = clip.borough
+          const clipObj = (typeof clip === 'object' && clip !== null)
+            ? {
+                url: clip.url,
+                borough: clip.borough,
+                hour: clip.hour,
+                lat: clip.lat,
+                lng: clip.lng,
+              }
+            : { url: clip }
+          const b = clipObj.borough
+          const h = clipObj.hour
+
+          if (h !== undefined && h !== null) {
+            const hk = String(h)
+            if (!pool.byHour[hk]) pool.byHour[hk] = { all: [] }
+            if (b) {
+              if (!pool.byHour[hk][b]) pool.byHour[hk][b] = []
+              pool.byHour[hk][b].push(clipObj)
+            }
+            pool.byHour[hk].all.push(clipObj)
+          }
+
           if (b) {
             if (!pool[b]) pool[b] = []
-            pool[b].push(url)
+            pool[b].push(clipObj)
           }
-          pool.all.push(url)
+          pool.all.push(clipObj)
         }
       }
       clipPool[coarse] = pool
@@ -217,187 +247,58 @@ export function playSoundType(type, db, borough, clipKey = '', options = {}) {
     return
   }
 
-  // try real clip, prefer borough-matched, fall back to any, then synthesis
+  // require both ±2h match and borough match — no silent fallback
   const pool = clipPool[type]
   if (pool) {
-    const urls = (borough && pool[borough]?.length) ? pool[borough] : pool.all
-    if (urls?.length > 0) {
-      const url = pickDeterministicUrl(urls, clipKey)
-      if (!url) {
-        playSynth(type, db, clipKey)
-        return
+    const hour = options?.hour
+    let candidates = null
+    if (hour !== undefined && hour !== null) {
+      const windowByUrl = new Map()
+      for (const delta of [0, 1, -1, 2, -2]) {
+        const h2 = ((hour + delta) % 24 + 24) % 24
+        const hp = pool.byHour?.[String(h2)]
+        if (!hp) continue
+        hp[borough]?.forEach(c => {
+          if (c?.url && !windowByUrl.has(c.url)) windowByUrl.set(c.url, c)
+        })
       }
-      playClip(url, db, clipKey, options, requestToken).catch(() => playSynth(type, db, clipKey))
+      candidates = windowByUrl.size ? [...windowByUrl.values()] : null
+    }
+
+    if (!candidates?.length) {
+      console.error(`[audio] no clip for type=${type} borough=${borough} hour=${options?.hour} key=${clipKey} — add clips to cover this`)
       return
     }
+
+    const hasPoint = Number.isFinite(options?.lat) && Number.isFinite(options?.lng)
+    if (hasPoint) {
+      candidates = [...candidates]
+        .sort((a, b) => {
+          const da = (Number.isFinite(a?.lat) && Number.isFinite(a?.lng))
+            ? haversineMeters(options.lat, options.lng, a.lat, a.lng)
+            : Number.POSITIVE_INFINITY
+          const db = (Number.isFinite(b?.lat) && Number.isFinite(b?.lng))
+            ? haversineMeters(options.lat, options.lng, b.lat, b.lng)
+            : Number.POSITIVE_INFINITY
+          if (da !== db) return da - db
+          return String(a?.url || '').localeCompare(String(b?.url || ''))
+        })
+      candidates = candidates.slice(0, Math.min(MAX_NEAREST_CANDIDATES, candidates.length))
+    }
+
+    const picked = hasPoint
+      ? candidates[0]
+      : pickDeterministic(candidates, clipKey)
+    const url = picked?.url
+    if (!url) {
+      console.error(`[audio] selected clip missing URL for type=${type} hour=${options?.hour}`)
+      return
+    }
+    playClip(url, db, clipKey, options, requestToken).catch(err => {
+      console.error(`[audio] clip fetch failed: ${url}`, err)
+    })
+    return
   }
 
-  playSynth(type, db, clipKey)
-}
-
-function playSynth(type, db, durationKey = '') {
-  const ctx = getAudioCtx()
-  stopAllSounds(false)
-  emitPlaybackState(true)
-  const playDuration = pickPlayDuration(MAX_PLAY_SECONDS, durationKey)
-  schedulePlaybackStop(Math.max(500, Math.round(playDuration * 1000) + 60))
-
-  const masterGain = ctx.createGain()
-  masterGain.connect(analyserNode)
-
-  const gainValue = Math.max(0.05, Math.min(0.3, (db - 40) / 60))
-  const end = ctx.currentTime + playDuration
-  const release = 0.2
-  const sustainEnd = Math.max(ctx.currentTime + 0.3, end - release)
-  masterGain.gain.setValueAtTime(0, ctx.currentTime)
-  masterGain.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + 0.3)
-  masterGain.gain.setValueAtTime(gainValue * 0.85, sustainEnd)
-  masterGain.gain.linearRampToValueAtTime(0, end)
-
-  const now = ctx.currentTime
-
-  switch (type) {
-    case 'engine': {
-      const osc1 = ctx.createOscillator()
-      const osc2 = ctx.createOscillator()
-      osc1.type = 'sawtooth'
-      osc2.type = 'sawtooth'
-      osc1.frequency.value = 55
-      osc2.frequency.value = 61
-      const lfo = ctx.createOscillator()
-      const lfoGain = ctx.createGain()
-      lfo.frequency.value = 5
-      lfoGain.gain.value = 10
-      lfo.connect(lfoGain)
-      lfoGain.connect(osc1.frequency)
-      osc1.connect(masterGain)
-      osc2.connect(masterGain)
-      lfo.start()
-      osc1.start()
-      osc2.start()
-      osc1.stop(end)
-      osc2.stop(end)
-      lfo.stop(end)
-      currentSoundNodes.push(osc1, osc2, lfo)
-      break
-    }
-    case 'machinery': {
-      for (let i = 0; i < 6; i++) {
-        const osc = ctx.createOscillator()
-        osc.type = 'square'
-        osc.frequency.value = 120 + i * 8
-        const env = ctx.createGain()
-        env.gain.setValueAtTime(0.1, now + i * 0.15)
-        env.gain.linearRampToValueAtTime(0, now + i * 0.15 + 0.08)
-        osc.connect(env)
-        env.connect(masterGain)
-        osc.start(now + i * 0.15)
-        osc.stop(now + i * 0.15 + 0.08)
-        currentSoundNodes.push(osc, env)
-      }
-      break
-    }
-    case 'impact': {
-      for (let i = 0; i < 6; i++) {
-        const osc = ctx.createOscillator()
-        osc.type = 'sine'
-        osc.frequency.setValueAtTime(200, now + i * 0.4)
-        osc.frequency.linearRampToValueAtTime(40, now + i * 0.4 + 0.1)
-        const env = ctx.createGain()
-        env.gain.setValueAtTime(0.2, now + i * 0.4)
-        env.gain.linearRampToValueAtTime(0, now + i * 0.4 + 0.1)
-        osc.connect(env)
-        env.connect(masterGain)
-        osc.start(now + i * 0.4)
-        osc.stop(now + i * 0.4 + 0.1)
-        currentSoundNodes.push(osc, env)
-      }
-      break
-    }
-    case 'saw': {
-      const osc = ctx.createOscillator()
-      osc.type = 'sawtooth'
-      osc.frequency.setValueAtTime(1600, now)
-      osc.frequency.linearRampToValueAtTime(2400, now + 2)
-      osc.frequency.linearRampToValueAtTime(800, now + 4)
-      osc.connect(masterGain)
-      osc.start()
-      osc.stop(end)
-      currentSoundNodes.push(osc)
-      break
-    }
-    case 'alert': {
-      for (let t = 0; t < 8; t++) {
-        const osc = ctx.createOscillator()
-        osc.type = 'sine'
-        osc.frequency.value = t % 2 === 0 ? 880 : 660
-        const env = ctx.createGain()
-        env.gain.setValueAtTime(0.1, now + t * 0.25)
-        env.gain.linearRampToValueAtTime(0, now + t * 0.25 + 0.2)
-        osc.connect(env)
-        env.connect(masterGain)
-        osc.start(now + t * 0.25)
-        osc.stop(now + t * 0.25 + 0.2)
-        currentSoundNodes.push(osc, env)
-      }
-      break
-    }
-    case 'music': {
-      const freqs = [261.6, 329.6, 392, 493.9]
-      freqs.forEach((f, i) => {
-        const osc = ctx.createOscillator()
-        osc.type = 'sine'
-        osc.frequency.value = f
-        const env = ctx.createGain()
-        env.gain.setValueAtTime(0, now + i * 0.05)
-        env.gain.linearRampToValueAtTime(0.08, now + i * 0.05 + 0.05)
-        env.gain.linearRampToValueAtTime(0, now + 3.5)
-        osc.connect(env)
-        env.connect(masterGain)
-        osc.start(now + i * 0.05)
-        osc.stop(end)
-        currentSoundNodes.push(osc, env)
-      })
-      break
-    }
-    case 'voice': {
-      const formants = [200, 450, 800, 1200]
-      formants.forEach((f, i) => {
-        const osc = ctx.createOscillator()
-        osc.type = 'sine'
-        osc.frequency.value = f
-        const noiseOsc = ctx.createOscillator()
-        noiseOsc.frequency.setValueAtTime(f, now)
-        noiseOsc.frequency.linearRampToValueAtTime(f * 1.1, now + 0.5)
-        const env = ctx.createGain()
-        env.gain.value = 0.04
-        osc.connect(env)
-        noiseOsc.connect(env)
-        env.connect(masterGain)
-        osc.start()
-        noiseOsc.start()
-        osc.stop(end)
-        noiseOsc.stop(end)
-        currentSoundNodes.push(osc, noiseOsc, env)
-      })
-      break
-    }
-    case 'dog': {
-      for (let b = 0; b < 3; b++) {
-        const osc = ctx.createOscillator()
-        osc.type = 'sawtooth'
-        osc.frequency.setValueAtTime(380, now + b * 0.3)
-        osc.frequency.linearRampToValueAtTime(260, now + b * 0.3 + 0.022)
-        const env = ctx.createGain()
-        env.gain.setValueAtTime(0.1, now + b * 0.3)
-        env.gain.linearRampToValueAtTime(0, now + b * 0.3 + 0.022)
-        osc.connect(env)
-        env.connect(masterGain)
-        osc.start(now + b * 0.3)
-        osc.stop(now + b * 0.3 + 0.022)
-        currentSoundNodes.push(osc, env)
-      }
-      break
-    }
-  }
+  console.error(`[audio] unknown type=${type} — no pool loaded`)
 }

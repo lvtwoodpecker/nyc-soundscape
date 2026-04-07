@@ -66,17 +66,26 @@ export const PERSONAS = [
     },
     // override data-driven sound pick for hours where the story demands a specific class
     soundOverrides: {
+      0:  'engine', // asleep, but street noise outside
+      1:  'machinery',
+      2:  'voice',
+      4:  'voice',
       7:  'saw',    // the construction site is her first customer
       8:  'dog',    // 7.6% — the morning dog peak
+      13: 'voice',
+      17: 'music',  // busker fires up as she's packing
+      20: 'music',
+      21: 'engine',
+      23: 'voice',  // no dog clips within ±2h of midnight
     },
     schedule: [
       { h:0,  lat:40.7157, lng:-73.9863, loc:'Home — Lower East Side',   borough:1, desc:'Midnight. Soundly asleep.' },
       { h:1,  lat:40.7157, lng:-73.9863, loc:'Home — Lower East Side',   borough:1, desc:'Zzzzz... Is that her snoring or the construction?' },
       { h:2,  lat:40.7157, lng:-73.9863, loc:'Home — Lower East Side',   borough:1, desc:'Still asleep. Bar voices bleeding through. She\'s learned to sleep through the city\'s opinion.' },
       { h:3,  lat:40.7157, lng:-73.9863, loc:'Home — Lower East Side',   borough:1, desc:'Alarm at 3:30. Or did those people at the bar finally woke her up? Anyways time to get ready.' },
-      { h:4,  lat:40.7157, lng:-73.9863, loc:'LES — Loading Cart',       borough:1, desc:'Loading the cart. Some people are already out there, or maybe haven\'t even left. 4am and people are still shouting.' },
+      { h:4,  lat:40.7157, lng:-73.9863, loc:'LES — Loading Cart',       borough:1, desc:'A kid somewhere in the building, crying. Or is it the street. She\'s already pulling the cart out. Not her problem tonight.' },
       { h:5,  lat:40.7200, lng:-73.9960, loc:'Walking Cart to WSP',      borough:1, desc:'Rolling north through empty streets. Just herself and the trucks.' },
-      { h:6,  lat:40.7300, lng:-74.0000, loc:'WSP — Setting Up',         borough:1, desc:'Setting up in early light. WSP\'s still half asleep. Then the construction crew shows up. Her 6am regulars.' },
+      { h:6,  lat:40.7300, lng:-74.0000, loc:'WSP — Setting Up',         borough:1, desc:'A bike rips across the south side of the park. The crew\'s not here yet. Just her and the city switching gears.' },
       { h:7,  lat:40.7308, lng:-74.0002, loc:'WSP — Open',               borough:1, desc:'The saw fires up right on time. She doesn\'t mind' },
       { h:8,  lat:40.7308, lng:-74.0002, loc:'WSP — Morning Rush',       borough:1, desc:'Woof woof! Dogs everywhere. Morning surge. The city finally wakes up, and she\'s out of coffee. Still a big line though. ' },
       { h:9,  lat:40.7308, lng:-74.0002, loc:'WSP — Steady',             borough:1, desc:'Lots of rumblings in the park. Just another day.' },
@@ -87,7 +96,7 @@ export const PERSONAS = [
       { h:14, lat:40.7308, lng:-74.0002, loc:'WSP — Afternoon',          borough:1, desc:'Even more rumblings.' },
       { h:15, lat:40.7308, lng:-74.0002, loc:'WSP — Best Hour',          borough:1, desc:'Her favorite. Almost sold out. People coming and going. Just chilling on the grass.'},
       { h:16, lat:40.7308, lng:-74.0002, loc:'WSP — After School',       borough:1, desc:'The skaters are starting to roll out. It\'s after school hours.' },
-      { h:17, lat:40.7308, lng:-74.0002, loc:'WSP — Rush Hour',          borough:1, desc:'Someone just randomly bursted out a vocal performance. Fun. At least it\'s time to pack up.' },
+      { h:17, lat:40.7308, lng:-74.0002, loc:'WSP — Rush Hour',          borough:1, desc:'A busker fires up right as she\'s breaking down the cart. She stays an extra five minutes.' },
       { h:18, lat:40.7308, lng:-74.0002, loc:'WSP — Dinner Crowd',       borough:1, desc:'It\'s getting late. Rosa breaking the cart down.' },
       { h:19, lat:40.7308, lng:-74.0002, loc:'WSP — Closing',            borough:1, desc:'Done for the night. More car rumblings. Of course.' },
       { h:20, lat:40.7200, lng:-73.9960, loc:'Rolling Cart Home',        borough:1, desc:'South on Bowery. Was that... bagpipes?? What the heckie?' },
@@ -120,20 +129,25 @@ export const PERSONAS = [
       priorityBoost: 0.04,
     },
     soundOverrides: {
+      0:  'engine',    // cab rolls through
+      5:  'engine',    // just him and the trucks
+      6:  'engine',    // first truck on site, crew loading in quiet
       7:  'saw',       // "saw fires up at 7:01" — engine would win otherwise
       8:  'machinery', // "full swing. machinery 15.6%"
       9:  'machinery', // "machinery peaks at 17.4%"
       10: 'machinery', // "machinery 16.5%"
       11: 'machinery', // "tapering. saw easing."
+      17: 'alert',
+      18: 'alert',
     },
     schedule: [
-      { h:0,  lat:40.7175, lng:-74.0090, loc:'Home — TriBeCa',           borough:1, desc:'Asleep, kind of. Of course there are people still out.' },
+      { h:0,  lat:40.7175, lng:-74.0090, loc:'Home — TriBeCa',           borough:1, desc:'A cab rolls through. He\'s already horizontal. TriBeCa this late is just headlights on the ceiling.' },
       { h:1,  lat:40.7175, lng:-74.0090, loc:'Home — TriBeCa',           borough:1, desc:'Asleep..' },
       { h:2,  lat:40.7175, lng:-74.0090, loc:'Home — TriBeCa',           borough:1, desc:'Asleep, barely. More than one hour till the alarm. He\'s getting restless by the people outside the window.' },
       { h:3,  lat:40.7175, lng:-74.0090, loc:'Home — TriBeCa',           borough:1, desc:'Alarm at 3:45. He lies there for 30 more minutes. Just a bit of doomscrolling.' },
       { h:4,  lat:40.7175, lng:-74.0090, loc:'Home — TriBeCa',           borough:1, desc:'Coffee, gear, out before 5. The city\'s delivery trucks are the only other thing awake.' },
       { h:5,  lat:40.7240, lng:-74.0010, loc:'Walking to Job Site',      borough:1, desc:'Walking two miles north. Just him and the trucks.' },
-      { h:6,  lat:40.7260, lng:-73.9990, loc:'Job Site — Arriving',      borough:1, desc:'Site staging. The crew shows up quiet. Gets the tools set. The neighborhood\'s still sleeping.' },
+      { h:6,  lat:40.7260, lng:-73.9990, loc:'Job Site — Arriving',      borough:1, desc:'First truck on the site. Crew loading in quiet. The neighborhood still sleeping.' },
       { h:7,  lat:40.7300, lng:-73.9990, loc:'Job Site',                 borough:1, desc:'Saws fire up at 7:01 AM sharp. This is the loudest hour in the whole dataset. Partially his work.' },
       { h:8,  lat:40.7300, lng:-73.9990, loc:'Job Site',                 borough:1, desc:'The saws woke the neighborhood up. Shouldn\'t matter.' },
       { h:9,  lat:40.7300, lng:-73.9990, loc:'Job Site',                 borough:1, desc:'Bzzzzz... Eddie thanking whoever invented earplugs.' },
@@ -177,13 +191,19 @@ export const PERSONAS = [
       priorityBoost: 0.05,
     },
     soundOverrides: {
+      1:  'music',
+      3:  'alert',
+      5:  'engine',
+      7:  'saw',
+      11: 'machinery',
       12: 'machinery', // wakes up to it — construction in its 4th hour
-      15: 'alert',       // 3pm at NYU Steinhardt should read as saw
+      16: 'alert',
       17: 'music',     // soundcheck
       18: 'music',     // pre-show
       19: 'music',     // first set
       20: 'music',     // performing
       21: 'voice',     // late set
+      22: 'music',
     },
     schedule: [
       { h:0,  lat:40.7348, lng:-74.0026, loc:'Village Vanguard',         borough:1, desc:'Now she\'s catching up with a couple friends. And getting free drinks, of course. Engine noises on 7th Ave make the perfect outro.' },
@@ -236,9 +256,10 @@ export const PERSONAS = [
       priorityBoost: 0.05,
     },
     soundOverrides: {
-      7:  'dog',    // "dogs everywhere this hour" — 4.7%, engine would dominate
-      8:  'dog',    // "dogs at 7.6% — the daily peak"
-      16: 'engine', // "records a garbage truck for twelve minutes"
+      5:  'engine',  // avenue delivery trucks while he sleeps
+      6:  'engine',  // narrative: delivery truck on his block
+      7:  'dog',     // dogs everywhere this hour — 4.7%, engine would dominate
+      8:  'dog',     // dogs at 7.6% — the daily peak
     },
     schedule: [
       { h:0,  lat:40.7763, lng:-73.9637, loc:'Home — Upper East Side',   borough:1, desc:'Asleep. 2nd Ave through the window. He\'s lived here 22 years. The sound has become ambient.' },
@@ -246,18 +267,18 @@ export const PERSONAS = [
       { h:2,  lat:40.7763, lng:-73.9637, loc:'Home — Upper East Side',   borough:1, desc:'Asleep.' },
       { h:3,  lat:40.7763, lng:-73.9637, loc:'Home — Upper East Side',   borough:1, desc:'Asleep while delivery trucks make their rounds on the avenue. The overnight economy. He will cite this.' },
       { h:4,  lat:40.7763, lng:-73.9637, loc:'Home — Upper East Side',   borough:1, desc:'Asleep.' },
-      { h:5,  lat:40.7763, lng:-73.9637, loc:'Home — Upper East Side',   borough:1, desc:'Asleep. Alarm at 6:45. The day\'s data collection begins.' },
-      { h:6,  lat:40.7763, lng:-73.9637, loc:'Upper East Side — Morning',borough:1, desc:'Up. Coffee, the news. The avenue quiet for now. He\'s getting ready to document it all.' },
+      { h:5,  lat:40.7763, lng:-73.9637, loc:'Home — Upper East Side',   borough:1, desc:'Still asleep. The avenue starting up outside. Two more hours.' },
+      { h:6,  lat:40.7763, lng:-73.9637, loc:'Upper East Side — Morning',borough:1, desc:'The delivery truck that does his block every morning. He\'s heard it so many times he knows when it\'ll slow down before it does.' },
       { h:7,  lat:40.7775, lng:-73.9460, loc:'East River Esplanade',     borough:1, desc:'Morning walk. The esplanade belongs to the dogs before it belongs to anyone else. Data point: 4.7% at this hour.' },
       { h:8,  lat:40.7763, lng:-73.9637, loc:'Upper East Side — Subway', borough:1, desc:'Heading to the 6 train. The dogs are out in force. He notes this. He notes everything.' },
-      { h:9,  lat:40.7290, lng:-73.9976, loc:'Silver Center — NYU',      borough:1, desc:'Office hours. Machinery from across the street drilling into the morning. His students are used to the percussion.' },
-      { h:10, lat:40.7290, lng:-73.9976, loc:'Silver Center — NYU',      borough:1, desc:'Class prep. The drill still going. His students have stopped hearing it. He hears it perfectly.' },
+      { h:9,  lat:40.7290, lng:-73.9976, loc:'Silver Center — NYU',      borough:1, desc:'Office hours. The street outside is a full of engine sounds and a few impatient honks you can feel in the desk. His students talk right over it.' },
+      { h:10, lat:40.7290, lng:-73.9976, loc:'Silver Center — NYU',      borough:1, desc:'Class prep. A hallway full of voices, half questions and half gossip.' },
       { h:11, lat:40.7290, lng:-73.9976, loc:'Lecture Hall — NYU',       borough:1, desc:'Teaching. Good discussion. Someone asks about the noise. He pivots to explain dB. They get it for a second.' },
       { h:12, lat:40.7308, lng:-74.0002, loc:'Washington Square Park',   borough:1, desc:'Lunch on a bench. He eats and takes notes. Not about the food. About the sounds around it.' },
-      { h:13, lat:40.7290, lng:-73.9976, loc:'Silver Center — NYU',      borough:1, desc:'Office hours. An ambulance on the street below. More or less every fifteen minutes. He\'s timed it.' },
-      { h:14, lat:40.7480, lng:-73.9890, loc:'Midtown — Field Recording',borough:1, desc:'Subway uptown with a recorder and a notebook. Field recording for his Music Tech class. The real work begins.' },
-      { h:15, lat:40.7592, lng:-73.9982, loc:'Hell\'s Kitchen — Street', borough:1, desc:'Mic out, levels set. Crosswalk chirps, HVAC, delivery trucks. The city as a signal. He\'s reading it.' },
-      { h:16, lat:40.7592, lng:-73.9982, loc:'Hell\'s Kitchen — Street', borough:1, desc:'He records a garbage truck for twelve minutes. Not for the story. For the spectrum. The rolloff characteristics are perfect.' },
+      { h:13, lat:40.7290, lng:-73.9976, loc:'Silver Center — NYU',      borough:1, desc:'Something vibrates the window. Could be the 1 train. Could be the building settling. He doesn\'t look up from the desk.' },
+      { h:14, lat:40.7480, lng:-73.9890, loc:'Midtown — Field Recording',borough:1, desc:'Midtown. Mic rolling. A delivery truck backs up somewhere nearby: that sharp beep-beep-beep cutting clean through everything else. Perfect data.' },
+      { h:15, lat:40.7592, lng:-73.9982, loc:'Hell\'s Kitchen — Street', borough:1, desc:'Levels set. The block is all mouth-noise: street chatter, someone projecting, someone answering back. He lets the waveform tell the story.' },
+      { h:16, lat:40.7592, lng:-73.9982, loc:'Hell\'s Kitchen — Street', borough:1, desc:'Still recording. Now it\'s the street itself: passing engines, whooshes, a constant low push of motion. He stops chasing moments and just holds the line.' },
       { h:17, lat:40.7440, lng:-73.9935, loc:'1 Train — Downtown',       borough:1, desc:'Rush hour platform. Too loud to do anything but stand there. He stands there. Listening.' },
       { h:18, lat:40.7290, lng:-73.9976, loc:'NYU — Evening',            borough:1, desc:'Back at Silver Center. Answering emails. The street below still running loud. It\'s always loud here.' },
       { h:19, lat:40.7600, lng:-73.9637, loc:'6 Train — Uptown',         borough:1, desc:'Heading home. Loud downtown, quieter by the 70s. The gradient is real.' },
@@ -291,27 +312,30 @@ export const PERSONAS = [
       priorityBoost: 0.04,
     },
     soundOverrides: {
-      2:  'voice',  // "the fares are quieter, stranger" — voice still 21%, more evocative than engine
-      23: 'alert',  // "trading voices for sirens" — voice 34.7% would win, but alert is the story
+      1:  'alert',  // siren cuts through Midtown — city thinking about going to sleep
+      2:  'voice',  // the fares are quieter, stranger — voice 21%, more evocative than engine
+      6:  'engine', // parked/asleep; trucks outside are the only sound
+      19: 'voice',  // shows letting out, happy crowd — voice over engine for this hour
+      23: 'alert',  // trading voices for sirens — alert is the story
     },
     schedule: [
-      { h:0,  lat:40.7308, lng:-74.0002, loc:'West Village — Pickup',    borough:1, desc:'Bar crowd in the backseat. Everyone talking about where they need to go next. Nobody agrees.' },
-      { h:1,  lat:40.7550, lng:-73.9850, loc:'Midtown — Late Night',     borough:1, desc:'Fewer fares. Midtown shutting down. She knows the fares get weirder from here.' },
+      { h:0,  lat:40.7308, lng:-74.0002, loc:'West Village — Pickup',    borough:1, desc:'A bus rolls past and for three seconds it\'s only engine and tires. The backseat disappears. She keeps the lane. Keeps the meter.' },
+      { h:1,  lat:40.7550, lng:-73.9850, loc:'Midtown — Late Night',     borough:1, desc:'A siren cuts through Midtown. Fewer fares. The city thinking about going to sleep.' },
       { h:2,  lat:40.7265, lng:-73.9862, loc:'East Village — Pickup',    borough:1, desc:'The late bars. The fares are quiet. Stranger. She\'s heard every story and most of them were lies.' },
       { h:3,  lat:40.7100, lng:-74.0050, loc:'Lower Manhattan',          borough:1, desc:'Long stretches with nobody in the back seat. The city\'s skeleton crew. Just work.' },
       { h:4,  lat:40.7072, lng:-74.0050, loc:'TriBeCa — Last Fares',     borough:1, desc:'Almost nothing left to pick up. The night shift is almost over. She\'s almost home.' },
-      { h:5,  lat:40.7360, lng:-74.0010, loc:'Heading Home',             borough:1, desc:'Last run north. Just trucks and her and the West Side Highway. Golden hour of emptiness.' },
+      { h:5,  lat:40.7360, lng:-74.0010, loc:'Heading Home',             borough:1, desc:'Last run north. A car alarm somewhere west keeps insisting on itself, bright and stupid in the empty lanes. She doesn\'t even flinch.' },
       { h:6,  lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Parked. Asleep by 6:30. She\'s earned it.' },
-      { h:7,  lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep. The morning dog walkers are starting their circuits outside. She doesn\'t hear them.' },
+      { h:7,  lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep. Morning traffic starts stitching the avenue back together, one engine at a time. She sleeps through every stitch.' },
       { h:8,  lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep hard.' },
       { h:9,  lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep.' },
       { h:10, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep while people live their days.' },
-      { h:11, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep. A construction site three blocks over. Four hours in. She misses all of it.' },
+      { h:11, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep. Idling trucks and passing buses trade places outside her window like it\'s a shift schedule. She misses every handoff.' },
       { h:12, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep.' },
       { h:13, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep.' },
       { h:14, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Asleep.' },
       { h:15, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Starting to wake up. The afternoon street filtering through the curtains. She can feel her shift coming.' },
-      { h:16, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'Up. Coffee. Checking the surge map. Grabbing her keys. Back into it.' },
+      { h:16, lat:40.7592, lng:-73.9982, loc:'Home — Hell\'s Kitchen',   borough:1, desc:'A tinny melody outside, the kind that makes your brain look up even when you don\'t. She checks the surge map, grabs her keys, and follows the music back into the street.' },
       { h:17, lat:40.7592, lng:-73.9982, loc:'Hell\'s Kitchen — Prepping',borough:1, desc:'Out for food, stretching her legs. Mentally preparing. She\'s about to go back into the machine.' },
       { h:18, lat:40.7550, lng:-73.9850, loc:'Midtown — Early Shift',    borough:1, desc:'Shift starts. Theater crowd, dinner crowd. Everyone needs somewhere to be. She\'s the solution to that problem.' },
       { h:19, lat:40.7480, lng:-73.9890, loc:'Midtown — Working',        borough:1, desc:'Shows letting out, bars opening. The fares come fast. Happy drunk people money in her bank account.' },

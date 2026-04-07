@@ -46,35 +46,5 @@ for cls in $classes; do
 done
 
 echo ""
-echo "upload complete. building clip-index.json..."
-
-python3 - "$CURATED_DIR" "$PUBLIC_BASE" "$INDEX_PATH" "$MANIFEST" <<'PYEOF'
-import sys, os, json
-
-curated_dir, public_base, index_path, manifest_path = sys.argv[1:]
-
-with open(manifest_path) as f:
-    manifest = json.load(f)
-
-classes = sorted({e['fine_class'] for e in manifest})
-
-index = {}
-for cls in classes:
-    cls_dir = os.path.join(curated_dir, cls)
-    if not os.path.isdir(cls_dir):
-        continue
-    urls = [
-        f"{public_base}/{fname}"
-        for fname in sorted(os.listdir(cls_dir))
-        if fname.endswith('.mp3')
-    ]
-    if urls:
-        index[cls] = urls
-
-with open(index_path, 'w') as f:
-    json.dump(index, f, indent=2)
-
-total = sum(len(v) for v in index.values())
-print(f"clip-index.json written — {len(index)} classes, {total} URLs")
-print(f"path: {index_path}")
-PYEOF
+echo "upload complete. rebuilding clip-index.json with borough+hour metadata..."
+python3 analysis/build_clip_index.py
