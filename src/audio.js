@@ -48,6 +48,10 @@ const MIN_PLAY_SECONDS = 5
 const MAX_PLAY_SECONDS = 7
 const MAX_NEAREST_CANDIDATES = 5
 
+function randBetween(min, max) {
+  return min + Math.random() * (max - min)
+}
+
 function pickPlayDuration(maxAvailableSeconds = MAX_PLAY_SECONDS, key = '') {
   const hash = key ? hashString(String(key)) : 0
   const unit = key ? (hash / 0xffffffff) : 0.5
@@ -80,10 +84,16 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
   return 2 * R * Math.asin(Math.sqrt(a))
 }
 
+let clipAssignments = {}  // "persona:hour" -> { url, type }
+
 export async function loadClipIndex() {
   try {
-    const res = await fetch('data/processed/clip-index.json')
-    const index = await res.json()
+    const [assignRes, indexRes] = await Promise.all([
+      fetch('data/processed/clip-assignments.json'),
+      fetch('data/processed/clip-index.json'),
+    ])
+    clipAssignments = assignRes.ok ? await assignRes.json() : {}
+    const index = await indexRes.json()
     for (const [coarse, fineClasses] of Object.entries(COARSE_TO_FINE)) {
       const pool = { all: [], byHour: {} }
       for (const f of fineClasses) {
@@ -220,6 +230,71 @@ async function playClip(url, db, durationKey = '', options = {}, requestToken = 
   schedulePlaybackStop(Math.max(500, Math.round(playDuration * 1000) + 60))
 }
 
+export function pickRandomClipUrl(type, options = {}) {
+  const pool = clipPool?.[type]
+  if (!pool) return null
+  const borough = options?.borough
+  const list = (borough !== undefined && borough !== null)
+    ? (pool[borough] || pool[String(borough)] || null)
+    : null
+  const items = (list && list.length) ? list : pool.all
+  if (!items?.length) return null
+  const idx = Math.floor(Math.random() * items.length)
+  const picked = items[idx]
+  return picked?.url || null
+}
+
+export async function playClipConcurrent(url, db, options = {}) {
+  const ctx = getAudioCtx()
+  if (!ctx) return null
+
+  let buffer = bufferCache.get(url)
+  if (!buffer) {
+    const res = await fetch(url)
+    const raw = await res.arrayBuffer()
+    buffer = await ctx.decodeAudioData(raw)
+    bufferCache.set(url, buffer)
+  }
+
+  const source = ctx.createBufferSource()
+  source.buffer = buffer
+
+  const targetDuration = Number.isFinite(options?.durationSeconds)
+    ? Math.max(0.2, options.durationSeconds)
+    : randBetween(2.0, 3.0)
+
+  const gainValue = Number.isFinite(options?.gain)
+    ? options.gain
+    : Math.max(0.25, Math.min(0.95, 0.58 + (db - 70) / 220))
+
+  const attack = 0.04
+  const release = 0.12
+  const playDuration = Math.min(targetDuration, buffer.duration || targetDuration)
+  const endTime = ctx.currentTime + playDuration
+  const sustainEnd = Math.max(ctx.currentTime + attack, endTime - release)
+
+  const g = ctx.createGain()
+  g.gain.setValueAtTime(0, ctx.currentTime)
+  g.gain.linearRampToValueAtTime(gainValue, ctx.currentTime + attack)
+  g.gain.setValueAtTime(gainValue * 0.92, sustainEnd)
+  g.gain.linearRampToValueAtTime(0, endTime)
+
+  source.connect(g)
+  g.connect(analyserNode)
+  source.start()
+  source.stop(endTime)
+
+  let endedResolve
+  const ended = new Promise(resolve => { endedResolve = resolve })
+  source.addEventListener('ended', () => endedResolve?.(), { once: true })
+
+  const stop = () => {
+    try { source.stop(0) } catch (e) {}
+  }
+
+  return { source, ended, stop, durationSeconds: playDuration }
+}
+
 export function playSoundType(type, db, borough, clipKey = '', options = {}) {
   const ctx = getAudioCtx()
   if (!ctx) return
@@ -244,6 +319,17 @@ export function playSoundType(type, db, borough, clipKey = '', options = {}) {
     currentSoundNodes.push(osc)
     emitPlaybackState(true)
     schedulePlaybackStop(Math.max(500, Math.round(playDuration * 1000) + 60))
+    return
+  }
+
+  // pre-assigned clip takes priority — guarantees no duplicates across all 120 persona-hours
+  // clipKey format is "persona:hour:borough:type"; assignment key is "persona:hour"
+  const assignKey = clipKey ? clipKey.split(':').slice(0, 2).join(':') : null
+  if (assignKey && clipAssignments[assignKey]?.type === type) {
+    const { url } = clipAssignments[assignKey]
+    playClip(url, db, clipKey, options, requestToken).catch(err => {
+      console.error(`[audio] pre-assigned clip fetch failed: ${url}`, err)
+    })
     return
   }
 

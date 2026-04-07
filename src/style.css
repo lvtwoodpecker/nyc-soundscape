@@ -496,6 +496,51 @@ body.about-modal-open {
   background: var(--surface-2);
 }
 
+.dog-mode-enter {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  z-index: 5;
+}
+.dog-mode-enter img {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+:root[data-theme='dark'] .dog-mode-enter img {
+  filter: invert(1);
+}
+.dog-mode-enter:hover { background: var(--surface-hover); }
+.dog-mode-enter:focus-visible { outline: 1px solid var(--border); outline-offset: 2px; }
+
+.dog-mode-exit {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 142px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  z-index: 6;
+}
+.dog-mode-exit:hover { background: var(--surface-hover); }
+.dog-mode-exit:focus-visible { outline: 1px solid var(--border); outline-offset: 2px; }
+
 #journey-desc-text {
   display: flex;
   flex-direction: column;
@@ -547,6 +592,104 @@ body.about-modal-open {
   min-height: 0;
   width: 100%;
   display: block;
+}
+
+.clock-panel #clock-svg[hidden] {
+  display: none !important;
+}
+
+.dog-stage {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  display: block;
+}
+
+body.dog-mode .dog-stage {
+  /* Tuning knobs (asset viewBox is off-center). */
+  --dog-scale: 0.65;
+  --dog-x: -75px;
+  --dog-y: 30px;
+}
+
+.dog-stage[hidden] {
+  display: none !important;
+}
+
+.dog-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.dog-clock {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  inset: 100px;        /* bigger number = smaller dog */
+  object-fit: contain;
+  padding: 0;
+  object-position: center top;
+  z-index: 2;
+}
+
+body.dog-mode #journey-desc-text {
+  display: grid;
+  place-items: center;
+  min-height: 100%;
+  font-family: 'DM Mono', monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@keyframes dogWobble {
+  0% { transform: translate(var(--dog-x, 0px), var(--dog-y, 0px)) scale(var(--dog-scale, 0.75)) rotate(-0.6deg) translateY(0); }
+  50% { transform: translate(var(--dog-x, 0px), var(--dog-y, 0px)) scale(var(--dog-scale, 0.75)) rotate(0.7deg) translateY(2px); }
+  100% { transform: translate(var(--dog-x, 0px), var(--dog-y, 0px)) scale(var(--dog-scale, 0.75)) rotate(-0.6deg) translateY(0); }
+}
+
+body.dog-mode .dog-clock {
+  animation: dogWobble 0.2s ease-in-out infinite;
+  transform-origin: center top;
+  margin-top: -48px;
+}
+
+body.dog-mode .timeline-hour-cell {
+  background: var(--playing-color, var(--theme-accent)) !important;
+  opacity: 0.75 !important;
+}
+
+body.dog-mode .timeline-hour-cell:hover {
+  filter: none;
+}
+
+body.dog-mode .timeline-hour-cell.current {
+  outline-color: var(--playing-color, var(--text));
+}
+
+body.dog-mode .clock-time-bar {
+  min-height: 92px;
+  padding-bottom: 0;
+  gap: 2px;
+}
+
+body.dog-mode .sound-row.playing {
+  border-color: var(--playing-color, var(--theme-accent));
+}
+
+body.dog-mode .panel-left,
+body.dog-mode .clock-panel,
+body.dog-mode .map-area,
+body.dog-mode .info-strip {
+  transform: rotate(-0.15deg) skewX(-0.35deg);
 }
 
 .clock-panel .timeline-wrapper {
@@ -916,6 +1059,10 @@ body.about-modal-open {
   font-size: 0.9rem;
   line-height: 1.55;
   box-shadow: none;
+}
+
+.hour-tooltip[hidden] {
+  display: none !important;
 }
 .hour-tooltip.visible { opacity: 1; }
 .hour-tooltip-title {

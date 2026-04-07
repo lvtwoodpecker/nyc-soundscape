@@ -100,6 +100,9 @@ let pathEl = null  // SVG polyline for persona trail
 let dotEl  = null  // persona dot
 let locLabelEl = null  // dynamic neighborhood name
 let landmarkEls = []
+let dogLayerEl = null
+
+let journeyVisible = true
 
 // diff tracking — only update hexes that actually changed state
 let prevCurrentHex = null
@@ -187,6 +190,53 @@ export function initNeighborhoodMap() {
   locLabelEl.setAttribute('pointer-events', 'none')
   locLabelEl.style.transition = 'opacity 0.2s'
   svgEl.appendChild(locLabelEl)
+
+  // dog markers layer (must render above everything)
+  dogLayerEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+  dogLayerEl.setAttribute('id', 'dog-layer')
+  svgEl.appendChild(dogLayerEl)
+}
+
+export function setJourneyVisible(visible) {
+  journeyVisible = Boolean(visible)
+  if (pathEl) pathEl.setAttribute('opacity', journeyVisible ? '0.6' : '0')
+  if (dotEl) dotEl.setAttribute('opacity', journeyVisible ? '1' : '0')
+  if (locLabelEl) locLabelEl.setAttribute('opacity', journeyVisible ? '1' : '0')
+}
+
+export function clearDogMarkers() {
+  if (!dogLayerEl) return
+  dogLayerEl.innerHTML = ''
+}
+
+export function spawnDogMarker(lat, lng, href, options = {}) {
+  if (!svgEl || !dogLayerEl) return null
+  const size = Number.isFinite(options?.size) ? options.size : 34
+  const [x, y] = project(lat, lng)
+
+  const img = document.createElementNS('http://www.w3.org/2000/svg', 'image')
+  img.setAttribute('href', href)
+  img.setAttribute('x', (x - size / 2).toFixed(1))
+  img.setAttribute('y', (y - size / 2).toFixed(1))
+  img.setAttribute('width', String(size))
+  img.setAttribute('height', String(size))
+  img.setAttribute('class', 'dog-marker')
+
+  dogLayerEl.appendChild(img)
+
+  // kick animation
+  requestAnimationFrame(() => img.classList.add('is-in'))
+
+  const remove = () => {
+    if (!img.isConnected) return
+    img.classList.remove('is-in')
+    img.classList.add('is-out')
+    window.setTimeout(() => {
+      try { img.remove() } catch (e) {}
+    }, 260)
+  }
+
+  return { el: img, remove }
 }
 
 function nearestHex(lat, lng) {
@@ -214,6 +264,7 @@ export function resetNeighborhoodMap() {
   if (pathEl) pathEl.setAttribute('points', '')
   if (dotEl)  dotEl.setAttribute('opacity', '0')
   if (locLabelEl) locLabelEl.setAttribute('opacity', '0')
+  clearDogMarkers()
   prevCurrentHex = null
   prevVisitedSet = new Set()
 }
@@ -289,29 +340,36 @@ export function updateNeighborhoodMap(persona, hour, startHour = 0) {
   prevCurrentHex = currentHex
   prevVisitedSet = visitedSet
 
-  // trail
-  if (pathEl) {
-    pathEl.setAttribute('points', pathPoints.join(' '))
-    pathEl.setAttribute('stroke', accent)
-  }
+  if (journeyVisible) {
+    // trail
+    if (pathEl) {
+      pathEl.setAttribute('points', pathPoints.join(' '))
+      pathEl.setAttribute('stroke', accent)
+      pathEl.setAttribute('opacity', '0.6')
+    }
 
-  // dot at current hex center
-  if (dotEl && currentHex) {
-    dotEl.setAttribute('cx', currentHex.cx.toFixed(1))
-    dotEl.setAttribute('cy', currentHex.cy.toFixed(1))
-    dotEl.setAttribute('fill', accent)
-    dotEl.setAttribute('opacity', '1')
-    dotEl.setAttribute('filter', `drop-shadow(0 0 3px ${accent})`)
-  }
+    // dot at current hex center
+    if (dotEl && currentHex) {
+      dotEl.setAttribute('cx', currentHex.cx.toFixed(1))
+      dotEl.setAttribute('cy', currentHex.cy.toFixed(1))
+      dotEl.setAttribute('fill', accent)
+      dotEl.setAttribute('opacity', '1')
+      dotEl.setAttribute('filter', `drop-shadow(0 0 3px ${accent})`)
+    }
 
-  // dynamic label: short loc name above the dot
-  if (locLabelEl && currentHex) {
-    const loc = persona.schedule[hour]?.loc || ''
-    // trim suffixes like " — Walking" for brevity
-    const shortLoc = loc.replace(/\s*[—–-].*$/, '').trim()
-    locLabelEl.textContent = shortLoc
-    locLabelEl.setAttribute('x', currentHex.cx.toFixed(1))
-    locLabelEl.setAttribute('y', (currentHex.cy - 12).toFixed(1))
-    locLabelEl.setAttribute('opacity', '1')
+    // dynamic label: short loc name above the dot
+    if (locLabelEl && currentHex) {
+      const loc = persona.schedule[hour]?.loc || ''
+      // trim suffixes like " — Walking" for brevity
+      const shortLoc = loc.replace(/\s*[—–-].*$/, '').trim()
+      locLabelEl.textContent = shortLoc
+      locLabelEl.setAttribute('x', currentHex.cx.toFixed(1))
+      locLabelEl.setAttribute('y', (currentHex.cy - 12).toFixed(1))
+      locLabelEl.setAttribute('opacity', '1')
+    }
+  } else {
+    if (pathEl) pathEl.setAttribute('opacity', '0')
+    if (dotEl) dotEl.setAttribute('opacity', '0')
+    if (locLabelEl) locLabelEl.setAttribute('opacity', '0')
   }
 }

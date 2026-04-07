@@ -11,4 +11,10 @@ export const state = {
   lastSoundColor: '',
   manualSoundSelection: null, // { type, db, borough, hour } for resume on spacebar
   allStories: {}, // { 0: { h, displayH, suffix, desc }, ... 23: { ... } }
+
+  dogModeActive: false,
+  dogMode: {
+    channels: 5,
+    markerCap: 40,
+  },
 }

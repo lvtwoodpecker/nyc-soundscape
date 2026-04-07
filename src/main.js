@@ -5,7 +5,9 @@ import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbM
 import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange, isAudioPlaying } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
-import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme } from './neighborhoodmap.js'
+import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme, setJourneyVisible } from './neighborhoodmap.js'
+import { startDogMode, stopDogMode, getDogModeColor } from './dogmode.js'
+import { applyDogModeTextOverrides, clearDogModeTextOverrides, renderDogLegend, renderDogSoundsList, renderDogRing } from './dogmode_ui.js'
 
 const THEME_KEY = 'nyc-soundscape-theme'
 let themeTransitionLock = false
@@ -34,17 +36,18 @@ function updateDayTransportUI() {
   const autoplayWrap = document.getElementById('autoplay-toggle-wrap')
   const hasPersona = !!state.persona
   const isPlaying = state.dayPlaybackState === 'playing'
+  const isDogMode = state.dogModeActive
 
   if (btn) {
-    btn.disabled = !hasPersona
-    btn.textContent = isPlaying ? '⏸ Pause' : '▶ Play'
+    btn.disabled = !hasPersona || isDogMode
+    if (!isDogMode) btn.textContent = isPlaying ? '⏸ Pause' : '▶ Play'
     btn.setAttribute('aria-pressed', String(isPlaying))
   }
 
   if (autoplayWrap) autoplayWrap.hidden = !hasPersona
 
   if (autoplayToggle) {
-    autoplayToggle.disabled = !hasPersona
+    autoplayToggle.disabled = !hasPersona || isDogMode
     autoplayToggle.checked = state.autoplayEnabled
   }
 }
@@ -85,6 +88,7 @@ async function startDayPlayback() {
 }
 
 async function toggleDayPlayback() {
+  if (state.dogModeActive) return
   if (!state.persona) return
   // Pause if autoplay is running OR if any audio is actually playing (e.g., manual sound click)
   if (state.dayPlaybackState === 'playing' || isAudioPlaying()) {
@@ -119,12 +123,24 @@ function manualSoundOverride(type, db, borough) {
   const resolvedDb = Number.isFinite(db) ? db : getSoundsForHour(state.persona, entry?.borough, state.hour).db
   // Remember this selection so spacebar resume replays it, not the default
   state.manualSoundSelection = { type, db: resolvedDb, borough: resolvedBorough, hour: state.hour }
-  playSound(type, resolvedDb, resolvedBorough)
-  if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) scheduleNextDayStep()
+  if (state.dogModeActive) {
+    const dogColor = getDogModeColor()
+    setPlayingColor(dogColor)
+    document.querySelectorAll('.sound-row').forEach(r => {
+      const isThis = r.dataset.sound === type
+      r.classList.toggle('playing', isThis)
+      r.style.removeProperty('--accent-color')
+    })
+    setWaveformActive(false, dogColor)
+    animateDbMeter(0, { forceColor: dogColor })
+  } else {
+    playSound(type, resolvedDb, resolvedBorough)
+    if (state.dayPlaybackState === 'playing' && state.autoplayEnabled) scheduleNextDayStep()
+  }
 }
 
 function syncAccentColor(color) {
-  const next = color || state.persona?.color || ''
+  const next = state.dogModeActive ? getDogModeColor() : (color || state.persona?.color || '')
   state.lastSoundColor = next
   setPlayingColor(next)
   return next
@@ -165,6 +181,70 @@ function setTheme(theme) {
     const isDark = theme === 'dark'
     btn.setAttribute('aria-pressed', String(isDark))
     btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode'
+  }
+}
+
+function setDogModeToggleIcon() {
+  const img = document.getElementById('dog-mode-enter-icon')
+  if (!img) return
+  img.src = 'assets/dog-mode-toggle-dark.svg'
+}
+
+function setDogModeActive(active) {
+  state.dogModeActive = Boolean(active)
+  document.body.classList.toggle('dog-mode', state.dogModeActive)
+
+  const enterBtn = document.getElementById('dog-mode-enter')
+  const exitBtn = document.getElementById('dog-mode-exit')
+  if (enterBtn) enterBtn.hidden = state.dogModeActive
+  if (exitBtn) exitBtn.hidden = !state.dogModeActive
+
+  const clockSvg = document.getElementById('clock-svg')
+  const dogStage = document.getElementById('dog-stage')
+  // SVG elements don't support the .hidden property; use the hidden attribute.
+  if (clockSvg) clockSvg.toggleAttribute('hidden', state.dogModeActive)
+  if (dogStage) dogStage.hidden = !state.dogModeActive
+
+  const tooltip = document.getElementById('hour-tooltip')
+  if (tooltip) tooltip.hidden = state.dogModeActive
+
+  setJourneyVisible(!state.dogModeActive)
+
+  if (state.dogModeActive) {
+    applyDogModeTextOverrides()
+    const dogColor = getDogModeColor()
+    setPlayingColor(dogColor)
+    state.lastSoundColor = dogColor
+    renderDogLegend()
+    renderDogSoundsList({ tiles: 4 })
+    renderDogRing({ persona: state.persona, selectedHour: state.hour, hourlyStats: state.hourlyStats })
+  }
+
+  if (!state.dogModeActive) {
+    clearDogModeTextOverrides()
+  }
+
+  updateDayTransportUI()
+}
+
+async function enterDogMode() {
+  if (state.dogModeActive) return
+  if (!window.confirm('Enter Woof Mode?')) return
+  if (!window.confirm('Are you really, really, really sure???????')) return
+
+  pauseDayPlayback({ keepHour: true })
+  setDogModeActive(true)
+  await startDogMode()
+}
+
+function exitDogMode() {
+  if (!state.dogModeActive) return
+  stopDogMode()
+  setDogModeActive(false)
+
+  if (state.persona) {
+    drawClock(state.persona, state.hour, state.hourlyStats)
+    updateHour(state.hour, { playAudio: false })
   }
 }
 
@@ -224,12 +304,14 @@ function toggleTheme() {
 
 function refreshThemeVisuals() {
   refreshNeighborhoodMapTheme()
-  drawClock(state.persona, state.hour, state.hourlyStats)
+  if (!state.dogModeActive) drawClock(state.persona, state.hour, state.hourlyStats)
   if (state.persona) {
     updateNeighborhoodMap(state.persona, state.hour, state.startHour)
-    renderSoundsList(...getSoundsForHourArgs())
+    if (state.dogModeActive) renderDogSoundsList({ tiles: 4 })
+    else renderSoundsList(...getSoundsForHourArgs())
   }
-  renderLegend()
+  if (state.dogModeActive) renderDogLegend()
+  else renderLegend()
   drawWaveform(analyserNode)
 }
 
@@ -294,6 +376,14 @@ async function init() {
     toggleTheme()
   })
 
+  document.getElementById('dog-mode-enter')?.addEventListener('click', () => {
+    enterDogMode().catch(err => console.warn('enter dog mode failed', err))
+  })
+
+  document.getElementById('dog-mode-exit')?.addEventListener('click', () => {
+    exitDogMode()
+  })
+
   document.getElementById('about-btn')?.addEventListener('click', () => {
     openAboutModal()
   })
@@ -323,6 +413,7 @@ async function init() {
 
   updateDayTransportUI()
   setTheme(getTheme())
+  setDogModeToggleIcon()
 
   document.addEventListener('keydown', e => {
     if (e.key !== ' ') return
@@ -332,6 +423,7 @@ async function init() {
     e.stopPropagation()
     if (e.repeat) return
     if (!state.persona) return
+    if (state.dogModeActive) return
     toggleDayPlayback().catch(err => console.warn('day transport failed', err))
   }, true)
 
@@ -373,6 +465,7 @@ async function init() {
 
 // plays a sound and updates the UI playing state + color
 function playSound(type, db, borough) {
+  if (state.dogModeActive) return
   const color = getSoundColor(type) || state.persona?.color || ''
   const clipKey = `${state.persona?.id || 'none'}:${state.hour}:${borough || 'x'}:${type}`
   const fullLength = !state.autoplayEnabled
@@ -455,17 +548,23 @@ function selectPersona(id) {
   const startHour = 8
   state.hour = startHour
   state.startHour = startHour
-  drawClock(state.persona, startHour, state.hourlyStats)
+  if (!state.dogModeActive) {
+    drawClock(state.persona, startHour, state.hourlyStats)
+  } else {
+    renderDogRing({ persona: state.persona, selectedHour: startHour, hourlyStats: state.hourlyStats })
+  }
   updateHour(startHour, { playAudio: false })
   renderTimeline(state.persona, state.hourlyStats)
   updateDayTransportUI()
 
-  startDayPlayback().catch(err => console.warn('autoplay start failed', err))
+  if (!state.dogModeActive) {
+    startDayPlayback().catch(err => console.warn('autoplay start failed', err))
+  }
 }
 
 function updateHour(h, options = {}) {
   if (!state.persona) return
-  const shouldPlayAudio = options.playAudio !== false && state.dayPlaybackState === 'playing'
+  const shouldPlayAudio = !state.dogModeActive && options.playAudio !== false && state.dayPlaybackState === 'playing'
 
   // Clear manual sound selection when changing hours
   if (h !== state.hour) {
@@ -491,21 +590,22 @@ function updateHour(h, options = {}) {
 
   const timeMain = document.getElementById('clock-time-main')
   if (timeMain) {
-    timeMain.textContent = `${displayH}:00 ${suffix}`
-    timeMain.style.color = featureColor
+    timeMain.textContent = state.dogModeActive ? 'Woof' : `${displayH}:00 ${suffix}`
+    timeMain.style.color = state.dogModeActive ? getDogModeColor() : featureColor
   }
   const timeSub = document.getElementById('clock-time-sub')
-  if (timeSub) timeSub.textContent = data.loc
+  if (timeSub) timeSub.textContent = state.dogModeActive ? 'Woof' : data.loc
 
-  // render story carousel snapped to current hour
-  renderStory(h, state.allStories)
+  if (!state.dogModeActive) renderStory(h, state.allStories)
 
   syncCurrentHourVisualAccent(featureColor, db)
 
-  renderSoundsList(displaySounds, db, noData)
+  if (state.dogModeActive) renderDogSoundsList()
+  else renderSoundsList(displaySounds, db, noData)
   updateTimeline(h)
 
-  updateClockHour(h)
+  if (!state.dogModeActive) updateClockHour(h)
+  else renderDogRing({ persona: state.persona, selectedHour: h, hourlyStats: state.hourlyStats })
   drawWaveform(analyserNode)
 
   if (shouldPlayAudio) {
