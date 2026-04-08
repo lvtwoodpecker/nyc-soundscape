@@ -43,6 +43,6 @@ export function renderTimeline(persona, hourlyStats) {
 
 export function updateTimeline(hour) {
   document.querySelectorAll('.timeline-hour-cell').forEach(c => c.classList.remove('current'))
-  const cell = document.querySelector(`[data-hour="${hour}"]`)
+  const cell = document.querySelector(`.timeline-hour-cell[data-hour="${hour}"]`)
   if (cell) cell.classList.add('current')
 }

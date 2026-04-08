@@ -344,7 +344,7 @@ async function init() {
   initNeighborhoodMap()
   console.log('%c NYC never sleeps. Neither does this data. ', 'background:#070810;color:#a29bfe;font-family:monospace;padding:4px 8px')
 
-  loadClipIndex()
+  await loadClipIndex()
   getAudioCtx()
   state.analyserNode = analyserNode
 
