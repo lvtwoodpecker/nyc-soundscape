@@ -156,7 +156,7 @@ export function renderDogSoundsList({ tiles = 4 } = {}) {
   const c = getDogModeColor()
   const n = Math.max(1, Math.min(12, Math.floor(tiles)))
   setHtml(el, Array(n).fill(0).map((_, idx) => `
-    <button type="button" class="sound-row${idx === 0 ? ' playing' : ''}" data-sound="dog" style="--accent-color:${c}">
+    <button type="button" class="sound-row${idx === 0 ? ' playing' : ''}" data-sound="dog" aria-label="Woof tile ${idx + 1}" style="--accent-color:${c}">
       <div class="sound-dot" style="background:${c};color:${c}"></div>
       <div class="sound-name">Woofer Woofer</div>
     </button>
@@ -181,7 +181,7 @@ export function applyDogModeTextOverrides() {
 
   document.querySelectorAll('.timeline-time-labels span').forEach(el => setText(el, 'Woof'))
 
-  setText(document.getElementById('dog-mode-exit'), 'Exit Woof Mode')
+  setText(document.getElementById('dog-mode-exit'), 'ENOUGH WOOFING FOR TODAY! >:(')
 
   // Map labels: override via JS (no CSS hiding)
   document.querySelectorAll('#map svg text').forEach(el => setText(el, 'Woofington'))

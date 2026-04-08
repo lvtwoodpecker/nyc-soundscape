@@ -107,21 +107,23 @@ function samplePointBiased() {
 
 function pickDogMarkerHref(recent) {
   if (!MARKER_VARIANTS.length) return null
-  if (recent.length >= 3) {
-    const a = recent[recent.length - 1]
-    const b = recent[recent.length - 2]
-    const c = recent[recent.length - 3]
-    if (a && a === b && b === c) {
-      const filtered = MARKER_VARIANTS.filter(h => h !== a)
-      return filtered[Math.floor(Math.random() * filtered.length)]
-    }
+
+  // Exclude last 5 used markers from pool
+  const recentSet = new Set(recent.slice(-5))
+  const available = MARKER_VARIANTS.filter(h => !recentSet.has(h))
+
+  // Fallback if all variants exhausted (rare)
+  if (available.length === 0) {
+    return MARKER_VARIANTS[Math.floor(Math.random() * MARKER_VARIANTS.length)]
   }
-  return MARKER_VARIANTS[Math.floor(Math.random() * MARKER_VARIANTS.length)]
+
+  return available[Math.floor(Math.random() * available.length)]
 }
 
 let runningToken = 0
 let activeSources = []
 let activeMarkers = []
+let activeMarkerTimers = []
 let recentMarkerHrefs = []
 
 export function getDogModeColor() {
@@ -135,14 +137,52 @@ export async function startDogMode() {
   clearDogMarkers()
   activeSources = []
   activeMarkers = []
+  activeMarkerTimers = []
   recentMarkerHrefs = []
 
   const channels = Math.max(1, Math.floor(state.dogMode?.channels || 5))
   const markerCap = Math.max(1, Math.floor(state.dogMode?.markerCap || 40))
 
+  const spawnVisualMarker = () => {
+    // pick spawn point
+    let lat = null, lng = null
+    for (let tries = 0; tries < 80; tries++) {
+      const p = samplePointBiased()
+      if (isSafePoint(p.lat, p.lng)) {
+        lat = p.lat
+        lng = p.lng
+        break
+      }
+    }
+    if (lat === null || lng === null) return
+
+    const markerHref = pickDogMarkerHref(recentMarkerHrefs)
+    if (!markerHref) return
+
+    recentMarkerHrefs.push(markerHref)
+    if (recentMarkerHrefs.length > 10) recentMarkerHrefs = recentMarkerHrefs.slice(-10)
+
+    const marker = spawnDogMarker(lat, lng, markerHref, { size: 34 })
+    if (!marker) return
+
+    activeMarkers.push(marker)
+    while (activeMarkers.length > markerCap) {
+      const oldest = activeMarkers.shift()
+      try { oldest?.remove?.() } catch (e) {}
+    }
+
+    const lingerMs = randBetween(4500, 6000)
+    const tid = window.setTimeout(() => {
+      activeMarkerTimers = activeMarkerTimers.filter(id => id !== tid)
+      activeMarkers = activeMarkers.filter(m => m !== marker)
+      try { marker.remove?.() } catch (e) {}
+    }, lingerMs)
+    activeMarkerTimers.push(tid)
+  }
+
   const loopChannel = async () => {
     while (myToken === runningToken) {
-      await sleep(randBetween(500, 2000))
+      await sleep(randBetween(500, 1200))
       if (myToken !== runningToken) return
 
       const url = pickRandomClipUrl('dog', { borough: DOG_BOROUGH })
@@ -152,23 +192,6 @@ export async function startDogMode() {
         continue
       }
 
-      // pick spawn point
-      let lat = null, lng = null
-      for (let tries = 0; tries < 80; tries++) {
-        const p = samplePointBiased()
-        if (isSafePoint(p.lat, p.lng)) {
-          lat = p.lat
-          lng = p.lng
-          break
-        }
-      }
-
-      const markerHref = pickDogMarkerHref(recentMarkerHrefs)
-      if (markerHref) {
-        recentMarkerHrefs.push(markerHref)
-        if (recentMarkerHrefs.length > 10) recentMarkerHrefs = recentMarkerHrefs.slice(-10)
-      }
-
       const durationSeconds = randBetween(2.0, 3.0)
       const clip = await playClipConcurrent(url, 75, { durationSeconds })
       if (!clip || myToken !== runningToken) {
@@ -176,29 +199,22 @@ export async function startDogMode() {
         continue
       }
       activeSources.push(clip)
+    }
+  }
 
-      let marker = null
-      if (lat !== null && lng !== null && markerHref) {
-        marker = spawnDogMarker(lat, lng, markerHref, { size: 34 })
-        if (marker) {
-          activeMarkers.push(marker)
-          while (activeMarkers.length > markerCap) {
-            const oldest = activeMarkers.shift()
-            try { oldest?.remove?.() } catch (e) {}
-          }
-        }
-      }
-
-      clip.ended.then(() => {
-        if (myToken !== runningToken) return
-        try { marker?.remove?.() } catch (e) {}
-      })
+  const loopVisuals = async () => {
+    while (myToken === runningToken) {
+      // Visuals are intentionally slower and independent from bark timing.
+      await sleep(randBetween(600, 1000))
+      if (myToken !== runningToken) return
+      spawnVisualMarker()
     }
   }
 
   for (let i = 0; i < channels; i++) {
     loopChannel().catch(() => {})
   }
+  loopVisuals().catch(() => {})
 }
 
 export function stopDogMode() {
@@ -212,6 +228,10 @@ export function stopDogMode() {
     try { m?.remove?.() } catch (e) {}
   })
   activeMarkers = []
+  activeMarkerTimers.forEach(id => {
+    try { window.clearTimeout(id) } catch (e) {}
+  })
+  activeMarkerTimers = []
   recentMarkerHrefs = []
   clearDogMarkers()
 }

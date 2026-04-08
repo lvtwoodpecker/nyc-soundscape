@@ -500,19 +500,22 @@ body.about-modal-open {
   position: absolute;
   top: 12px;
   left: 12px;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
+  width: 67px;
+  height: 67px;
+  border-radius: 20px;
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 80%, transparent);
-  display: grid;
+  display: none;
   place-items: center;
   cursor: pointer;
   z-index: 5;
 }
+.dog-mode-enter.visible {
+  display: grid;
+}
 .dog-mode-enter img {
-  width: 26px;
-  height: 26px;
+  width: 52px;
+  height: 52px;
   display: block;
 }
 
@@ -1307,6 +1310,27 @@ body.dog-mode .info-strip {
 }
 .sound-row.playing .sound-dot {
   animation: soundPulse 1.5s ease-in-out infinite;
+}
+
+.dog-marker {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: translateY(14px) scale(0.72);
+  filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.12));
+  transition: transform 0.34s cubic-bezier(0.2, 0.9, 0.2, 1.2), opacity 0.24s ease, filter 0.24s ease;
+}
+
+.dog-marker.is-in {
+  opacity: 0.96;
+  transform: translateY(0) scale(1);
+  filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.2));
+}
+
+.dog-marker.is-out {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.9);
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.08));
 }
 
 /* clock needle fade-in on each hour change */

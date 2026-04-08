@@ -14,7 +14,8 @@ export const state = {
 
   dogModeActive: false,
   dogMode: {
-    channels: 5,
-    markerCap: 40,
+    channels: 13,
+    markerCap: 20,
+    previousPlaybackState: 'paused', // store state before entering Dog Mode
   },
 }

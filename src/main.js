@@ -238,15 +238,17 @@ function setDogModeActive(active) {
 
 async function enterDogMode() {
   if (state.dogModeActive) return
-  if (!window.confirm('Enter Woof Mode?')) return
+  if (!window.confirm('Enter Woof Mode... At Your Peril...')) return
 
+  // Save current playback state before pausing
+  state.dogMode.previousPlaybackState = state.dayPlaybackState
   pauseDayPlayback({ keepHour: true })
   setDogModeActive(true)
   setJourneyVisible(false)
   await startDogMode()
 }
 
-function exitDogMode() {
+async function exitDogMode() {
   if (!state.dogModeActive) return
   stopDogMode()
   setDogModeActive(false)
@@ -255,7 +257,13 @@ function exitDogMode() {
   if (state.persona) {
     drawClock(state.persona, state.hour, state.hourlyStats)
     updateHour(state.hour, { playAudio: false })
+    
+    // Resume playback if it was playing before entering Dog Mode
+    if (state.dogMode.previousPlaybackState === 'playing') {
+      await startDayPlayback()
+    }
   }
+  updateDayTransportUI()
 }
 
 function pulseThemeButton() {
