@@ -15,8 +15,8 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/nyc-soundscape/assets/index-IYsvin6d.js"></script>
-  <link rel="stylesheet" crossorigin href="/nyc-soundscape/assets/index-Bx78mPeS.css">
+  <script type="module" crossorigin src="/nyc-soundscape/assets/index-BQHPqa00.js"></script>
+  <link rel="stylesheet" crossorigin href="/nyc-soundscape/assets/index-CxwkU35X.css">
 </head>
 <body>
 
@@ -95,6 +95,10 @@
       </div>
     </div>
     <svg id="clock-svg" viewBox="-260 -260 520 520"></svg>
+    <div id="dog-stage" class="dog-stage" hidden>
+      <svg id="dog-ring" class="dog-ring" viewBox="-260 -260 520 520" aria-hidden="true"></svg>
+      <img id="dog-clock" class="dog-clock" src="assets/dog-clock.svg" alt="Dog mode clock">
+    </div>
     <div class="hour-tooltip" id="hour-tooltip">
       <div class="hour-tooltip-title" id="tt-title"></div>
       <div id="tt-sounds"></div>
@@ -112,6 +116,10 @@
   <!-- RIGHT: MAP + STORY LOG -->
   <div class="map-area">
     <div id="map"></div>
+    <button class="dog-mode-enter" id="dog-mode-enter" type="button" aria-label="Enter Dog Mode" title="Dog Mode">
+      <img id="dog-mode-enter-icon" src="assets/dog-mode-toggle-dark.svg" alt="" aria-hidden="true">
+    </button>
+    <button class="dog-mode-exit" id="dog-mode-exit" type="button" hidden>Stop the dogs</button>
     <div id="story-overlay">
       <div id="journey-desc-text"></div>
     </div>
