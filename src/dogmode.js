@@ -193,12 +193,21 @@ export async function startDogMode() {
       }
 
       const durationSeconds = randBetween(2.0, 3.0)
-      const clip = await playClipConcurrent(url, 75, { durationSeconds })
+      let clip = null
+      try {
+        clip = await playClipConcurrent(url, 75, { durationSeconds })
+      } catch (err) {
+        console.warn('[dogmode] clip playback failed', err)
+        continue
+      }
       if (!clip || myToken !== runningToken) {
         try { clip?.stop?.() } catch (e) {}
         continue
       }
       activeSources.push(clip)
+      clip.ended.finally(() => {
+        activeSources = activeSources.filter(s => s !== clip)
+      }).catch(() => {})
     }
   }
 

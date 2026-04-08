@@ -157,19 +157,21 @@ function syncCurrentHourVisualAccent(color, db) {
 
   const accent = syncAccentColor(color)
 
-  const currentArc = document.querySelector(`#clock-svg path[data-hour="${state.hour}"]`)
-  if (currentArc && accent) currentArc.setAttribute('fill', accent)
+  if (!state.dogModeActive) {
+    const currentArc = document.querySelector(`#clock-svg path[data-hour="${state.hour}"]`)
+    if (currentArc && accent) currentArc.setAttribute('fill', accent)
 
-  const currentTitle = document.querySelector('#clock-time-bar .clock-time-main')
-  if (currentTitle && accent) currentTitle.style.color = accent
+    const currentTitle = document.querySelector('#clock-time-bar .clock-time-main')
+    if (currentTitle && accent) currentTitle.style.color = accent
 
-  const currentCell = document.querySelector(`#timeline-strip .timeline-hour-cell[data-hour="${state.hour}"]`)
-  if (currentCell && accent) {
-    currentCell.style.background = accent
-    currentCell.style.opacity = '0.95'
+    const currentCell = document.querySelector(`#timeline-strip .timeline-hour-cell[data-hour="${state.hour}"]`)
+    if (currentCell && accent) {
+      currentCell.style.background = accent
+      currentCell.style.opacity = '0.95'
+    }
+
+    updateNeighborhoodMap(state.persona, state.hour, state.startHour)
   }
-
-  updateNeighborhoodMap(state.persona, state.hour, state.startHour)
   animateDbMeter(db, { forceColor: accent })
 }
 
