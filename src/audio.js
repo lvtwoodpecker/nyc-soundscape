@@ -326,7 +326,7 @@ export function playSoundType(type, db, borough, clipKey = '', options = {}) {
   // pre-assigned clip takes priority — guarantees no duplicates across all 120 persona-hours
   // clipKey format is "persona:hour:borough:type"; assignment key is "persona:hour"
   const assignKey = clipKey ? clipKey.split(':').slice(0, 2).join(':') : null
-  if (assignKey && clipAssignments[assignKey]) {
+  if (assignKey && clipAssignments[assignKey]?.type === type) {
     const { url } = clipAssignments[assignKey]
     playClip(url, db, clipKey, options, requestToken).catch(err => {
       console.error(`[audio] pre-assigned clip fetch failed: ${url}`, err)

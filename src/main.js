@@ -601,9 +601,9 @@ function updateHour(h, options = {}) {
   const { sounds, db, noData, prevalence } = getSoundsForHour(state.persona, data.borough, h)
   const override = state.persona.soundOverrides?.[h]
   const feature = noData ? null : (override || pickFeatureSound(sounds, prevalence, state.persona))
-  // use pre-assignment type for label if it differs (corrects mislabeled SONYC clips)
+  // pre-assignment type corrects mislabeled SONYC clips, but soundOverride always wins
   const assignKey = `${state.persona.id}:${h}`
-  const effectiveFeature = (feature && clipAssignments[assignKey]?.type) ? clipAssignments[assignKey].type : feature
+  const effectiveFeature = override ? feature : (feature && clipAssignments[assignKey]?.type ? clipAssignments[assignKey].type : feature)
   const featureColor = effectiveFeature ? getSoundColor(effectiveFeature) : state.persona.color
   const displaySounds = effectiveFeature
     ? [effectiveFeature, ...sounds.filter(s => s !== effectiveFeature)].slice(0, 4)
