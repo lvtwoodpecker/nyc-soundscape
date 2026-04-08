@@ -1,4 +1,5 @@
 import { SOUND_COLORS, getSoundColor } from './personas.js'
+import { clipAssignments } from './audio.js'
 
 const R_OUTER = 220
 const R_INNER = 100
@@ -350,7 +351,8 @@ export function drawClock(persona, selectedHour, hourlyStats) {
       }
     }
 
-    const color = featureColor(sounds, prevalence, persona, h)
+    const assignedType = persona ? clipAssignments[`${persona.id}:${h}`]?.type : null
+    const color = assignedType ? (getSoundColor(assignedType) || featureColor(sounds, prevalence, persona, h)) : featureColor(sounds, prevalence, persona, h)
     const isSelected = h === selectedHour
     const dbFactor = sounds.length > 0 ? dbToFactor(db, dbBounds) : 0
     const segR = R_INNER + dbFactor * (R_OUTER - R_INNER)

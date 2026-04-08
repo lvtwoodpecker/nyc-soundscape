@@ -1,5 +1,6 @@
 import { getSoundColor } from './personas.js'
 import { pickVisualSound, MIN_SOUND_PREVALENCE } from './clock.js'
+import { clipAssignments } from './audio.js'
 
 export function renderTimeline(persona, hourlyStats) {
   const el = document.getElementById('timeline-strip')
@@ -19,7 +20,8 @@ export function renderTimeline(persona, hourlyStats) {
         const sounds = Object.entries(hData.prevalence)
           .filter(([, v]) => v >= MIN_SOUND_PREVALENCE)
           .map(([k]) => k)
-        const top = pickVisualSound(sounds, hData.prevalence, persona, h)
+        const assignedType = clipAssignments[`${persona.id}:${h}`]?.type
+        const top = assignedType || pickVisualSound(sounds, hData.prevalence, persona, h)
         if (top) {
           color = getSoundColor(top) || '#e4e3de'
           opacity = 0.85
