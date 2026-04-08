@@ -129,7 +129,8 @@ export const PERSONAS = [
       priorityBoost: 0.04,
     },
     soundOverrides: {
-      0:  'engine',    // cab rolls through
+      0:  'engine',    
+      2:  'voice',
       5:  'engine',    // just him and the trucks
       6:  'engine',    // first truck on site, crew loading in quiet
       7:  'saw',       // "saw fires up at 7:01" — engine would win otherwise

@@ -498,8 +498,8 @@ body.about-modal-open {
 
 .dog-mode-enter {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  right: 12px;
+  bottom: 142px;
   width: 67px;
   height: 67px;
   border-radius: 20px;
@@ -614,6 +614,11 @@ body.dog-mode .dog-stage {
   --dog-scale: 0.65;
   --dog-x: -75px;
   --dog-y: 30px;
+}
+
+body.dog-mode {
+  --theme-accent: var(--c-dog);
+  --playing-color: var(--c-dog);
 }
 
 .dog-stage[hidden] {

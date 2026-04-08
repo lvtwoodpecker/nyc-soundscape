@@ -243,6 +243,7 @@ async function enterDogMode() {
   // Save current playback state before pausing
   state.dogMode.previousPlaybackState = state.dayPlaybackState
   pauseDayPlayback({ keepHour: true })
+  resetNeighborhoodMap()
   setDogModeActive(true)
   setJourneyVisible(false)
   await startDogMode()
