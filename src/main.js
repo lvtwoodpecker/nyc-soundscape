@@ -2,7 +2,7 @@ import { state } from './state.js'
 import { PERSONAS, getSoundColor } from './personas.js'
 import { drawClock, updateClockHour, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange, isAudioPlaying } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange, isAudioPlaying, clipAssignments } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme, setJourneyVisible } from './neighborhoodmap.js'
@@ -39,7 +39,7 @@ function updateDayTransportUI() {
   const isDogMode = state.dogModeActive
 
   if (btn) {
-    btn.disabled = !hasPersona || isDogMode
+    btn.disabled = isDogMode
     if (!isDogMode) btn.textContent = isPlaying ? '⏸ Pause' : '▶ Play'
     btn.setAttribute('aria-pressed', String(isPlaying))
   }
@@ -89,7 +89,13 @@ async function startDayPlayback() {
 
 async function toggleDayPlayback() {
   if (state.dogModeActive) return
-  if (!state.persona) return
+  // Auto-select first persona if none selected
+  if (!state.persona) {
+    if (typeof window.selectPersonaGlobal === 'function') {
+      window.selectPersonaGlobal(PERSONAS[0].id)
+    }
+    return
+  }
   // Pause if autoplay is running OR if any audio is actually playing (e.g., manual sound click)
   if (state.dayPlaybackState === 'playing' || isAudioPlaying()) {
     pauseDayPlayback({ keepHour: true })
@@ -196,8 +202,11 @@ function setDogModeActive(active) {
 
   const enterBtn = document.getElementById('dog-mode-enter')
   const exitBtn = document.getElementById('dog-mode-exit')
-  if (enterBtn) enterBtn.hidden = state.dogModeActive
   if (exitBtn) exitBtn.hidden = !state.dogModeActive
+  if (enterBtn) {
+    enterBtn.title = state.dogModeActive ? 'Exit Woof Mode' : 'Dog Mode'
+    enterBtn.setAttribute('aria-label', state.dogModeActive ? 'Exit Woof Mode' : 'Enter Dog Mode')
+  }
 
   const clockSvg = document.getElementById('clock-svg')
   const dogStage = document.getElementById('dog-stage')
@@ -230,10 +239,10 @@ function setDogModeActive(active) {
 async function enterDogMode() {
   if (state.dogModeActive) return
   if (!window.confirm('Enter Woof Mode?')) return
-  if (!window.confirm('Are you really, really, really sure???????')) return
 
   pauseDayPlayback({ keepHour: true })
   setDogModeActive(true)
+  setJourneyVisible(false)
   await startDogMode()
 }
 
@@ -241,6 +250,7 @@ function exitDogMode() {
   if (!state.dogModeActive) return
   stopDogMode()
   setDogModeActive(false)
+  setJourneyVisible(true)
 
   if (state.persona) {
     drawClock(state.persona, state.hour, state.hourlyStats)
@@ -377,6 +387,10 @@ async function init() {
   })
 
   document.getElementById('dog-mode-enter')?.addEventListener('click', () => {
+    if (state.dogModeActive) {
+      exitDogMode()
+      return
+    }
     enterDogMode().catch(err => console.warn('enter dog mode failed', err))
   })
 
@@ -532,6 +546,9 @@ function selectPersona(id) {
   leftPanel.classList.add('panel-flash')
 
   state.storyLog = []
+
+  // Show dog button after persona is picked
+  document.getElementById('dog-mode-enter')?.classList.add('visible')
   // Pre-compute all 24 hours' stories for carousel-like behavior
   state.allStories = {}
   for (let h = 0; h < 24; h++) {
@@ -576,9 +593,12 @@ function updateHour(h, options = {}) {
   const { sounds, db, noData, prevalence } = getSoundsForHour(state.persona, data.borough, h)
   const override = state.persona.soundOverrides?.[h]
   const feature = noData ? null : (override || pickFeatureSound(sounds, prevalence, state.persona))
-  const featureColor = feature ? getSoundColor(feature) : state.persona.color
-  const displaySounds = feature
-    ? [feature, ...sounds.filter(s => s !== feature)].slice(0, 4)
+  // use pre-assignment type for label if it differs (corrects mislabeled SONYC clips)
+  const assignKey = `${state.persona.id}:${h}`
+  const effectiveFeature = (feature && clipAssignments[assignKey]?.type) ? clipAssignments[assignKey].type : feature
+  const featureColor = effectiveFeature ? getSoundColor(effectiveFeature) : state.persona.color
+  const displaySounds = effectiveFeature
+    ? [effectiveFeature, ...sounds.filter(s => s !== effectiveFeature)].slice(0, 4)
     : sounds
 
   const displayH = h === 0 ? '12' : h > 12 ? String(h - 12) : String(h)
@@ -612,7 +632,7 @@ function updateHour(h, options = {}) {
     if (noData) {
       playSound('flatline', db, data.borough)
     } else {
-      if (feature) playSound(feature, db, data.borough)
+      if (effectiveFeature) playSound(effectiveFeature, db, data.borough)
     }
   } else {
     animateDbMeter(0, { forceColor: state.lastSoundColor || featureColor })

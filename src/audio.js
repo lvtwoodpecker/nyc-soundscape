@@ -84,7 +84,7 @@ function haversineMeters(lat1, lng1, lat2, lng2) {
   return 2 * R * Math.asin(Math.sqrt(a))
 }
 
-let clipAssignments = {}  // "persona:hour" -> { url, type }
+export let clipAssignments = {}  // "persona:hour" -> { url, type }
 
 export async function loadClipIndex() {
   try {
@@ -263,9 +263,10 @@ export async function playClipConcurrent(url, db, options = {}) {
     ? Math.max(0.2, options.durationSeconds)
     : randBetween(2.0, 3.0)
 
+  const baseGain = Math.max(0.25, Math.min(0.95, 0.58 + (db - 70) / 220))
   const gainValue = Number.isFinite(options?.gain)
     ? options.gain
-    : Math.max(0.25, Math.min(0.95, 0.58 + (db - 70) / 220))
+    : Math.min(1.0, baseGain * 1.2)
 
   const attack = 0.04
   const release = 0.12
@@ -325,7 +326,7 @@ export function playSoundType(type, db, borough, clipKey = '', options = {}) {
   // pre-assigned clip takes priority — guarantees no duplicates across all 120 persona-hours
   // clipKey format is "persona:hour:borough:type"; assignment key is "persona:hour"
   const assignKey = clipKey ? clipKey.split(':').slice(0, 2).join(':') : null
-  if (assignKey && clipAssignments[assignKey]?.type === type) {
+  if (assignKey && clipAssignments[assignKey]) {
     const { url } = clipAssignments[assignKey]
     playClip(url, db, clipKey, options, requestToken).catch(err => {
       console.error(`[audio] pre-assigned clip fetch failed: ${url}`, err)
