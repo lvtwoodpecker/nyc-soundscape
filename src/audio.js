@@ -44,8 +44,8 @@ const COARSE_TO_FINE = {
 
 let clipPool = {}       // coarse type -> { all: [clip], 1: [clip], 3: [clip], 4: [clip], byHour: { 0: { all: [clip], 1:[clip]... } } }
 const bufferCache = new Map()
-const MIN_PLAY_SECONDS = 5
-const MAX_PLAY_SECONDS = 7
+const MIN_PLAY_SECONDS = 7.5
+const MAX_PLAY_SECONDS = 9
 const MAX_NEAREST_CANDIDATES = 5
 
 function randBetween(min, max) {
@@ -188,6 +188,17 @@ export function stopAllSounds(emitIdle = true) {
   if (emitIdle) emitPlaybackState(false)
 }
 
+export async function prefetchClip(url) {
+  if (!url || bufferCache.has(url)) return
+  try {
+    const ctx = getAudioCtx()
+    const res = await fetch(url)
+    const raw = await res.arrayBuffer()
+    const buffer = await ctx.decodeAudioData(raw)
+    bufferCache.set(url, buffer)
+  } catch (e) {}
+}
+
 async function playClip(url, db, durationKey = '', options = {}, requestToken = 0) {
   const ctx = getAudioCtx()
   let buffer = bufferCache.get(url)
@@ -328,6 +339,7 @@ export function playSoundType(type, db, borough, clipKey = '', options = {}) {
   const assignKey = clipKey ? clipKey.split(':').slice(0, 2).join(':') : null
   if (assignKey && clipAssignments[assignKey]?.type === type) {
     const { url } = clipAssignments[assignKey]
+    console.log(`[audio] pre-assigned ${assignKey} → ${url.split('/').pop()}`)                                                            
     playClip(url, db, clipKey, options, requestToken).catch(err => {
       console.error(`[audio] pre-assigned clip fetch failed: ${url}`, err)
     })

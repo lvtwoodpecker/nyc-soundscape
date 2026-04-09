@@ -439,13 +439,26 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
     const roleEl = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     roleEl.setAttribute('x', 0)
-    roleEl.setAttribute('y', 6)
+    roleEl.setAttribute('y', 2)
     roleEl.setAttribute('text-anchor', 'middle')
     roleEl.setAttribute('font-family', 'DM Mono, monospace')
     roleEl.setAttribute('font-size', '14')
     roleEl.setAttribute('fill', cssVar('--clock-role', '#888884'))
-    roleEl.textContent = persona.role
+    roleEl.textContent = persona.clockRole || persona.role
     svg.appendChild(roleEl)
+
+    if (persona.clockSubtitle) {
+      const subEl = document.createElementNS('http://www.w3.org/2000/svg', 'text')
+      subEl.setAttribute('x', 0)
+      subEl.setAttribute('y', 22)
+      subEl.setAttribute('text-anchor', 'middle')
+      subEl.setAttribute('font-family', 'DM Mono, monospace')
+      subEl.setAttribute('font-size', '12')
+      subEl.setAttribute('fill', persona.color)
+      subEl.setAttribute('opacity', '1')
+      subEl.textContent = persona.clockSubtitle
+      svg.appendChild(subEl)
+    }
   } else {
     const hint = document.createElementNS('http://www.w3.org/2000/svg', 'text')
     hint.setAttribute('x', 0)

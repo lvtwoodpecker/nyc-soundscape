@@ -2,7 +2,7 @@ import { state } from './state.js'
 import { PERSONAS, getSoundColor } from './personas.js'
 import { drawClock, updateClockHour, pickVisualSound, rankSounds, MIN_SOUND_PREVALENCE } from './clock.js'
 import { renderLegend, renderPersonas, renderSoundsList, renderStory, animateDbMeter, setPlayingColor } from './ui.js'
-import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange, isAudioPlaying, clipAssignments } from './audio.js'
+import { playSoundType, analyserNode, getAudioCtx, loadClipIndex, setMasterVolume, stopAllSounds, onPlaybackStateChange, isAudioPlaying, clipAssignments, prefetchClip } from './audio.js'
 import { resizeWaveform, drawWaveform, setWaveformActive } from './waveform.js'
 import { renderTimeline, updateTimeline } from './timeline.js'
 import { initNeighborhoodMap, updateNeighborhoodMap, resetNeighborhoodMap, refreshNeighborhoodMapTheme, setJourneyVisible } from './neighborhoodmap.js'
@@ -11,12 +11,12 @@ import { applyDogModeTextOverrides, clearDogModeTextOverrides, renderDogLegend, 
 
 const THEME_KEY = 'nyc-soundscape-theme'
 let themeTransitionLock = false
-const DAY_STEP_MS = 5000
+const DAY_STEP_MS = 7000
 
 window.updateHourGlobal = (h) => {
   jumpToHourManual(h).catch(err => console.warn('manual jump failed', err))
 }
-window.selectPersonaGlobal = selectPersona
+window.selectPersonaGlobal = (id) => selectPersona(id, { fromUser: false })
 
 // wrapper so clicking a sound row also updates playing state + color
 window.playSoundGlobal = (type, db, borough) => {
@@ -198,6 +198,19 @@ function setDogModeToggleIcon() {
   img.src = 'assets/dog-mode-toggle-dark.svg'
 }
 
+function maybeRevealDogModeButton() {
+  const enterBtn = document.getElementById('dog-mode-enter')
+  if (!enterBtn) return
+  if ((state.dogMode?.personaClicks || 0) < 2) return
+  if (enterBtn.classList.contains('visible')) return
+
+  enterBtn.classList.add('visible')
+  enterBtn.classList.remove('jump-in')
+  void enterBtn.offsetWidth
+  enterBtn.classList.add('jump-in')
+  window.setTimeout(() => enterBtn.classList.remove('jump-in'), 500)
+}
+
 function setDogModeActive(active) {
   state.dogModeActive = Boolean(active)
   document.body.classList.toggle('dog-mode', state.dogModeActive)
@@ -373,7 +386,7 @@ async function init() {
   }
 
   renderLegend()
-  renderPersonas(selectPersona)
+  renderPersonas((id) => selectPersona(id, { fromUser: true }))
   renderTimeline()
 
   resizeWaveform()
@@ -529,7 +542,12 @@ function pickFeatureSound(sounds, prevalence, persona) {
   return pickVisualSound(sounds, prevalence, persona, state.hour)
 }
 
-function selectPersona(id) {
+function selectPersona(id, options = {}) {
+  if (options.fromUser) {
+    state.dogMode.personaClicks = (state.dogMode.personaClicks || 0) + 1
+    maybeRevealDogModeButton()
+  }
+
   if (state.persona?.id === id) {
     toggleDayPlayback().catch(err => console.warn('day transport failed', err))
     return
@@ -557,9 +575,6 @@ function selectPersona(id) {
   leftPanel.classList.add('panel-flash')
 
   state.storyLog = []
-
-  // Show dog button after persona is picked
-  document.getElementById('dog-mode-enter')?.classList.add('visible')
   // Pre-compute all 24 hours' stories for carousel-like behavior
   state.allStories = {}
   for (let h = 0; h < 24; h++) {
@@ -638,6 +653,11 @@ function updateHour(h, options = {}) {
   if (!state.dogModeActive) updateClockHour(h)
   else renderDogRing({ persona: state.persona, selectedHour: h, hourlyStats: state.hourlyStats })
   drawWaveform(analyserNode)
+
+  // warm buffer cache for next hour so the 5s autoplay timer never races a cold fetch
+  const nextH = (h + 1) % 24
+  const nextUrl = clipAssignments[`${state.persona.id}:${nextH}`]?.url
+  if (nextUrl) prefetchClip(nextUrl)
 
   if (shouldPlayAudio) {
     if (noData) {

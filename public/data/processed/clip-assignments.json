@@ -9,7 +9,7 @@
   },
   "rosa:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-25.mp3",
-    "type": "voice"
+    "type": "alert"
   },
   "rosa:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-01.mp3",
@@ -28,7 +28,7 @@
     "type": "engine"
   },
   "rosa:7": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-04.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-01.mp3",
     "type": "saw"
   },
   "rosa:8": {
@@ -132,8 +132,8 @@
     "type": "machinery"
   },
   "eddie:9": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-05.mp3",
-    "type": "machinery"
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-rotating-saw-14.mp3",
+    "type": "saw"
   },
   "eddie:10": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-13.mp3",
@@ -260,11 +260,11 @@
     "type": "alert"
   },
   "miura:17": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-03.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-01.mp3",
     "type": "music"
   },
   "miura:18": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-01.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-29.mp3",
     "type": "music"
   },
   "miura:19": {
@@ -272,15 +272,15 @@
     "type": "music"
   },
   "miura:20": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-09.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-07.mp3",
     "type": "music"
   },
   "miura:21": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-18.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/person-or-small-group-shouting-04.mp3",
     "type": "voice"
   },
   "miura:22": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-16.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-24.mp3",
     "type": "music"
   },
   "miura:23": {

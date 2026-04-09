@@ -17,5 +17,6 @@ export const state = {
     channels: 18,
     markerCap: 20,
     previousPlaybackState: 'paused', // store state before entering Dog Mode
+    personaClicks: 0,
   },
 }

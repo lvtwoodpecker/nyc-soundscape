@@ -513,10 +513,28 @@ body.about-modal-open {
 .dog-mode-enter.visible {
   display: grid;
 }
+.dog-mode-enter.jump-in {
+  animation: dogButtonJump 0.45s cubic-bezier(0.2, 0.9, 0.25, 1);
+}
 .dog-mode-enter img {
   width: 52px;
   height: 52px;
   display: block;
+}
+
+@keyframes dogButtonJump {
+  0% {
+    transform: translateY(14px) scale(0.86);
+    opacity: 0;
+  }
+  55% {
+    transform: translateY(-6px) scale(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 :root[data-theme='dark'] .dog-mode-enter img {
@@ -1293,7 +1311,12 @@ body.dog-mode .info-strip {
   border-radius: 0;
 }
 .timeline-hour-cell:hover { color: var(--muted); filter: brightness(1.3); }
-.timeline-hour-cell.current { outline: 1px solid var(--text); outline-offset: -1px; }
+.timeline-hour-cell.current {
+  outline: 2px solid var(--text);
+  outline-offset: -2px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 28%, transparent);
+  filter: brightness(1.2) saturate(1.2);
+}
 
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(6px); }
