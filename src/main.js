@@ -201,7 +201,7 @@ function setDogModeToggleIcon() {
 function maybeRevealDogModeButton() {
   const enterBtn = document.getElementById('dog-mode-enter')
   if (!enterBtn) return
-  if ((state.dogMode?.personaClicks || 0) < 3) return
+  if ((state.dogMode?.personaClicks || 0) < 2) return
   if (enterBtn.classList.contains('visible')) return
 
   enterBtn.classList.add('visible')
