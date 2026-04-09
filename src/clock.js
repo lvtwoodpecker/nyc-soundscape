@@ -4,9 +4,8 @@ import { clipAssignments } from './audio.js'
 const R_OUTER = 220
 const R_INNER = 100
 const R_LABEL = 238
-const DEFAULT_DB_BOUNDS = { low: 58, high: 84 }
-let cachedBoundsSource = null
-let cachedBounds = DEFAULT_DB_BOUNDS
+// anchored to real-world SPL: 60dB = street conversation, 100dB = construction/helicopter
+const DB_BOUNDS = { low: 60, high: 100 }
 
 // tracks the last full draw so updateClockHour can do a cheap diff
 let clockDrawnHour = -1
@@ -216,48 +215,8 @@ export function hideTooltip() {
   document.getElementById('hour-tooltip').classList.remove('visible')
 }
 
-function percentile(sorted, p) {
-  if (!sorted.length) return 0
-  const idx = (sorted.length - 1) * p
-  const lo = Math.floor(idx)
-  const hi = Math.ceil(idx)
-  if (lo === hi) return sorted[lo]
-  const t = idx - lo
-  return sorted[lo] * (1 - t) + sorted[hi] * t
-}
-
-function getGlobalDbBounds(hourlyStats) {
-  if (!hourlyStats?.by_borough) return DEFAULT_DB_BOUNDS
-  if (cachedBoundsSource === hourlyStats) return cachedBounds
-
-  const dbValues = []
-  const byBorough = hourlyStats.by_borough
-  for (const hours of Object.values(byBorough)) {
-    for (const hData of Object.values(hours || {})) {
-      const db = hData?.db
-      if (Number.isFinite(db) && db > 0) dbValues.push(db)
-    }
-  }
-
-  if (dbValues.length < 10) {
-    cachedBoundsSource = hourlyStats
-    cachedBounds = DEFAULT_DB_BOUNDS
-    return cachedBounds
-  }
-
-  dbValues.sort((a, b) => a - b)
-  let low = percentile(dbValues, 0.1)
-  let high = percentile(dbValues, 0.9)
-
-  if (!Number.isFinite(low) || !Number.isFinite(high) || high - low < 1) {
-    low = dbValues[0]
-    high = dbValues[dbValues.length - 1]
-  }
-  if (high - low < 1) high = low + 1
-
-  cachedBoundsSource = hourlyStats
-  cachedBounds = { low, high }
-  return cachedBounds
+function getGlobalDbBounds() {
+  return DB_BOUNDS
 }
 
 function dbToFactor(db, bounds) {
@@ -283,7 +242,7 @@ if (typeof document !== 'undefined') {
 export function drawClock(persona, selectedHour, hourlyStats) {
   const svg = document.getElementById('clock-svg')
   svg.innerHTML = ''
-  const dbBounds = getGlobalDbBounds(hourlyStats)
+  const dbBounds = getGlobalDbBounds()
 
   const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs')
   for (const k of Object.keys(SOUND_COLORS)) {
@@ -356,6 +315,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
 
     const assignKey = persona ? `${persona.id}:${h}` : null
     const assigned = assignKey ? clipAssignments[assignKey] : null
+    if (assigned?.db != null) db = assigned.db
     const assignedType = assigned?.type ?? null
     const color = assignedType ? (getSoundColor(assignedType) || featureColor(sounds, prevalence, persona, h)) : featureColor(sounds, prevalence, persona, h)
     const isSelected = h === selectedHour

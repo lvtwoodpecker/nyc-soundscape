@@ -657,6 +657,7 @@ function updateHour(h, options = {}) {
   // pre-assignment type corrects mislabeled SONYC clips, but soundOverride always wins
   const assignKey = `${state.persona.id}:${h}`
   const effectiveFeature = override ? feature : (feature && clipAssignments[assignKey]?.type ? clipAssignments[assignKey].type : feature)
+  const effectiveDb = clipAssignments[assignKey]?.db ?? db
   const featureColor = effectiveFeature ? getSoundColor(effectiveFeature) : state.persona.color
   const displaySounds = effectiveFeature
     ? [effectiveFeature, ...sounds.filter(s => s !== effectiveFeature)].slice(0, 4)
@@ -679,10 +680,10 @@ function updateHour(h, options = {}) {
 
   if (!state.dogModeActive) renderStory(h, state.allStories)
 
-  syncCurrentHourVisualAccent(featureColor, db)
+  syncCurrentHourVisualAccent(featureColor, effectiveDb)
 
   if (state.dogModeActive) renderDogSoundsList()
-  else renderSoundsList(displaySounds, db, noData)
+  else renderSoundsList(displaySounds, effectiveDb, noData)
   updateTimeline(h)
 
   if (!state.dogModeActive) updateClockHour(h)
@@ -696,9 +697,9 @@ function updateHour(h, options = {}) {
 
   if (shouldPlayAudio) {
     if (noData) {
-      playSound('flatline', db, data.borough)
+      playSound('flatline', effectiveDb, data.borough)
     } else {
-      if (effectiveFeature) playSound(effectiveFeature, db, data.borough)
+      if (effectiveFeature) playSound(effectiveFeature, effectiveDb, data.borough)
     }
   } else {
     animateDbMeter(0, { forceColor: state.lastSoundColor || featureColor })
