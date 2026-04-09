@@ -100,6 +100,14 @@ export function renderStory(currentHour, allStories) {
   ` : ''
   
   el.innerHTML = currentHTML + pastHTML
+
+  el.querySelectorAll('.story-entry').forEach(btn => {
+    btn.addEventListener('keydown', e => {
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault()
+      }
+    })
+  })
 }
 
 export function setPlayingColor(color) {

@@ -381,7 +381,7 @@ export function drawClock(persona, selectedHour, hourlyStats) {
     path.addEventListener('mousemove', (e) => moveTooltip(e))
     path.addEventListener('click', () => window.updateHourGlobal?.(h))
     path.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      if (e.key === 'Enter') {
         e.preventDefault()
         window.updateHourGlobal?.(h)
       }

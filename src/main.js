@@ -454,9 +454,18 @@ async function init() {
   setDogModeToggleIcon()
 
   document.addEventListener('keydown', e => {
-    if (e.key !== ' ') return
+    const isSpaceKey = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar'
+    if (!isSpaceKey) return
     // let persona cards handle their own space (selection)
     if (document.activeElement?.classList.contains('persona-card')) return
+    const target = e.target
+    const isFormField = target instanceof HTMLElement && (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT' ||
+      target.isContentEditable
+    )
+    if (isFormField) return
     e.preventDefault()
     e.stopPropagation()
     if (e.repeat) return
@@ -466,8 +475,17 @@ async function init() {
   }, true)
 
   document.addEventListener('keyup', e => {
-    if (e.key !== ' ') return
+    const isSpaceKey = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar'
+    if (!isSpaceKey) return
     if (document.activeElement?.classList.contains('persona-card')) return
+    const target = e.target
+    const isFormField = target instanceof HTMLElement && (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT' ||
+      target.isContentEditable
+    )
+    if (isFormField) return
     e.preventDefault()
     e.stopPropagation()
   }, true)
@@ -495,6 +513,14 @@ async function init() {
       if (isFormField && !isAutoplayInput) return
       e.preventDefault()
       jumpToHourManual((state.hour + 23) % 24).catch(err => console.warn('manual jump failed', err))
+    } else if (e.key === 'ArrowUp') {
+      if (isFormField && !isAutoplayInput) return
+      e.preventDefault()
+      cyclePersona(-1)
+    } else if (e.key === 'ArrowDown') {
+      if (isFormField && !isAutoplayInput) return
+      e.preventDefault()
+      cyclePersona(1)
     }
   })
 
@@ -540,6 +566,18 @@ function getSoundsForHour(persona, borough, hour) {
 // pick dominant sound: thresholds first, then priority, then prevalence fallback
 function pickFeatureSound(sounds, prevalence, persona) {
   return pickVisualSound(sounds, prevalence, persona, state.hour)
+}
+
+function cyclePersona(step) {
+  if (!PERSONAS.length) return
+  const currentIdx = PERSONAS.findIndex(p => p.id === state.persona?.id)
+  if (currentIdx < 0) {
+    const fallback = step >= 0 ? 0 : PERSONAS.length - 1
+    selectPersona(PERSONAS[fallback].id, { fromUser: false })
+    return
+  }
+  const nextIdx = (currentIdx + step + PERSONAS.length) % PERSONAS.length
+  selectPersona(PERSONAS[nextIdx].id, { fromUser: false })
 }
 
 function selectPersona(id, options = {}) {
