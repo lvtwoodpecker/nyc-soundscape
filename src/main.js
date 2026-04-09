@@ -201,7 +201,7 @@ function setDogModeToggleIcon() {
 function maybeRevealDogModeButton() {
   const enterBtn = document.getElementById('dog-mode-enter')
   if (!enterBtn) return
-  if ((state.dogMode?.personaClicks || 0) < 2) return
+  if ((state.dogMode?.personaClicks || 0) < 3) return
   if (enterBtn.classList.contains('visible')) return
 
   enterBtn.classList.add('visible')
@@ -456,8 +456,6 @@ async function init() {
   document.addEventListener('keydown', e => {
     const isSpaceKey = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar'
     if (!isSpaceKey) return
-    // let persona cards handle their own space (selection)
-    if (document.activeElement?.classList.contains('persona-card')) return
     const target = e.target
     const isFormField = target instanceof HTMLElement && (
       target.tagName === 'INPUT' ||
@@ -477,7 +475,6 @@ async function init() {
   document.addEventListener('keyup', e => {
     const isSpaceKey = e.code === 'Space' || e.key === ' ' || e.key === 'Spacebar'
     if (!isSpaceKey) return
-    if (document.activeElement?.classList.contains('persona-card')) return
     const target = e.target
     const isFormField = target instanceof HTMLElement && (
       target.tagName === 'INPUT' ||
@@ -573,11 +570,11 @@ function cyclePersona(step) {
   const currentIdx = PERSONAS.findIndex(p => p.id === state.persona?.id)
   if (currentIdx < 0) {
     const fallback = step >= 0 ? 0 : PERSONAS.length - 1
-    selectPersona(PERSONAS[fallback].id, { fromUser: false })
+    selectPersona(PERSONAS[fallback].id, { fromUser: true })
     return
   }
   const nextIdx = (currentIdx + step + PERSONAS.length) % PERSONAS.length
-  selectPersona(PERSONAS[nextIdx].id, { fromUser: false })
+  selectPersona(PERSONAS[nextIdx].id, { fromUser: true })
 }
 
 function selectPersona(id, options = {}) {

@@ -21,13 +21,36 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from collections import defaultdict
 from pathlib import Path
+
+try:
+    import librosa
+    import numpy as np
+    _LIBROSA = True
+except ImportError:
+    _LIBROSA = False
 
 DEFAULT_BASE = "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev"
 DEFAULT_MANIFEST = Path("analysis/outputs/curated_manifest.json")
 DEFAULT_SENSORS = Path("public/data/processed/sensors.json")
 DEFAULT_OUT = Path("public/data/processed/clip-index.json")
+DEFAULT_CURATED = Path("audio/curated")
+
+
+SPL_OFFSET = 113.5  # dBFS → estimated dB SPL, derived from SONYC sensor calibration
+
+
+def rms_spl(path: Path) -> float | None:
+    if not _LIBROSA or not path.exists():
+        return None
+    try:
+        y, _ = librosa.load(path, sr=None, mono=True)
+        rms = np.sqrt(np.mean(y ** 2))
+        return float(round(20 * np.log10(rms + 1e-9) + SPL_OFFSET, 2))
+    except Exception:
+        return None
 
 
 def main() -> None:
@@ -36,11 +59,13 @@ def main() -> None:
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST), help="Path to curated_manifest.json")
     parser.add_argument("--sensors", default=str(DEFAULT_SENSORS), help="Path to sensors.json")
     parser.add_argument("--out", default=str(DEFAULT_OUT), help="Output clip-index.json path")
+    parser.add_argument("--curated", default=str(DEFAULT_CURATED), help="Local curated audio dir")
     args = parser.parse_args()
 
     manifest_path = Path(args.manifest)
     sensors_path = Path(args.sensors)
     out_path = Path(args.out)
+    curated_dir = Path(args.curated)
     base = str(args.base).rstrip("/")
 
     with manifest_path.open() as f:
@@ -73,6 +98,9 @@ def main() -> None:
         if sensor is None:
             missing_sensor += 1
 
+        local_path = curated_dir / fine_class / mp3_name
+        db = rms_spl(local_path)
+
         clip_entry = {
             "url": url,
             "borough": str(entry.get("borough")) if entry.get("borough") is not None else None,
@@ -80,6 +108,8 @@ def main() -> None:
             "lat": lat,
             "lng": lng,
         }
+        if db is not None:
+            clip_entry["db"] = db
 
         index.setdefault(fine_class, []).append(clip_entry)
 

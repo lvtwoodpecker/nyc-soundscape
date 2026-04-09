@@ -136,7 +136,7 @@ export function animateDbMeter(targetDb, options = {}) {
   const updateFrame = () => {
     currentValue += (targetDb - currentValue) * 0.16
     if (Math.abs(currentValue - targetDb) < 0.5) {
-      valueEl.textContent = targetDb
+      valueEl.textContent = Math.round(targetDb)
       return
     }
     valueEl.textContent = Math.round(currentValue)

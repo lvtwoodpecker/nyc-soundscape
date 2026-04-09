@@ -500,8 +500,8 @@ body.about-modal-open {
   position: absolute;
   right: 12px;
   bottom: 142px;
-  width: 67px;
-  height: 67px;
+  width: 95px;
+  height: 95px;
   border-radius: 20px;
   border: 1px solid var(--border);
   background: color-mix(in srgb, var(--surface) 80%, transparent);
@@ -517,8 +517,8 @@ body.about-modal-open {
   animation: dogButtonJump 0.45s cubic-bezier(0.2, 0.9, 0.25, 1);
 }
 .dog-mode-enter img {
-  width: 52px;
-  height: 52px;
+  width: 70px;
+  height: 70px;
   display: block;
 }
 

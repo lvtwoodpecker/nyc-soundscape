@@ -5,7 +5,6 @@ const R_OUTER = 220
 const R_INNER = 100
 const R_LABEL = 238
 const DEFAULT_DB_BOUNDS = { low: 58, high: 84 }
-
 let cachedBoundsSource = null
 let cachedBounds = DEFAULT_DB_BOUNDS
 
@@ -262,13 +261,17 @@ function getGlobalDbBounds(hourlyStats) {
 }
 
 function dbToFactor(db, bounds) {
-  if (!Number.isFinite(db) || db <= 0) return 0
-  const norm = (db - bounds.low) / (bounds.high - bounds.low)
-  const clamped = Math.max(0, Math.min(1, norm))
-  const curved = Math.pow(clamped, 0.78)
-  // keep active hours visibly present and use more of the radial space
-  return 0.22 + 0.78 * curved
+  if (!Number.isFinite(db)) return 0
+  const k = 0.08
+  const range = bounds.high - bounds.low
+  if (range <= 0) return 0.5
+  const num = Math.exp(k * (db - bounds.low)) - 1
+  const den = Math.exp(k * range) - 1
+  const clamped = Math.max(0, Math.min(1, num / den))
+  return 0.4 + 0.6 * clamped
 }
+
+
 
 // attach once — svg.innerHTML = '' doesn't remove listeners on the svg itself
 if (typeof document !== 'undefined') {
@@ -351,7 +354,9 @@ export function drawClock(persona, selectedHour, hourlyStats) {
       }
     }
 
-    const assignedType = persona ? clipAssignments[`${persona.id}:${h}`]?.type : null
+    const assignKey = persona ? `${persona.id}:${h}` : null
+    const assigned = assignKey ? clipAssignments[assignKey] : null
+    const assignedType = assigned?.type ?? null
     const color = assignedType ? (getSoundColor(assignedType) || featureColor(sounds, prevalence, persona, h)) : featureColor(sounds, prevalence, persona, h)
     const isSelected = h === selectedHour
     const dbFactor = sounds.length > 0 ? dbToFactor(db, dbBounds) : 0
