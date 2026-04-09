@@ -1,482 +1,602 @@
 {
   "rosa:0": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-12.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 92.09
   },
   "rosa:1": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-21.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 81.79
   },
   "rosa:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-25.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 71.19
   },
   "rosa:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-01.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 75.65
   },
   "rosa:4": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-08.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 72.19
   },
   "rosa:5": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-13.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 97.9
   },
   "rosa:6": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-06.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 79.59
   },
   "rosa:7": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-01.mp3",
-    "type": "saw"
+    "type": "saw",
+    "db": 84.77
   },
   "rosa:8": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-barking-whining-03.mp3",
-    "type": "dog"
+    "type": "dog",
+    "db": 84.72
   },
   "rosa:9": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-25.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.73
   },
   "rosa:10": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-27.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 79.34
   },
   "rosa:11": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-08.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 83.6
   },
   "rosa:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-02.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 80.47
   },
   "rosa:13": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-12.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 78.23
   },
   "rosa:14": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-23.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 97.18
   },
   "rosa:15": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-02.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 81.76
   },
   "rosa:16": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-19.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 85.68
   },
   "rosa:17": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-02.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 76.84
   },
   "rosa:18": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-24.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 80.34
   },
   "rosa:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-01.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 73.88
   },
   "rosa:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-07.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 71.19
   },
   "rosa:21": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-03.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 92.3
   },
   "rosa:22": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-37.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 76.6
   },
   "rosa:23": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-07.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 83.65
   },
   "eddie:0": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-33.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 82.27
   },
   "eddie:1": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-05.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 73.2
   },
   "eddie:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/person-or-small-group-talking-13.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 83.74
   },
   "eddie:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-04.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 81.12
   },
   "eddie:4": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-23.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 75.94
   },
   "eddie:5": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-25.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.26
   },
   "eddie:6": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-15.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.04
   },
   "eddie:7": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-05.mp3",
-    "type": "saw"
+    "type": "saw",
+    "db": 87.33
   },
   "eddie:8": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-02.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 76.04
   },
   "eddie:9": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-rotating-saw-14.mp3",
-    "type": "saw"
+    "type": "saw",
+    "db": 75.93
   },
   "eddie:10": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-13.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 84.87
   },
   "eddie:11": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-01.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 96.74
   },
   "eddie:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-02.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 87.77
   },
   "eddie:13": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-20.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.83
   },
   "eddie:14": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-10.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.77
   },
   "eddie:15": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-03.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 78.3
   },
   "eddie:16": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-30.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 81.28
   },
   "eddie:17": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-04.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 94.31
   },
   "eddie:18": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-06.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 80.15
   },
   "eddie:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-35.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 72.19
   },
   "eddie:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-04.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 79.46
   },
   "eddie:21": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-06.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 76.77
   },
   "eddie:22": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-16.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 75.89
   },
   "eddie:23": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-11.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 83.17
   },
   "miura:0": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-27.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 85.77
   },
   "miura:1": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-11.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 80.55
   },
   "miura:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-39.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 80.13
   },
   "miura:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-02.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 67.65
   },
   "miura:4": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-26.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.48
   },
   "miura:5": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-30.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 85.94
   },
   "miura:6": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-03.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.2
   },
   "miura:7": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/chainsaw-07.mp3",
-    "type": "saw"
+    "type": "saw",
+    "db": 85.47
   },
   "miura:8": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-37.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 97.09
   },
   "miura:9": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-28.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 86.41
   },
   "miura:10": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-29.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 82.26
   },
   "miura:11": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-03.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 86.61
   },
   "miura:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-04.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 79.67
   },
   "miura:13": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-11.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 81.76
   },
   "miura:14": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-29.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 79.31
   },
   "miura:15": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-04.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 86.5
   },
   "miura:16": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-07.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 83.08
   },
   "miura:17": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-01.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 76.76
   },
   "miura:18": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-29.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 69.57
   },
   "miura:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-05.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 74.91
   },
   "miura:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/mobile-music-07.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 78.59
   },
   "miura:21": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/person-or-small-group-shouting-04.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 73.83
   },
   "miura:22": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-24.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 83.94
   },
   "miura:23": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-05.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 84.36
   },
   "marcus:0": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-40.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 83.32
   },
   "marcus:1": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-29.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.78
   },
   "marcus:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-01.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 75.55
   },
   "marcus:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-18.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 80.07
   },
   "marcus:4": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-31.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 83.46
   },
   "marcus:5": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-32.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 76.4
   },
   "marcus:6": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/reverse-beeper-17.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 82.12
   },
   "marcus:7": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-barking-whining-02.mp3",
-    "type": "dog"
+    "type": "dog",
+    "db": 75.88
   },
   "marcus:8": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-barking-whining-08.mp3",
-    "type": "dog"
+    "type": "dog",
+    "db": 77.44
   },
   "marcus:9": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-30.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 83.82
   },
   "marcus:10": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-14.mp3",
-    "type": "machinery"
+    "type": "machinery",
+    "db": 89.11
   },
   "marcus:11": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-14.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 89.11
   },
   "marcus:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-03.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 78.66
   },
   "marcus:13": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-21.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 84.34
   },
   "marcus:14": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-32.mp3",
-    "type": "music"
+    "type": "music",
+    "db": 82.02
   },
   "marcus:15": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-08.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 82.97
   },
   "marcus:16": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-34.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 75.44
   },
   "marcus:17": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-10.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 76.73
   },
   "marcus:18": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-26.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 88.67
   },
   "marcus:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-01.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 81.32
   },
   "marcus:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-05.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 76.63
   },
   "marcus:21": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-31.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 81.5
   },
   "marcus:22": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-17.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 97.75
   },
   "marcus:23": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-07.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 76.48
   },
   "nadia:0": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-04.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 79.68
   },
   "nadia:1": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-01.mp3",
-    "type": "alert"
+    "type": "alert",
+    "db": 79.33
   },
   "nadia:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-18.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 83.99
   },
   "nadia:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-28.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 75.78
   },
   "nadia:4": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-34.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 86.27
   },
   "nadia:5": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-35.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 77.9
   },
   "nadia:6": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-16.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 91.89
   },
   "nadia:7": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-23.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 75.44
   },
   "nadia:8": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-38.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 82.53
   },
   "nadia:9": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-32.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 82.04
   },
   "nadia:10": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-36.mp3",
-    "type": "engine"
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-barking-whining-11.mp3",
+    "type": "dog",
+    "db": 77.93
   },
   "nadia:11": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-09.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.72
   },
   "nadia:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/medium-sounding-engine-06.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 73.15
   },
   "nadia:13": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-24.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 77.16
   },
   "nadia:14": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-19.mp3",
-    "type": "engine"
+    "type": "engine",
+    "db": 78.07
   },
   "nadia:15": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/dog-barking-whining-09.mp3",
-    "type": "dog"
+    "type": "dog",
+    "db": 76.86
   },
   "nadia:16": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-38.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 78.41
   },
   "nadia:17": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-17.mp3",
-    "type": "engine"
+    "type": "music",
+    "db": 70.09
   },
   "nadia:18": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-12.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 83.61
   },
   "nadia:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-11.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 73.52
   },
   "nadia:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-33.mp3",
-    "type": "voice"
+    "type": "alert",
+    "db": 76.1
   },
   "nadia:21": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-06.mp3",
-    "type": "voice"
+    "type": "voice",
+    "db": 95.28
   },
   "nadia:22": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-23.mp3",
-    "type": "voice"
+    "type": "music",
+    "db": 76.25
   },
   "nadia:23": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/car-alarm-17.mp3",
-    "type": "alert"
+    "type": "voice",
+    "db": 75.06
   }
 }
