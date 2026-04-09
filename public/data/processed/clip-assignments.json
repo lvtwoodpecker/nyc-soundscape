@@ -5,11 +5,11 @@
   },
   "rosa:1": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-21.mp3",
-    "type": "engine"
+    "type": "machinery"
   },
   "rosa:2": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-25.mp3",
-    "type": "alert"
+    "type": "voice"
   },
   "rosa:3": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-01.mp3",
@@ -17,7 +17,7 @@
   },
   "rosa:4": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-08.mp3",
-    "type": "engine"
+    "type": "voice"
   },
   "rosa:5": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-13.mp3",
@@ -49,7 +49,7 @@
   },
   "rosa:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-02.mp3",
-    "type": "engine"
+    "type": "music"
   },
   "rosa:13": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-12.mp3",
@@ -76,7 +76,7 @@
     "type": "voice"
   },
   "rosa:19": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-07.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-01.mp3",
     "type": "voice"
   },
   "rosa:20": {
@@ -88,11 +88,11 @@
     "type": "engine"
   },
   "rosa:22": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-13.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-37.mp3",
     "type": "engine"
   },
   "rosa:23": {
-    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-01.mp3",
+    "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-07.mp3",
     "type": "voice"
   },
   "eddie:0": {
@@ -129,11 +129,11 @@
   },
   "eddie:8": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-02.mp3",
-    "type": "engine"
+    "type": "machinery"
   },
   "eddie:9": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-05.mp3",
-    "type": "alert"
+    "type": "machinery"
   },
   "eddie:10": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-13.mp3",
@@ -141,7 +141,7 @@
   },
   "eddie:11": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/hoe-ram-01.mp3",
-    "type": "engine"
+    "type": "machinery"
   },
   "eddie:12": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-sounding-engine-02.mp3",
@@ -269,7 +269,7 @@
   },
   "miura:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-05.mp3",
-    "type": "engine"
+    "type": "music"
   },
   "miura:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/ice-cream-truck-09.mp3",
@@ -461,7 +461,7 @@
   },
   "nadia:19": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/large-crowd-11.mp3",
-    "type": "engine"
+    "type": "voice"
   },
   "nadia:20": {
     "url": "https://pub-64ca4e71668742ceab6b2c679a8ff9ca.r2.dev/amplified-speech-33.mp3",
